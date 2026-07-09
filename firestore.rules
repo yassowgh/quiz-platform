@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /quizzes/{quizId} {
+      allow read: if resource.data.isPublished == true
+                  || (request.auth != null && request.auth.uid == resource.data.hostId);
+      allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.hostId == request.auth.uid;
+    }
+    match /games/{gameId} {
+      allow read: if request.auth != null
+                  && (resource.data.hostId == request.auth.uid
+                      || resource.data.playerIds.hasAny([request.auth.uid]));
+      allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.hostId == request.auth.uid;
+      match /players/{playerId} {
+        allow read: if request.auth != null;
+        allow write: if true;
+      }
+    }
+    match /pins/{pin} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
