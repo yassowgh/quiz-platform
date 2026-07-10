@@ -1,0 +1,72 @@
+"""Deploy Firestore security rules via Firebase Security Rules REST API.
+Called from GitHub Actions. Reads SERVICE_ACCOUNT env var (JSON string).
+"""
+import json, time, base64, os, urllib.request, urllib.parse
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+
+sa = json.loads(os.environ['SERVICE_ACCOUNT'])
+now = int(time.time())
+
+def b64(data):
+    if isinstance(data, str): data = data.encode()
+    return base64.urlsafe_b64encode(data).rstrip(b'=').decode()
+
+header = b64(json.dumps({"alg": "RS256", "typ": "JWT"}))
+payload = b64(json.dumps({
+    "iss": sa['client_email'], "sub": sa['client_email'],
+    "aud": "https://oauth2.googleapis.com/token",
+    "iat": now, "exp": now + 3600,
+    "scope": "https://www.googleapis.com/auth/cloud-platform"
+}))
+
+private_key = serialization.load_pem_private_key(sa['private_key'].encode(), password=None)
+signature = private_key.sign(f"{header}.{payload}".encode(), padding.PKCS1v15(), hashes.SHA256())
+jwt_token = f"{header}.{payload}.{b64(signature)}"
+
+req = urllib.request.Request(
+    "https://oauth2.googleapis.com/token",
+    data=urllib.parse.urlencode({
+        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        "assertion": jwt_token
+    }).encode(),
+    method="POST"
+)
+with urllib.request.urlopen(req) as r:
+    access_token = json.loads(r.read())['access_token']
+print("Got access token")
+
+project = sa['project_id']
+with open('firestore.rules') as f:
+    rules_content = f.read()
+
+def api(url, data=None, method='POST'):
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(data).encode() if data else None,
+        headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
+        method=method
+    )
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+
+ruleset = api(
+    f"https://firebasesecurityrules.googleapis.com/v1/projects/{project}/rulesets",
+    {"source": {"files": [{"name": "firestore.rules", "content": rules_content}]}}
+)
+print(f"Created ruleset: {ruleset['name']}")
+
+release_name = f"projects/{project}/releases/cloud.firestore"
+release_body = {"name": release_name, "rulesetName": ruleset['name']}
+try:
+    result = api(
+        f"https://firebasesecurityrules.googleapis.com/v1/{release_name}",
+        release_body, method='PUT'
+    )
+except Exception as e:
+    print(f"PUT failed ({e}), trying POST...")
+    result = api(
+        f"https://firebasesecurityrules.googleapis.com/v1/projects/{project}/releases",
+        release_body
+    )
+print(f"Firestore rules deployed: {result.get('name', 'ok')}")
