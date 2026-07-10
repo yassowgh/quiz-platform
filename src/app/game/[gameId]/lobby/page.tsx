@@ -1,2 +1,7 @@
+import LobbyClient from './LobbyClient';
+
 export function generateStaticParams() { return []; }
-export { default } from './LobbyClient';
+
+export default function Page() {
+  return <LobbyClient />;
+}
