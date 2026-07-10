@@ -30,6 +30,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Deploy security rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$SERVICE_ACCOUNT" > /tmp/sa.json
+          npx --yes firebase-tools deploy --only firestore:rules,database --project quiz-platform-e46ba --non-interactive
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
