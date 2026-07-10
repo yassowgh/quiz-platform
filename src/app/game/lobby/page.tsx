@@ -1,5 +1,9 @@
-'use client';
+import { Suspense } from 'react';
 import LobbyClient from './LobbyClient';
 export default function Page() {
-  return <LobbyClient />;
+  return (
+    <Suspense fallback={null}>
+      <LobbyClient />
+    </Suspense>
+  );
 }
