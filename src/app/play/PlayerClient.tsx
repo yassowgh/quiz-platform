@@ -1,20 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { submitAnswer } from "@/lib/realtimeDb";
-import type { GameStatus } from "@/types";
 import AnswerButton from "@/components/game/AnswerButton";
 import Timer from "@/components/game/Timer";
 import Leaderboard from "@/components/game/Leaderboard";
 import Confetti from "@/components/game/Confetti";
 import Card from "@/components/ui/Card";
 
-
 export default function PlayPage() {
-  const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const gameId = params.gameId as string;
+  const gameId = searchParams.get("gameId") || "";
   const { state } = useGame(gameId);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string>("");
@@ -62,12 +60,11 @@ export default function PlayPage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col">
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6">
-          <div className="text-6xl">ð®</div>
+          <div className="text-6xl">🎮</div>
           <h1 className="text-3xl font-black">{nickname}</h1>
           <p className="text-white/60 text-xl animate-pulse">Waiting for host to start...</p>
         </div>
       )}
-
       {state.status === "question" && (
         <div className="flex flex-col flex-1 p-4 gap-4">
           <div className="flex justify-between items-center">
@@ -92,12 +89,11 @@ export default function PlayPage() {
           )}
         </div>
       )}
-
       {state.status === "answer_reveal" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
           {myAnswer ? (
             <>
-              <div className="text-6xl">{myAnswer.isCorrect ? "â" : "â"}</div>
+              <div className="text-6xl">{myAnswer.isCorrect ? "✓" : "✗"}</div>
               <h2 className="text-3xl font-black">{myAnswer.isCorrect ? "Correct!" : "Wrong!"}</h2>
               {myAnswer.isCorrect && (
                 <p className="text-2xl font-bold text-kahoot-yellow">+{myAnswer.pointsEarned} pts</p>
@@ -109,27 +105,24 @@ export default function PlayPage() {
           <p className="text-white/60">Total: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
         </div>
       )}
-
       {state.status === "leaderboard" && (
         <div className="p-6">
           <h2 className="text-3xl font-black text-center mb-6">Leaderboard</h2>
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} />
         </div>
       )}
-
       {state.status === "podium" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
-          <h2 className="text-4xl font-black mb-8">ð Game Over!</h2>
+          <h2 className="text-4xl font-black mb-8">🎉 Game Over!</h2>
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
         </div>
       )}
-
       {state.status === "ended" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <h2 className="text-4xl font-black mb-4">Thanks for playing!</h2>
           <p className="text-white/60 mb-6">Final score: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
-          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again â</a>
+          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again →</a>
         </div>
       )}
     </div>

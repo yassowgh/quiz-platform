@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz, updateQuiz } from "@/lib/firestore";
 import type { Quiz } from "@/types";
@@ -8,10 +8,9 @@ import QuizEditor from "@/components/quiz/QuizEditor";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
-
 export default function EditQuizPage() {
   const router = useRouter();
-  const params = useParams();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [saving, setSaving] = useState(false);
@@ -21,9 +20,10 @@ export default function EditQuizPage() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    if (!params.id) return;
-    getQuiz(params.id as string).then(setQuiz);
-  }, [params.id]);
+    const id = searchParams.get("id");
+    if (!id) return;
+    getQuiz(id).then(setQuiz);
+  }, [searchParams]);
 
   const save = async (publish?: boolean) => {
     if (!quiz) return;

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
 import { createLiveGame, kickPlayer, lockLobby } from "@/lib/realtimeDb";
@@ -9,11 +9,11 @@ import type { Quiz } from "@/types";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 
-
 export default function LobbyPage() {
   const router = useRouter();
-  const params = useParams();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const quizId = searchParams.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
   const [pin, setPin] = useState<string>("");
@@ -21,9 +21,9 @@ export default function LobbyPage() {
   const { state } = useGame(gameId);
 
   useEffect(() => {
-    if (!params.gameId) return;
-    getQuiz(params.gameId as string).then(setQuiz);
-  }, [params.gameId]);
+    if (!quizId) return;
+    getQuiz(quizId).then(setQuiz);
+  }, [quizId]);
 
   const startGame = async () => {
     if (!quiz || !user) return;
@@ -36,7 +36,7 @@ export default function LobbyPage() {
 
   const handleStart = () => {
     if (!gameId) return;
-    router.push(`/host/${gameId}/play?quizId=${quiz?.id}`);
+    router.push(`/host/play?gameId=${gameId}&quizId=${quiz?.id}`);
   };
 
   const players = state ? Object.values(state.players) : [];
@@ -58,7 +58,6 @@ export default function LobbyPage() {
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
             <p className="text-gray-400 mt-2">Players join at QuizLive.app</p>
           </Card>
-
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{players.length} Players</h2>
@@ -75,7 +74,7 @@ export default function LobbyPage() {
                     onClick={() => kickPlayer(gameId, p.id)}
                     className="ml-1 text-red-400 hover:text-red-600 text-xs"
                     title="Kick"
-                  >â</button>
+                  >×</button>
                 </div>
               ))}
             </div>

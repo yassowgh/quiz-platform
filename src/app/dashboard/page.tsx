@@ -39,7 +39,7 @@ export default function DashboardPage() {
       updatedAt: Date.now(),
     };
     await updateQuiz(newQuiz);
-    router.push(`/quiz/${newQuiz.id}/edit`);
+    router.push(`/quiz/edit?id=${newQuiz.id}`);
   };
 
   const handleDelete = async (id: string) => {
@@ -56,7 +56,6 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-black">My Quizzes</h1>
         <Button onClick={createQuiz}>+ New Quiz</Button>
       </div>
-
       {quizzes.length === 0 ? (
         <Card className="text-center py-16">
           <p className="text-gray-400 text-xl mb-4">No quizzes yet</p>
@@ -71,10 +70,10 @@ export default function DashboardPage() {
                 <p className="text-gray-500">{quiz.questions.length} questions · {quiz.isPublished ? "Published" : "Draft"}</p>
               </div>
               <div className="flex gap-2">
-                <Link href={`/game/${quiz.id}/lobby`}>
+                <Link href={`/game/lobby?quizId=${quiz.id}`}>
                   <Button size="sm">Host</Button>
                 </Link>
-                <Link href={`/quiz/${quiz.id}/edit`}>
+                <Link href={`/quiz/edit?id=${quiz.id}`}>
                   <Button size="sm" variant="secondary">Edit</Button>
                 </Link>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(quiz.id)}>Delete</Button>

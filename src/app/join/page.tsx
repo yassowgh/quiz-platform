@@ -29,7 +29,7 @@ export default function JoinPage() {
       sessionStorage.setItem("playerId", playerId);
       sessionStorage.setItem("nickname", nickname.trim());
       await joinGame(gameId, playerId, nickname.trim());
-      router.push(`/play/${gameId}`);
+      router.push(`/play?gameId=${gameId}`);
     } catch {
       setError("Failed to join. Try again.");
     } finally {
