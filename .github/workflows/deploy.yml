@@ -39,6 +39,7 @@ jobs:
           npx --yes firebase-tools deploy --only database --project quiz-platform-e46ba --non-interactive
 
       - name: Deploy Firestore rules
+        continue-on-error: true
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
