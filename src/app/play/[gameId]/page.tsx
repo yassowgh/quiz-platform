@@ -10,6 +10,9 @@ import Leaderboard from "@/components/game/Leaderboard";
 import Confetti from "@/components/game/Confetti";
 import Card from "@/components/ui/Card";
 
+export function generateStaticParams() { return []; }
+
+
 export default function PlayPage() {
   const params = useParams();
   const router = useRouter();
@@ -61,7 +64,7 @@ export default function PlayPage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col">
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6">
-          <div className="text-6xl">🎮</div>
+          <div className="text-6xl">ð®</div>
           <h1 className="text-3xl font-black">{nickname}</h1>
           <p className="text-white/60 text-xl animate-pulse">Waiting for host to start...</p>
         </div>
@@ -96,7 +99,7 @@ export default function PlayPage() {
         <div className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
           {myAnswer ? (
             <>
-              <div className="text-6xl">{myAnswer.isCorrect ? "✅" : "❌"}</div>
+              <div className="text-6xl">{myAnswer.isCorrect ? "â" : "â"}</div>
               <h2 className="text-3xl font-black">{myAnswer.isCorrect ? "Correct!" : "Wrong!"}</h2>
               {myAnswer.isCorrect && (
                 <p className="text-2xl font-bold text-kahoot-yellow">+{myAnswer.pointsEarned} pts</p>
@@ -119,7 +122,7 @@ export default function PlayPage() {
       {state.status === "podium" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
-          <h2 className="text-4xl font-black mb-8">🏆 Game Over!</h2>
+          <h2 className="text-4xl font-black mb-8">ð Game Over!</h2>
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
         </div>
       )}
@@ -128,7 +131,7 @@ export default function PlayPage() {
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <h2 className="text-4xl font-black mb-4">Thanks for playing!</h2>
           <p className="text-white/60 mb-6">Final score: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
-          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again →</a>
+          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again â</a>
         </div>
       )}
     </div>
