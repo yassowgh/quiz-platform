@@ -1,2 +1,7 @@
+import EditClient from './EditClient';
+
 export function generateStaticParams() { return []; }
-export { default } from './EditClient';
+
+export default function Page() {
+  return <EditClient />;
+}
