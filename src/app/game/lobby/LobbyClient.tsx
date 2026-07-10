@@ -39,7 +39,7 @@ export default function LobbyPage() {
     router.push(`/host/play?gameId=${gameId}&quizId=${quiz?.id}`);
   };
 
-  const players = state ? Object.values(state.players) : [];
+  const players = state?.players ? Object.values(state.players) : [];
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex flex-col items-center justify-center p-6">
