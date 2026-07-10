@@ -12,6 +12,7 @@ export default function EditQuizPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -22,7 +23,16 @@ export default function EditQuizPage() {
   useEffect(() => {
     const id = searchParams.get("id");
     if (!id) return;
-    getQuiz(id).then(setQuiz);
+    setLoadError(null);
+    getQuiz(id)
+      .then((q) => {
+        if (!q) setLoadError("Quiz not found.");
+        else setQuiz(q);
+      })
+      .catch((err) => {
+        console.error("Failed to load quiz:", err);
+        setLoadError("Failed to load quiz. Check connection and try again.");
+      });
   }, [searchParams]);
 
   const save = async (publish?: boolean) => {
@@ -37,6 +47,13 @@ export default function EditQuizPage() {
     router.push("/dashboard");
   };
 
+  if (loading) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
+  if (loadError) return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <p className="text-red-500 text-xl font-semibold">{loadError}</p>
+      <button onClick={() => router.push("/dashboard")} className="px-4 py-2 bg-blue-600 text-white rounded font-semibold">Back to Dashboard</button>
+    </div>
+  );
   if (!quiz) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
 
   return (

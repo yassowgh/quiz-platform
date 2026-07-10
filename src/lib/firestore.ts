@@ -7,7 +7,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   getDocs,
   serverTimestamp,
 } from "firebase/firestore";
@@ -33,13 +32,10 @@ export async function deleteQuiz(id: string) {
 }
 
 export async function listQuizzesByHost(hostId: string): Promise<Quiz[]> {
-  const q = query(
-    collection(db, "quizzes"),
-    where("hostId", "==", hostId),
-    orderBy("updatedAt", "desc")
-  );
+  const q = query(collection(db, "quizzes"), where("hostId", "==", hostId));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as Quiz);
+  const quizzes = snap.docs.map((d) => d.data() as Quiz);
+  return quizzes.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
 }
 
 export function makeBlankQuestion(): Question {
@@ -72,11 +68,8 @@ export async function saveGameRecord(record: object) {
 }
 
 export async function listGamesByHost(hostId: string) {
-  const q = query(
-    collection(db, "games"),
-    where("hostId", "==", hostId),
-    orderBy("createdAt", "desc")
-  );
+  const q = query(collection(db, "games"), where("hostId", "==", hostId));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data());
+  const games = snap.docs.map((d) => d.data());
+  return games.sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 }

@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -23,23 +24,31 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    listQuizzesByHost(user.uid).then((q) => { setQuizzes(q); setFetching(false); });
+    listQuizzesByHost(user.uid)
+      .then((q) => { setQuizzes(q); setFetching(false); })
+      .catch((err) => { console.error("Failed to load quizzes:", err); setFetching(false); });
   }, [user]);
 
   const createQuiz = async () => {
     if (!user) return;
-    const newQuiz: Quiz = {
-      id: nanoid(),
-      hostId: user.uid,
-      title: "Untitled Quiz",
-      description: "",
-      questions: [makeBlankQuestion()],
-      isPublished: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    await updateQuiz(newQuiz);
-    router.push(`/quiz/edit?id=${newQuiz.id}`);
+    setCreateError(null);
+    try {
+      const newQuiz: Quiz = {
+        id: nanoid(),
+        hostId: user.uid,
+        title: "Untitled Quiz",
+        description: "",
+        questions: [makeBlankQuestion()],
+        isPublished: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      await updateQuiz(newQuiz);
+      router.push(`/quiz/edit?id=${newQuiz.id}`);
+    } catch (err: any) {
+      console.error("Failed to create quiz:", err);
+      setCreateError(err?.message ?? "Failed to create quiz. Please try again.");
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -56,6 +65,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-black">My Quizzes</h1>
         <Button onClick={createQuiz}>+ New Quiz</Button>
       </div>
+      {createError && <p className="text-red-500 mb-4 font-semibold">{createError}</p>}
       {quizzes.length === 0 ? (
         <Card className="text-center py-16">
           <p className="text-gray-400 text-xl mb-4">No quizzes yet</p>
