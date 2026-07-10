@@ -16,6 +16,9 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { ANSWER_COLORS } from "@/types";
 
+export function generateStaticParams() { return []; }
+
+
 export default function HostPlayPage() {
   const router = useRouter();
   const params = useParams();
@@ -117,7 +120,7 @@ export default function HostPlayPage() {
         <div className="max-w-3xl mx-auto">
           <Card className="mb-4 text-center">
             <h2 className="text-2xl font-black mb-1">{currentQ.text}</h2>
-            <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.options[currentQ.correctAnswer]}</p>
+            <p className="text-kahoot-green font-bold text-xl">â {currentQ.options[currentQ.correctAnswer]}</p>
           </Card>
           <div className="mb-6">
             <AnswerDistribution
@@ -144,7 +147,7 @@ export default function HostPlayPage() {
       {state.status === "podium" && (
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
-          <h2 className="text-4xl font-black mb-8">🏆 Final Results</h2>
+          <h2 className="text-4xl font-black mb-8">ð Final Results</h2>
           <Leaderboard players={state.players} />
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">End Game</Button>
         </div>
