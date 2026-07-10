@@ -1,2 +1,7 @@
+import PlayerClient from './PlayerClient';
+
 export function generateStaticParams() { return []; }
-export { default } from './PlayerClient';
+
+export default function Page() {
+  return <PlayerClient />;
+}
