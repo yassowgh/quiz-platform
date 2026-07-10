@@ -9,6 +9,9 @@ import type { Quiz } from "@/types";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 
+export function generateStaticParams() { return []; }
+
+
 export default function LobbyPage() {
   const router = useRouter();
   const params = useParams();
@@ -74,7 +77,7 @@ export default function LobbyPage() {
                     onClick={() => kickPlayer(gameId, p.id)}
                     className="ml-1 text-red-400 hover:text-red-600 text-xs"
                     title="Kick"
-                  >✕</button>
+                  >â</button>
                 </div>
               ))}
             </div>
