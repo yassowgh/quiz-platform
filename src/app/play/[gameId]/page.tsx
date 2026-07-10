@@ -1,4 +1,5 @@
-import PlayerClient from './PlayerClient';
+import dynamic from 'next/dynamic';
+const PlayerClient = dynamic(() => import('./PlayerClient'), { ssr: false });
 
 export function generateStaticParams() { return []; }
 
