@@ -1,2 +1,7 @@
+import PlayClient from './PlayClient';
+
 export function generateStaticParams() { return []; }
-export { default } from './PlayClient';
+
+export default function Page() {
+  return <PlayClient />;
+}
