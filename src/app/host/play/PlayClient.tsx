@@ -73,6 +73,32 @@ export default function HostPlayPage() {
 
   if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">Loading game...</div>;
 
+  // Background music during question phase
+  useEffect(() => {
+    if (state?.status !== "question") return;
+    const ACtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!ACtx) return;
+    const ctx = new ACtx();
+    const master = ctx.createGain();
+    master.gain.value = 0.08;
+    master.connect(ctx.destination);
+    const melody = [523, 659, 784, 659, 523, 392, 440, 523];
+    let idx = 0, nextTime = ctx.currentTime + 0.05;
+    const id = setInterval(() => {
+      while (nextTime < ctx.currentTime + 0.4) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(master);
+        o.type = "square";
+        o.frequency.value = melody[idx % melody.length];
+        g.gain.setValueAtTime(0.7, nextTime);
+        g.gain.exponentialRampToValueAtTime(0.001, nextTime + 0.2);
+        o.start(nextTime); o.stop(nextTime + 0.2);
+        nextTime += 0.25; idx++;
+      }
+    }, 100);
+    return () => { clearInterval(id); ctx.close(); };
+  }, [state?.status]);
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6">
       {state.status === "lobby" && (
@@ -90,7 +116,7 @@ export default function HostPlayPage() {
             <span className="text-white/70">Q {state.currentQuestionIndex + 1}/{quiz?.questions.length}</span>
             <span className="text-white/70">{answeredCount}/{players.length} answered</span>
           </div>
-          <Card className="mb-4 text-center">
+          <Card className="mb-4 text-center text-gray-900">
             <h2 className="text-2xl font-black">{currentQ.text}</h2>
           </Card>
           <Timer
@@ -112,7 +138,7 @@ export default function HostPlayPage() {
       )}
       {state.status === "answer_reveal" && currentQ && (
         <div className="max-w-3xl mx-auto">
-          <Card className="mb-4 text-center">
+          <Card className="mb-4 text-center text-gray-900">
             <h2 className="text-2xl font-black mb-1">{currentQ.text}</h2>
             <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.options[currentQ.correctAnswer]}</p>
           </Card>
@@ -140,7 +166,31 @@ export default function HostPlayPage() {
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 Final Results</h2>
-          <Leaderboard players={state.players} />
+          {/* Podium: 3rd (left) → 2nd (middle) → 1st (right) */}
+          {(() => {
+            const ranked = state.players
+              ? (Object.values(state.players) as any[]).sort((a, b) => b.score - a.score)
+              : [];
+            const slots = [ranked[2], ranked[1], ranked[0]];
+            const ht = ["h-16", "h-24", "h-32"];
+            const bg = ["bg-orange-500", "bg-gray-400", "bg-yellow-400"];
+            const md = ["🥉", "🥈", "🥇"];
+            const lb = ["3rd", "2nd", "1st"];
+            return (
+              <div className="flex items-end justify-center gap-4 mb-8">
+                {slots.map((p: any, i: number) => p ? (
+                  <div key={i} className="flex flex-col items-center">
+                    <div className="text-3xl mb-1">{md[i]}</div>
+                    <div className="font-bold text-white text-sm mb-1 truncate max-w-[80px]">{p.name}</div>
+                    <div className="text-white/80 text-xs mb-2">{p.score} pts</div>
+                    <div className={["w-24", ht[i], bg[i], "rounded-t-xl flex items-center justify-center font-black text-white text-xl"].join(" ")}>
+                      {lb[i]}
+                    </div>
+                  </div>
+                ) : null)}
+              </div>
+            );
+          })()}
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">End Game</Button>
         </div>
       )}
