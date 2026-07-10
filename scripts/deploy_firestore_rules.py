@@ -1,12 +1,15 @@
 """Deploy Firestore security rules via Firebase Security Rules REST API.
 Called from GitHub Actions. Reads SERVICE_ACCOUNT env var (JSON string).
 """
-import json, time, base64, os, urllib.request, urllib.parse
+import json, time, base64, os, urllib.request, urllib.parse, urllib.error
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
 sa = json.loads(os.environ['SERVICE_ACCOUNT'])
 now = int(time.time())
+
+project = sa['project_id']
+print(f"Project ID: {project}")
 
 def b64(data):
     if isinstance(data, str): data = data.encode()
@@ -36,19 +39,25 @@ with urllib.request.urlopen(req) as r:
     access_token = json.loads(r.read())['access_token']
 print("Got access token")
 
-project = sa['project_id']
 with open('firestore.rules') as f:
     rules_content = f.read()
 
 def api(url, data=None, method='POST'):
+    print(f">>> {method} {url}")
     req = urllib.request.Request(
         url,
         data=json.dumps(data).encode() if data else None,
         headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
         method=method
     )
-    with urllib.request.urlopen(req) as r:
-        return json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode('utf-8', errors='replace')
+        print(f"HTTP {e.code} {e.reason}")
+        print(f"Response body: {body[:3000]}")
+        raise
 
 ruleset = api(
     f"https://firebasesecurityrules.googleapis.com/v1/projects/{project}/rulesets",
@@ -64,7 +73,7 @@ try:
         release_body, method='PUT'
     )
 except Exception as e:
-    print(f"PUT failed ({e}), trying POST...")
+    print(f"PUT failed, trying POST...")
     result = api(
         f"https://firebasesecurityrules.googleapis.com/v1/projects/{project}/releases",
         release_body
