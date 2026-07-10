@@ -17,6 +17,37 @@ export default function PlayPage() {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+
+  // Reset answer when a new question starts
+  useEffect(() => {
+    setSelectedAnswer(null);
+  }, [state?.currentQuestionIndex]);
+
+  // Background music during question phase
+  useEffect(() => {
+    if (state?.status !== "question") return;
+    const ACtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!ACtx) return;
+    const ctx = new ACtx();
+    const master = ctx.createGain();
+    master.gain.value = 0.06;
+    master.connect(ctx.destination);
+    const melody = [523, 659, 784, 659, 523, 392, 440, 523];
+    let idx = 0, nextTime = ctx.currentTime + 0.05;
+    const id = setInterval(() => {
+      while (nextTime < ctx.currentTime + 0.4) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(master);
+        o.type = "square";
+        o.frequency.value = melody[idx % melody.length];
+        g.gain.setValueAtTime(0.7, nextTime);
+        g.gain.exponentialRampToValueAtTime(0.001, nextTime + 0.2);
+        o.start(nextTime); o.stop(nextTime + 0.2);
+        nextTime += 0.25; idx++;
+      }
+    }, 100);
+    return () => { clearInterval(id); ctx.close(); };
+  }, [state?.status]);
   const [timerKey, setTimerKey] = useState(0);
 
   useEffect(() => {
