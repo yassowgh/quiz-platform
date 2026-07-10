@@ -8,6 +8,9 @@ import QuizEditor from "@/components/quiz/QuizEditor";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
+export function generateStaticParams() { return []; }
+
+
 export default function EditQuizPage() {
   const router = useRouter();
   const params = useParams();
