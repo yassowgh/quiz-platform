@@ -72,15 +72,19 @@ export default function HostPlayPage() {
   const handleReveal = () => revealAnswer(gameId);
   const handleLeaderboard = () => showLeaderboard(gameId);
 
-  if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">Loading game...</div>;
-
   // Background music during question phase
   useEffect(() => {
     if (state?.status !== "question") return;
     const audio = new Audio("/music.mp3");
     audio.loop = true;
     audio.volume = 0.4;
-    audio.play().catch(() => {});
+    const tryPlay = () => audio.play().catch(() => {
+      // Autoplay blocked: retry on first user interaction
+      const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
+      document.addEventListener("click", resume);
+      document.addEventListener("touchstart", resume);
+    });
+    tryPlay();
     return () => { audio.pause(); audio.src = ""; };
   }, [state?.status]);
 
@@ -103,6 +107,8 @@ export default function HostPlayPage() {
       revealAnswer(gameId);
     }
   }, [answeredCount, players.length, state?.status, gameId]);
+
+  if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">Loading game...</div>;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6">

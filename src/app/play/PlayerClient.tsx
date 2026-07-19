@@ -30,9 +30,28 @@ export default function PlayPage() {
     const audio = new Audio("/music.mp3");
     audio.loop = true;
     audio.volume = 0.4;
-    audio.play().catch(() => {});
+    const tryPlay = () => audio.play().catch(() => {
+      // Autoplay blocked: retry on first user interaction
+      const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
+      document.addEventListener("click", resume);
+      document.addEventListener("touchstart", resume);
+    });
+    tryPlay();
     return () => { audio.pause(); audio.src = ""; };
   }, [state?.status]);
+
+  // 3-2-1 countdown when a new question starts
+  useEffect(() => {
+    if (state?.status !== "question") { setCountdown(null); return; }
+    setCountdown(3);
+    const id = setInterval(() => {
+      setCountdown((c) => {
+        if (c === null || c <= 1) { clearInterval(id); return null; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [state?.status, state?.currentQuestionIndex]);
   const [timerKey, setTimerKey] = useState(0);
 
   useEffect(() => {
@@ -72,18 +91,6 @@ export default function PlayPage() {
     </div>
   );
 
-  // 3-2-1 countdown when a new question starts
-  useEffect(() => {
-    if (state?.status !== "question") { setCountdown(null); return; }
-    setCountdown(3);
-    const id = setInterval(() => {
-      setCountdown((c) => {
-        if (c === null || c <= 1) { clearInterval(id); return null; }
-        return c - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [state?.status, state?.currentQuestionIndex]);
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col">
