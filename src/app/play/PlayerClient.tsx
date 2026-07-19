@@ -17,6 +17,7 @@ export default function PlayPage() {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   // Reset answer when a new question starts
   useEffect(() => {
@@ -87,8 +88,26 @@ export default function PlayPage() {
     </div>
   );
 
+  // 3-2-1 countdown when a new question starts
+  useEffect(() => {
+    if (state?.status !== "question") { setCountdown(null); return; }
+    setCountdown(3);
+    const id = setInterval(() => {
+      setCountdown((c) => {
+        if (c === null || c <= 1) { clearInterval(id); return null; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [state?.status, state?.currentQuestionIndex]);
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col">
+      {countdown !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
+        </div>
+      )}
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6">
           <div className="text-6xl">🎮</div>
@@ -110,7 +129,7 @@ export default function PlayPage() {
                 index={i}
                 text={selectedAnswer !== null ? (i === selectedAnswer ? "Your answer" : "") : "Tap to answer"}
                 selected={selectedAnswer === i}
-                disabled={selectedAnswer !== null}
+                disabled={selectedAnswer !== null || countdown !== null}
                 onClick={() => handleAnswer(i)}
               />
             ))}
@@ -126,6 +145,9 @@ export default function PlayPage() {
             <>
               <div className="text-6xl">{myAnswer.isCorrect ? "✓" : "✗"}</div>
               <h2 className="text-3xl font-black">{myAnswer.isCorrect ? "Correct!" : "Wrong!"}</h2>
+              {myAnswer.isCorrect && (state.players?.[playerId || ""]?.streak || 0) > 1 && (
+                <p className="text-orange-400 font-bold text-xl">🔥 {state.players?.[playerId || ""]?.streak} answer streak!</p>
+              )}
               {myAnswer.isCorrect && (
                 <p className="text-2xl font-bold text-kahoot-yellow">+{myAnswer.pointsEarned} pts</p>
               )}

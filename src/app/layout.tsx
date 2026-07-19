@@ -4,7 +4,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/ui/Navbar";
 
 export const metadata: Metadata = {
-  title: "QuizLive — Real-time Quiz Platform",
+  title: "Kahoot Alternative — Real-time Quiz Platform",
   description: "Host and play live multiplayer quizzes",
 };
 

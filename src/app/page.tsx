@@ -30,7 +30,7 @@ export default function HomePage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex flex-col items-center justify-center p-6">
       <div className="text-center mb-10">
-        <h1 className="text-6xl font-black text-white mb-3">QuizLive</h1>
+        <h1 className="text-6xl font-black text-white mb-3">Kahoot Alternative</h1>
         <p className="text-white/70 text-xl">Real-time multiplayer quizzes</p>
       </div>
 

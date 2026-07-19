@@ -98,14 +98,20 @@ export async function submitAnswer(
   timeLimitSeconds: number,
   isCorrect: boolean
 ) {
-  const points = calculatePoints(isCorrect, timeTakenMs, timeLimitSeconds);
-  const answer: PlayerAnswer = { answerIndex, timeTakenMs, pointsEarned: points, isCorrect };
-  await set(ref(rtdb, `games/${gameId}/answers/${questionIndex}/${playerId}`), answer);
+  const basePoints = calculatePoints(isCorrect, timeTakenMs, timeLimitSeconds);
 
   const playerRef = ref(rtdb, `games/${gameId}/players/${playerId}`);
   const snap = await get(playerRef);
-  if (snap.exists()) {
-    const player = snap.val();
+  const player = snap.exists() ? snap.val() : null;
+
+  // Kahoot-style streak bonus: +50 per consecutive correct answer (max +500)
+  const streakBonus = isCorrect && player ? Math.min(player.streak || 0, 10) * 50 : 0;
+  const points = basePoints + streakBonus;
+
+  const answer: PlayerAnswer = { answerIndex, timeTakenMs, pointsEarned: points, isCorrect };
+  await set(ref(rtdb, `games/${gameId}/answers/${questionIndex}/${playerId}`), answer);
+
+  if (player) {
     const newStreak = isCorrect ? (player.streak || 0) + 1 : 0;
     await update(playerRef, {
       score: (player.score || 0) + points,

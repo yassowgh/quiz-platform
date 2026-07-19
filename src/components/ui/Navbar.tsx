@@ -8,7 +8,7 @@ export default function Navbar() {
   return (
     <nav className="bg-kahoot-purple text-white px-6 py-4 flex items-center justify-between shadow-lg">
       <Link href="/" className="text-2xl font-black tracking-tight hover:opacity-90">
-        🎮 QuizLive
+        🎮 Kahoot Alternative
       </Link>
       <div className="flex items-center gap-3">
         {user ? (

@@ -40,13 +40,21 @@ export default function JoinClient() {
         <h1 className="text-3xl font-black mb-2">You're in!</h1>
         <p className="text-gray-500 mb-6">Choose your nickname</p>
         <form onSubmit={handleJoin} className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={20}
-            className="text-center text-2xl font-bold border-b-4 border-kahoot-purple py-3 focus:outline-none w-full"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={20}
+              className="text-center text-2xl font-bold border-b-4 border-kahoot-purple py-3 focus:outline-none w-full"
+            />
+            <button
+              type="button"
+              onClick={() => setNickname(randomNickname())}
+              className="text-3xl hover:rotate-12 transition-transform"
+              title="Random nickname"
+            >🎲</button>
+          </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" loading={joining} size="lg" className="w-full">Join Game!</Button>
         </form>

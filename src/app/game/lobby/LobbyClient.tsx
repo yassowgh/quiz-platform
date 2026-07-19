@@ -56,7 +56,7 @@ export default function LobbyPage() {
           <Card className="text-center">
             <p className="text-gray-500 font-semibold mb-1">Game PIN</p>
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
-            <p className="text-gray-400 mt-2">Players join at QuizLive.app</p>
+            <p className="text-gray-400 mt-2">Players join at quiz-platform-e46ba.web.app/join</p>
           </Card>
           <Card>
             <div className="flex items-center justify-between mb-4">

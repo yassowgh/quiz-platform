@@ -25,13 +25,14 @@ export default function HostPlayPage() {
   const { state } = useGame(gameId);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [timerKey, setTimerKey] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz);
   }, [quizId]);
 
   const currentQ = quiz && state ? quiz.questions[state.currentQuestionIndex] : null;
-  const players = state ? Object.values(state.players) : [];
+  const players = state?.players ? Object.values(state.players) : [];
   const answers = state && state.currentQuestionIndex >= 0 ? (state.answers?.[state.currentQuestionIndex] || {}) : {};
   const answeredCount = Object.keys(answers).length;
 
@@ -99,8 +100,33 @@ export default function HostPlayPage() {
     return () => { clearInterval(id); ctx.close(); };
   }, [state?.status]);
 
+  // 3-2-1 countdown when a new question starts
+  useEffect(() => {
+    if (state?.status !== "question") { setCountdown(null); return; }
+    setCountdown(3);
+    const id = setInterval(() => {
+      setCountdown((c) => {
+        if (c === null || c <= 1) { clearInterval(id); return null; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [state?.status, state?.currentQuestionIndex]);
+
+  // Auto-reveal once every player has answered
+  useEffect(() => {
+    if (state?.status === "question" && players.length > 0 && answeredCount >= players.length) {
+      revealAnswer(gameId);
+    }
+  }, [answeredCount, players.length, state?.status, gameId]);
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6">
+      {countdown !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
+        </div>
+      )}
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
           <Card className="text-center bg-white/10 text-white">
