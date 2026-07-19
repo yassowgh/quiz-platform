@@ -52,6 +52,37 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
             onChange={(e) => onChange({ ...question, text: e.target.value })}
             placeholder="Enter your question..."
           />
+          <Input
+            label="Image URL (optional)"
+            value={question.imageUrl || ""}
+            onChange={(e) => onChange({ ...question, imageUrl: e.target.value })}
+            placeholder="https://example.com/image.jpg"
+          />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Question type</label>
+            <select
+              value={question.type || "multiple"}
+              onChange={(e) => {
+                const t = e.target.value as Question["type"];
+                if (t === "truefalse") onChange({ ...question, type: t, options: ["True", "False"], correctAnswer: 0 });
+                else if (t === "typeanswer") onChange({ ...question, type: t, correctText: question.correctText || "" });
+                else onChange({ ...question, type: t, options: question.options.length === 4 ? question.options : ["", "", "", ""] });
+              }}
+              className="px-3 py-2 border-2 border-gray-200 rounded-xl"
+            >
+              <option value="multiple">Multiple choice</option>
+              <option value="truefalse">True / False</option>
+              <option value="typeanswer">Type answer</option>
+            </select>
+          </div>
+          {question.type === "typeanswer" ? (
+            <Input
+              label="Correct answer (text)"
+              value={question.correctText || ""}
+              onChange={(e) => onChange({ ...question, correctText: e.target.value })}
+              placeholder="e.g. Paris"
+            />
+          ) : (
           <div className="grid grid-cols-2 gap-3">
             {question.options.map((opt, i) => (
               <div key={i} className="flex gap-2 items-start">
@@ -77,6 +108,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
               </div>
             ))}
           </div>
+          )}
           <div className="flex gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700">Time limit</label>

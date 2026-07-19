@@ -8,6 +8,9 @@ import Timer from "@/components/game/Timer";
 import Leaderboard from "@/components/game/Leaderboard";
 import Confetti from "@/components/game/Confetti";
 import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Podium from "@/components/game/Podium";
+import { playSuccess, playFail } from "@/lib/sfx";
 
 export default function PlayPage() {
   const searchParams = useSearchParams();
@@ -53,6 +56,15 @@ export default function PlayPage() {
     return () => clearInterval(id);
   }, [state?.status, state?.currentQuestionIndex]);
   const [timerKey, setTimerKey] = useState(0);
+  const currentQ: any = (state as any)?._quiz?.questions?.[state?.currentQuestionIndex ?? -1] ?? null;
+
+  // Success / shame sound when results are revealed
+  useEffect(() => {
+    if (state?.status !== "answer_reveal") return;
+    const mine = state.answers?.[state.currentQuestionIndex]?.[playerId || ""];
+    if (!mine) return;
+    if (mine.isCorrect) playSuccess(); else playFail();
+  }, [state?.status]);
 
   useEffect(() => {
     const pid = sessionStorage.getItem("playerId");
@@ -76,9 +88,23 @@ export default function PlayPage() {
     const question = (state as any)._quiz?.questions?.[q];
     const timeTaken = Date.now() - state.questionStartTime;
     const timeLimit = question?.timeLimit || 20;
-    const isCorrect = question ? index === question.correctAnswer : false;
+    const isCorrect = question ? index === Number(question.correctAnswer) : false;
     setSelectedAnswer(index);
     await submitAnswer(gameId, q, playerId, index, timeTaken, timeLimit, isCorrect);
+  };
+
+  const handleTypeAnswer = async (text: string) => {
+    if (!state || !playerId || selectedAnswer !== null) return;
+    if (state.status !== "question") return;
+    const q = state.currentQuestionIndex;
+    const question = (state as any)._quiz?.questions?.[q];
+    const timeTaken = Date.now() - state.questionStartTime;
+    const timeLimit = question?.timeLimit || 20;
+    const isCorrect = question
+      ? text.trim().toLowerCase() === String(question.correctText || "").trim().toLowerCase()
+      : false;
+    setSelectedAnswer(-1);
+    await submitAnswer(gameId, q, playerId, -1, timeTaken, timeLimit, isCorrect);
   };
 
   const myPlayer = state && playerId ? state.players[playerId] : null;
@@ -112,19 +138,50 @@ export default function PlayPage() {
             <span className="text-white/70 font-semibold">Q {state.currentQuestionIndex + 1}</span>
             <span className="font-bold">{myPlayer?.score.toLocaleString() ?? 0} pts</span>
           </div>
-          <Timer key={timerKey} durationSeconds={20} startTime={state.questionStartTime} className="mb-2" />
+          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={state.questionStartTime} className="mb-2" />
+          {currentQ && (
+            <div className="bg-white/10 rounded-xl p-3 text-center">
+              <p className="font-bold text-lg">{currentQ.text}</p>
+              {currentQ.imageUrl && (
+                <img src={currentQ.imageUrl} alt="" className="max-h-40 mx-auto rounded-lg mt-2" />
+              )}
+            </div>
+          )}
+          {currentQ?.type === "typeanswer" ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const inp = e.currentTarget.elements.namedItem("ta") as HTMLInputElement;
+                if (inp && inp.value.trim()) handleTypeAnswer(inp.value);
+              }}
+              className="flex flex-col gap-3 flex-1 justify-center"
+            >
+              <input
+                name="ta"
+                type="text"
+                disabled={selectedAnswer !== null || countdown !== null}
+                placeholder="Type your answer..."
+                autoComplete="off"
+                className="text-center text-2xl font-bold rounded-xl py-4 px-3 text-gray-900"
+              />
+              <Button type="submit" size="lg" disabled={selectedAnswer !== null || countdown !== null}>
+                Submit Answer
+              </Button>
+            </form>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3].slice(0, currentQ?.options?.length || 4).map((i) => (
               <AnswerButton
                 key={i}
                 index={i}
-                text={selectedAnswer !== null ? (i === selectedAnswer ? "Your answer" : "") : "Tap to answer"}
+                text={currentQ?.options?.[i] ?? (selectedAnswer !== null ? (i === selectedAnswer ? "Your answer" : "") : "Tap to answer")}
                 selected={selectedAnswer === i}
                 disabled={selectedAnswer !== null || countdown !== null}
                 onClick={() => handleAnswer(i)}
               />
             ))}
           </div>
+          )}
           {selectedAnswer !== null && (
             <p className="text-center text-white/70 font-semibold animate-pulse">Waiting for results...</p>
           )}
@@ -159,6 +216,7 @@ export default function PlayPage() {
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🎉 Game Over!</h2>
+          <Podium players={state.players || {}} />
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
         </div>
       )}

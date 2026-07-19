@@ -12,6 +12,8 @@ export interface Question {
   imageUrl?: string;
   options: string[];
   correctAnswer: number;
+  correctText?: string;
+  type?: "multiple" | "truefalse" | "typeanswer";
   timeLimit: number; // seconds
   points: number;
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
@@ -19,6 +19,25 @@ export default function LobbyPage() {
   const [pin, setPin] = useState<string>("");
   const [creating, setCreating] = useState(false);
   const { state } = useGame(gameId);
+  const [muted, setMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Lobby waiting music
+  useEffect(() => {
+    const audio = new Audio("/music.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    audioRef.current = audio;
+    audio.play().catch(() => {
+      const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); };
+      document.addEventListener("click", resume);
+    });
+    return () => { audio.pause(); audio.src = ""; };
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, [muted]);
 
   useEffect(() => {
     if (!quizId) return;
@@ -28,7 +47,7 @@ export default function LobbyPage() {
   const startGame = async () => {
     if (!quiz || !user) return;
     setCreating(true);
-    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid);
+    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid, quiz);
     setGameId(gid);
     setPin(p);
     setCreating(false);
@@ -43,6 +62,7 @@ export default function LobbyPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex flex-col items-center justify-center p-6">
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
       {!gameId ? (
         <Card className="w-full max-w-md text-center">
           <h1 className="text-3xl font-black mb-2">{quiz?.title || "Loading..."}</h1>

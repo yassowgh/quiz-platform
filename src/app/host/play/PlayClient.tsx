@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
@@ -11,6 +11,7 @@ import type { Quiz } from "@/types";
 import Timer from "@/components/game/Timer";
 import AnswerDistribution from "@/components/game/AnswerDistribution";
 import Leaderboard from "@/components/game/Leaderboard";
+import Podium from "@/components/game/Podium";
 import Confetti from "@/components/game/Confetti";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -26,6 +27,8 @@ export default function HostPlayPage() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [timerKey, setTimerKey] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [muted, setMuted] = useState(false);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz);
@@ -78,6 +81,7 @@ export default function HostPlayPage() {
     const audio = new Audio("/music.mp3");
     audio.loop = true;
     audio.volume = 0.4;
+    musicRef.current = audio;
     const tryPlay = () => audio.play().catch(() => {
       // Autoplay blocked: retry on first user interaction
       const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
@@ -87,6 +91,10 @@ export default function HostPlayPage() {
     tryPlay();
     return () => { audio.pause(); audio.src = ""; };
   }, [state?.status]);
+
+  useEffect(() => {
+    if (musicRef.current) musicRef.current.muted = muted;
+  }, [muted]);
 
   // 3-2-1 countdown when a new question starts
   useEffect(() => {
@@ -117,6 +125,7 @@ export default function HostPlayPage() {
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
         </div>
       )}
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
           <Card className="text-center bg-white/10 text-white">
@@ -134,6 +143,9 @@ export default function HostPlayPage() {
           </div>
           <Card className="mb-4 text-center text-gray-900">
             <h2 className="text-2xl font-black">{currentQ.text}</h2>
+            {currentQ.imageUrl && (
+              <img src={currentQ.imageUrl} alt="" className="max-h-64 mx-auto rounded-xl mt-3" />
+            )}
           </Card>
           <Timer
             key={timerKey}
@@ -142,6 +154,9 @@ export default function HostPlayPage() {
             onExpire={handleReveal}
             className="mb-4"
           />
+          {currentQ.type === "typeanswer" ? (
+            <div className="text-center text-xl font-bold bg-white/10 rounded-xl p-6 mb-4">⌨️ Players type their answer on their devices!</div>
+          ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
             {currentQ.options.map((opt, i) => (
               <div key={i} className={`p-4 rounded-xl font-bold flex items-center gap-2 ${ANSWER_COLORS[i].bg} ${ANSWER_COLORS[i].text}`}>
@@ -149,6 +164,7 @@ export default function HostPlayPage() {
               </div>
             ))}
           </div>
+          )}
           <Button onClick={handleReveal} variant="secondary" className="w-full">Skip / Reveal</Button>
         </div>
       )}
@@ -156,16 +172,18 @@ export default function HostPlayPage() {
         <div className="max-w-3xl mx-auto">
           <Card className="mb-4 text-center text-gray-900">
             <h2 className="text-2xl font-black mb-1">{currentQ.text}</h2>
-            <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.options[currentQ.correctAnswer]}</p>
+            <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.type === "typeanswer" ? currentQ.correctText : currentQ.options[Number(currentQ.correctAnswer)]}</p>
           </Card>
+          {currentQ.type !== "typeanswer" && (
           <div className="mb-6">
             <AnswerDistribution
               answers={answers}
               totalPlayers={players.length}
-              correctAnswer={currentQ.correctAnswer}
+              correctAnswer={Number(currentQ.correctAnswer)}
               options={currentQ.options}
             />
           </div>
+          )}
           <Button onClick={handleLeaderboard} size="lg" className="w-full">Show Leaderboard</Button>
         </div>
       )}
@@ -182,31 +200,7 @@ export default function HostPlayPage() {
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 Final Results</h2>
-          {/* Podium: 3rd (left) → 2nd (middle) → 1st (right) */}
-          {(() => {
-            const ranked = state.players
-              ? (Object.values(state.players) as any[]).sort((a, b) => b.score - a.score)
-              : [];
-            const slots = [ranked[2], ranked[1], ranked[0]];
-            const ht = ["h-16", "h-24", "h-32"];
-            const bg = ["bg-orange-500", "bg-gray-400", "bg-yellow-400"];
-            const md = ["🥉", "🥈", "🥇"];
-            const lb = ["3rd", "2nd", "1st"];
-            return (
-              <div className="flex items-end justify-center gap-4 mb-8">
-                {slots.map((p: any, i: number) => p ? (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className="text-3xl mb-1">{md[i]}</div>
-                    <div className="font-bold text-white text-sm mb-1 truncate max-w-[80px]">{p.name}</div>
-                    <div className="text-white/80 text-xs mb-2">{p.score} pts</div>
-                    <div className={["w-24", ht[i], bg[i], "rounded-t-xl flex items-center justify-center font-black text-white text-xl"].join(" ")}>
-                      {lb[i]}
-                    </div>
-                  </div>
-                ) : null)}
-              </div>
-            );
-          })()}
+          <Podium players={state.players || {}} />
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">End Game</Button>
         </div>
       )}

@@ -16,12 +16,13 @@ import { calculatePoints } from "./scoring";
 
 export async function createLiveGame(
   quizId: string,
-  hostId: string
+  hostId: string,
+  quiz?: unknown
 ): Promise<{ gameId: string; pin: string }> {
   const gameId = nanoid();
   const pin = generatePin();
 
-  const initialState: LiveGameState = {
+  const initialState: any = {
     gameId,
     pin,
     quizId,
@@ -31,6 +32,7 @@ export async function createLiveGame(
     questionStartTime: 0,
     players: {},
     answers: {},
+    ...(quiz ? { _quiz: JSON.parse(JSON.stringify(quiz)) } : {}),
   };
 
   await set(ref(rtdb, `games/${gameId}`), initialState);
