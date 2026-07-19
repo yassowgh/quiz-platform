@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loginWithEmail = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { user } = await signInWithEmailAndPassword(auth, email, password);
+    await createUserProfile(user.uid, user.email!, user.displayName || "User");
   };
 
   const signupWithEmail = async (email: string, password: string, name: string) => {

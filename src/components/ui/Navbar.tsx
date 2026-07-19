@@ -13,6 +13,9 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         {user ? (
           <>
+            {user.email === "yassow@gmail.com" && (
+              <Link href="/admin" className="hover:underline font-bold text-yellow-300">📊 Reports</Link>
+            )}
             <Link href="/dashboard" className="hover:underline font-semibold">{user.displayName || user.email}</Link>
             <Button variant="ghost" size="sm" onClick={logout}>Sign out</Button>
           </>

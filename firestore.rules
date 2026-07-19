@@ -1,19 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'yassow@gmail.com';
+    }
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
     match /quizzes/{quizId} {
       allow read: if resource.data.isPublished == true
-                  || (request.auth != null && request.auth.uid == resource.data.hostId);
+                  || (request.auth != null && request.auth.uid == resource.data.hostId)
+                  || isAdmin();
       allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.hostId == request.auth.uid;
     }
     match /games/{gameId} {
-      allow read: if request.auth != null
-                  && (resource.data.hostId == request.auth.uid
-                      || resource.data.playerIds.hasAny([request.auth.uid]));
+      allow read: if isAdmin()
+                  || (request.auth != null
+                      && (resource.data.hostId == request.auth.uid
+                          || resource.data.playerIds.hasAny([request.auth.uid])));
       allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
       allow update: if request.auth != null && resource.data.hostId == request.auth.uid;
       match /players/{playerId} {

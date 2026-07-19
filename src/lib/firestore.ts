@@ -73,3 +73,13 @@ export async function listGamesByHost(hostId: string) {
   const games = snap.docs.map((d) => d.data());
   return games.sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 }
+
+export async function listAllUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  return snap.docs.map((d) => d.data());
+}
+
+export async function listAllQuizzes(): Promise<Quiz[]> {
+  const snap = await getDocs(collection(db, "quizzes"));
+  return snap.docs.map((d) => d.data() as Quiz);
+}
