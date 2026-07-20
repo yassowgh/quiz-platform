@@ -13,7 +13,8 @@ export interface Question {
   options: string[];
   correctAnswer: number;
   correctText?: string;
-  type?: "multiple" | "truefalse" | "typeanswer";
+  type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll";
+  videoUrl?: string;
   timeLimit: number; // seconds
   points: number;
 }
@@ -61,8 +62,8 @@ export interface LiveGameState {
 }
 
 export const ANSWER_COLORS = [
-  { bg: "bg-kahoot-red", text: "text-white", shape: "▲", hex: "#e21b3c" },
-  { bg: "bg-kahoot-blue", text: "text-white", shape: "◆", hex: "#1368ce" },
-  { bg: "bg-kahoot-yellow", text: "text-black", shape: "●", hex: "#d89e00" },
-  { bg: "bg-kahoot-green", text: "text-white", shape: "■", hex: "#26890c" },
+  { bg: "bg-kahoot-red", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "▲", hex: "#e21b3c" },
+  { bg: "bg-kahoot-blue", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "◆", hex: "#1368ce" },
+  { bg: "bg-kahoot-yellow", text: "text-gray-900 font-extrabold", shape: "●", hex: "#d89e00" },
+  { bg: "bg-kahoot-green", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "■", hex: "#26890c" },
 ];

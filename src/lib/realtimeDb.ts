@@ -98,32 +98,37 @@ export async function submitAnswer(
   answerIndex: number,
   timeTakenMs: number,
   timeLimitSeconds: number,
-  isCorrect: boolean
+  isCorrect: boolean,
+  creditRatio?: number,
+  mode: "score" | "poll" = "score"
 ) {
-  const basePoints = calculatePoints(isCorrect, timeTakenMs, timeLimitSeconds);
-
+  const ratio = creditRatio ?? (isCorrect ? 1 : 0);
   const playerRef = ref(rtdb, `games/${gameId}/players/${playerId}`);
   const snap = await get(playerRef);
   const player = snap.exists() ? snap.val() : null;
 
+  const basePoints = mode === "poll" ? 0 : Math.round(calculatePoints(ratio > 0, timeTakenMs, timeLimitSeconds) * ratio);
   // Kahoot-style streak bonus: +50 per consecutive correct answer (max +500)
-  const streakBonus = isCorrect && player ? Math.min(player.streak || 0, 10) * 50 : 0;
+  const streakBonus = mode === "score" && isCorrect && player ? Math.min(player.streak || 0, 10) * 50 : 0;
   const points = basePoints + streakBonus;
 
   const answer: PlayerAnswer = { answerIndex, timeTakenMs, pointsEarned: points, isCorrect };
   await set(ref(rtdb, `games/${gameId}/answers/${questionIndex}/${playerId}`), answer);
 
   if (player) {
-    const newStreak = isCorrect ? (player.streak || 0) + 1 : 0;
-    await update(playerRef, {
-      score: (player.score || 0) + points,
-      correctCount: (player.correctCount || 0) + (isCorrect ? 1 : 0),
-      streak: newStreak,
-      hasAnswered: true,
-    });
+    if (mode === "poll") {
+      await update(playerRef, { hasAnswered: true });
+    } else {
+      const newStreak = isCorrect ? (player.streak || 0) + 1 : 0;
+      await update(playerRef, {
+        score: (player.score || 0) + points,
+        correctCount: (player.correctCount || 0) + (isCorrect ? 1 : 0),
+        streak: newStreak,
+        hasAnswered: true,
+      });
+    }
   }
 }
-
 export function subscribeToGame(
   gameId: string,
   callback: (state: LiveGameState | null) => void

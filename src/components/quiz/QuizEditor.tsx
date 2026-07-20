@@ -23,6 +23,25 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
+function compressImageToDataUrl(file: File, cb: (url: string) => void) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, 600 / Math.max(img.width, img.height));
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const c = canvas.getContext("2d");
+      if (!c) return;
+      c.drawImage(img, 0, 0, canvas.width, canvas.height);
+      cb(canvas.toDataURL("image/jpeg", 0.7));
+    };
+    img.src = reader.result as string;
+  };
+  reader.readAsDataURL(file);
+}
+
 interface SortableQuestionProps {
   question: Question;
   index: number;
@@ -47,16 +66,44 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
       {expanded && (
         <div className="px-4 pb-4 flex flex-col gap-4 border-t border-gray-100 pt-4">
           <Input
-            label="Question"
+            label={`Question (${question.text.length}/150)`}
             value={question.text}
+            maxLength={150}
+            dir="auto"
             onChange={(e) => onChange({ ...question, text: e.target.value })}
             placeholder="Enter your question..."
           />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) compressImageToDataUrl(file, (url) => onChange({ ...question, imageUrl: url }));
+                  e.target.value = "";
+                }}
+                className="text-sm"
+              />
+              {question.imageUrl && (
+                <>
+                  <img src={question.imageUrl} alt="" className="h-12 rounded" />
+                  <button type="button" onClick={() => onChange({ ...question, imageUrl: "" })} className="text-red-500 font-bold text-lg" title="Remove image">✕</button>
+                </>
+              )}
+            </div>
+            <Input
+              value={question.imageUrl && question.imageUrl.startsWith("data:") ? "" : question.imageUrl || ""}
+              onChange={(e) => onChange({ ...question, imageUrl: e.target.value })}
+              placeholder="...or paste an image URL"
+            />
+          </div>
           <Input
-            label="Image URL (optional)"
-            value={question.imageUrl || ""}
-            onChange={(e) => onChange({ ...question, imageUrl: e.target.value })}
-            placeholder="https://example.com/image.jpg"
+            label="Video (optional — YouTube or MP4 link)"
+            value={question.videoUrl || ""}
+            onChange={(e) => onChange({ ...question, videoUrl: e.target.value })}
+            placeholder="https://youtube.com/watch?v=..."
           />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Question type</label>
@@ -66,6 +113,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                 const t = e.target.value as Question["type"];
                 if (t === "truefalse") onChange({ ...question, type: t, options: ["True", "False"], correctAnswer: 0 });
                 else if (t === "typeanswer") onChange({ ...question, type: t, correctText: question.correctText || "" });
+                else if (t === "sorting" || t === "poll") onChange({ ...question, type: t, correctAnswer: 0 });
                 else onChange({ ...question, type: t, options: question.options.length === 4 ? question.options : ["", "", "", ""] });
               }}
               className="px-3 py-2 border-2 border-gray-200 rounded-xl"
@@ -73,12 +121,16 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
               <option value="multiple">Multiple choice</option>
               <option value="truefalse">True / False</option>
               <option value="typeanswer">Type answer</option>
+              <option value="sorting">Sorting (order matters)</option>
+              <option value="poll">Poll / vote (no points)</option>
             </select>
           </div>
           {question.type === "typeanswer" ? (
             <Input
-              label="Correct answer (text)"
+              label={`Correct answer (${(question.correctText || "").length}/75)`}
               value={question.correctText || ""}
+              maxLength={75}
+              dir="auto"
               onChange={(e) => onChange({ ...question, correctText: e.target.value })}
               placeholder="e.g. Paris"
             />
@@ -86,6 +138,9 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
           <div className="grid grid-cols-2 gap-3">
             {question.options.map((opt, i) => (
               <div key={i} className="flex gap-2 items-start">
+                {question.type === "sorting" || question.type === "poll" ? (
+                  <span className="mt-7 w-6 h-6 rounded-full bg-kahoot-purple text-white text-xs flex items-center justify-center flex-shrink-0">{question.type === "sorting" ? i + 1 : "•"}</span>
+                ) : (
                 <button
                   type="button"
                   onClick={() => onChange({ ...question, correctAnswer: i })}
@@ -95,9 +150,12 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                   )}
                   title="Mark as correct"
                 />
+                )}
                 <Input
-                  label={`Option ${i + 1}`}
+                  label={`${question.type === "sorting" ? "Item" : "Option"} ${i + 1} (${opt.length}/75)`}
                   value={opt}
+                  maxLength={75}
+                  dir="auto"
                   onChange={(e) => {
                     const opts = [...question.options];
                     opts[i] = e.target.value;
@@ -163,6 +221,88 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
     }
   };
 
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+
+  const downloadTemplate = () => {
+    const rows = [
+      "type,question,option1,option2,option3,option4,correct,timeLimit,points",
+      'multiple,"What is 2+2?","3","4","5","6",2,20,1000',
+      'truefalse,"The sky is blue","True","False","","",1,10,500',
+      'typeanswer,"Capital of France?","","","","","Paris",20,1000',
+      'sorting,"Sort 1 to 4 (list options in the CORRECT order)","1","2","3","4","",30,1000',
+      'poll,"Favourite colour?","Red","Blue","Green","Yellow","",15,0',
+    ];
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "quiz-template.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const parseCsvLine = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = "";
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') inQ = false;
+        else cur += ch;
+      } else if (ch === '"') inQ = true;
+      else if (ch === ",") { out.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  };
+
+  const importCsv = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || "");
+      const lines = text.split(/\r?\n/).filter((l) => l.trim());
+      const errors: string[] = [];
+      const imported: Question[] = [];
+      lines.forEach((line, idx) => {
+        if (idx === 0 && line.toLowerCase().startsWith("type,")) return;
+        const c = parseCsvLine(line);
+        const [type, qText, o1, o2, o3, o4, correct, tl, pts] = c;
+        const rowNo = idx + 1;
+        const validTypes = ["multiple", "truefalse", "typeanswer", "sorting", "poll"];
+        let problem = "";
+        if (!validTypes.includes(type)) problem = "unknown type '" + type + "'";
+        else if (!qText) problem = "missing question text";
+        const opts = [o1, o2, o3, o4].map((o) => o || "");
+        const nonEmpty = opts.filter((o) => o.trim());
+        if (!problem) {
+          if (type === "multiple" && nonEmpty.length < 2) problem = "needs at least 2 options";
+          else if (type === "multiple" && (!correct || isNaN(Number(correct)) || Number(correct) < 1 || Number(correct) > nonEmpty.length)) problem = "correct must be an option number (1-" + nonEmpty.length + ")";
+          else if (type === "truefalse" && !["1", "2"].includes(correct || "")) problem = "correct must be 1 (True) or 2 (False)";
+          else if (type === "typeanswer" && !correct) problem = "correct text answer is required";
+          else if ((type === "sorting" || type === "poll") && nonEmpty.length < 2) problem = "needs at least 2 options";
+        }
+        const safeType = (validTypes.includes(type) ? type : "multiple") as Question["type"];
+        const q: Question = {
+          ...makeBlankQuestion(),
+          type: safeType,
+          text: problem ? "[FIX ME: " + problem + "] " + (qText || "") : qText,
+          options: safeType === "truefalse" ? ["True", "False"] : opts,
+          correctAnswer: safeType === "typeanswer" || safeType === "sorting" || safeType === "poll" ? 0 : Math.max(0, (Number(correct) || 1) - 1),
+          ...(safeType === "typeanswer" ? { correctText: correct || "" } : {}),
+          timeLimit: [5, 10, 20, 30, 60].includes(Number(tl)) ? Number(tl) : 20,
+          points: [0, 500, 1000, 2000].includes(Number(pts)) ? Number(pts) : 1000,
+        };
+        if (problem) errors.push("Row " + rowNo + ": " + problem);
+        imported.push(q);
+      });
+      setImportErrors(errors);
+      if (imported.length) onChange([...questions, ...imported]);
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -189,6 +329,33 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
       >
         + Add Question
       </Button>
+
+      <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">
+        <p className="font-semibold text-gray-700">📥 Bulk import questions (CSV)</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={downloadTemplate}>⬇️ Download template</Button>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            className="text-sm"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) importCsv(f);
+              e.target.value = "";
+            }}
+          />
+        </div>
+        {importErrors.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+            <p className="font-bold mb-1">⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:</p>
+            <ul className="list-disc pl-5">
+              {importErrors.map((er, i) => (
+                <li key={i}>{er}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

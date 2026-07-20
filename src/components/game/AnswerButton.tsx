@@ -15,6 +15,7 @@ export default function AnswerButton({ index, text, selected, correct, disabled,
   const color = ANSWER_COLORS[index];
   return (
     <button
+      dir="auto"
       onClick={onClick}
       disabled={disabled}
       className={cn(

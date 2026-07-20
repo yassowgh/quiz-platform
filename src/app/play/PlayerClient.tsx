@@ -21,6 +21,7 @@ export default function PlayPage() {
   const [nickname, setNickname] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState<string[] | null>(null);
 
   // Reset answer when a new question starts
   useEffect(() => {
@@ -61,10 +62,22 @@ export default function PlayPage() {
   // Success / shame sound when results are revealed
   useEffect(() => {
     if (state?.status !== "answer_reveal") return;
+    if (currentQ?.type === "poll") return;
     const mine = state.answers?.[state.currentQuestionIndex]?.[playerId || ""];
     if (!mine) return;
-    if (mine.isCorrect) playSuccess(); else playFail();
+    if (mine.isCorrect || mine.pointsEarned > 0) playSuccess(); else playFail();
   }, [state?.status]);
+
+  // Shuffle items when a sorting question starts
+  useEffect(() => {
+    if (state?.status !== "question" || currentQ?.type !== "sorting") return;
+    const arr = (currentQ.options || []).filter((o: string) => o && o.trim());
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setSortOrder(arr);
+  }, [state?.status, state?.currentQuestionIndex]);
 
   useEffect(() => {
     const pid = sessionStorage.getItem("playerId");
@@ -88,9 +101,10 @@ export default function PlayPage() {
     const question = (state as any)._quiz?.questions?.[q];
     const timeTaken = Date.now() - state.questionStartTime;
     const timeLimit = question?.timeLimit || 20;
-    const isCorrect = question ? index === Number(question.correctAnswer) : false;
+    const mode: "score" | "poll" = question?.type === "poll" ? "poll" : "score";
+    const isCorrect = mode === "score" && question ? index === Number(question.correctAnswer) : false;
     setSelectedAnswer(index);
-    await submitAnswer(gameId, q, playerId, index, timeTaken, timeLimit, isCorrect);
+    await submitAnswer(gameId, q, playerId, index, timeTaken, timeLimit, isCorrect, undefined, mode);
   };
 
   const handleTypeAnswer = async (text: string) => {
@@ -105,6 +119,21 @@ export default function PlayPage() {
       : false;
     setSelectedAnswer(-1);
     await submitAnswer(gameId, q, playerId, -1, timeTaken, timeLimit, isCorrect);
+  };
+
+  const handleSortSubmit = async () => {
+    if (!state || !playerId || selectedAnswer !== null || !sortOrder) return;
+    if (state.status !== "question") return;
+    const q = state.currentQuestionIndex;
+    const question = (state as any)._quiz?.questions?.[q];
+    const correct = (question?.options || []).filter((o: string) => o && o.trim());
+    let match = 0;
+    sortOrder.forEach((item, i) => { if (item === correct[i]) match++; });
+    const ratio = correct.length ? match / correct.length : 0;
+    const timeTaken = Date.now() - state.questionStartTime;
+    const timeLimit = question?.timeLimit || 20;
+    setSelectedAnswer(-2);
+    await submitAnswer(gameId, q, playerId, -2, timeTaken, timeLimit, ratio === 1, ratio);
   };
 
   const myPlayer = state && playerId ? state.players[playerId] : null;
@@ -141,13 +170,35 @@ export default function PlayPage() {
           <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={state.questionStartTime} className="mb-2" />
           {currentQ && (
             <div className="bg-white/10 rounded-xl p-3 text-center">
-              <p className="font-bold text-lg">{currentQ.text}</p>
+              <p className="font-bold text-lg" dir="auto">{currentQ.text}</p>
               {currentQ.imageUrl && (
                 <img src={currentQ.imageUrl} alt="" className="max-h-40 mx-auto rounded-lg mt-2" />
               )}
+              {currentQ.videoUrl && (
+                currentQ.videoUrl.includes("youtube.com") || currentQ.videoUrl.includes("youtu.be") ? (
+                  <iframe src={"https://www.youtube.com/embed/" + (currentQ.videoUrl.match(/(?:v=|youtu\.be\/)([\w-]+)/)?.[1] || "")} className="w-full aspect-video rounded-lg mt-2" allow="autoplay; encrypted-media" allowFullScreen />
+                ) : (
+                  <video src={currentQ.videoUrl} controls className="max-h-48 mx-auto rounded-lg mt-2" />
+                )
+              )}
             </div>
           )}
-          {currentQ?.type === "typeanswer" ? (
+          {currentQ?.type === "sorting" && sortOrder ? (
+            <div className="flex flex-col gap-2 flex-1 justify-center">
+              {sortOrder.map((item, i) => (
+                <div key={item} className="flex items-center gap-2 bg-white text-gray-900 rounded-xl p-3 font-bold">
+                  <span className="w-7 h-7 bg-kahoot-purple text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">{i + 1}</span>
+                  <span className="flex-1" dir="auto">{item}</span>
+                  <button type="button" disabled={i === 0 || selectedAnswer !== null} onClick={() => setSortOrder((o) => { if (!o) return o; const n = [...o]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; return n; })} className="text-xl px-2 disabled:opacity-30">⬆️</button>
+                  <button type="button" disabled={i === sortOrder.length - 1 || selectedAnswer !== null} onClick={() => setSortOrder((o) => { if (!o) return o; const n = [...o]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; return n; })} className="text-xl px-2 disabled:opacity-30">⬇️</button>
+                </div>
+              ))}
+              <Button size="lg" disabled={selectedAnswer !== null || countdown !== null} onClick={handleSortSubmit}>
+                Submit Order
+              </Button>
+              {selectedAnswer !== null && <p className="text-center text-white/70 font-semibold animate-pulse">Order submitted!</p>}
+            </div>
+          ) : currentQ?.type === "typeanswer" ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -158,6 +209,7 @@ export default function PlayPage() {
             >
               <input
                 name="ta"
+                dir="auto"
                 type="text"
                 disabled={selectedAnswer !== null || countdown !== null}
                 placeholder="Type your answer..."
@@ -170,7 +222,7 @@ export default function PlayPage() {
             </form>
           ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-            {[0, 1, 2, 3].slice(0, currentQ?.options?.length || 4).map((i) => (
+            {[0, 1, 2, 3].slice(0, currentQ?.options?.length || 4).filter((i) => !currentQ || (currentQ.options?.[i] && currentQ.options[i].trim())).map((i) => (
               <AnswerButton
                 key={i}
                 index={i}
@@ -191,12 +243,12 @@ export default function PlayPage() {
         <div className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
           {myAnswer ? (
             <>
-              <div className="text-6xl">{myAnswer.isCorrect ? "✓" : "✗"}</div>
-              <h2 className="text-3xl font-black">{myAnswer.isCorrect ? "Correct!" : "Wrong!"}</h2>
+              <div className="text-6xl">{currentQ?.type === "poll" ? "🗳️" : myAnswer.isCorrect ? "✓" : "✗"}</div>
+              <h2 className="text-3xl font-black">{currentQ?.type === "poll" ? "Vote recorded!" : myAnswer.isCorrect ? "Correct!" : "Wrong!"}</h2>
               {myAnswer.isCorrect && (state.players?.[playerId || ""]?.streak || 0) > 1 && (
                 <p className="text-orange-400 font-bold text-xl">🔥 {state.players?.[playerId || ""]?.streak} answer streak!</p>
               )}
-              {myAnswer.isCorrect && (
+              {myAnswer.pointsEarned > 0 && (
                 <p className="text-2xl font-bold text-kahoot-yellow">+{myAnswer.pointsEarned} pts</p>
               )}
             </>
