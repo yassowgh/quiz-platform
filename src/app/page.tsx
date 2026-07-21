@@ -212,7 +212,6 @@ export default function HomePage() {
             Everything marked 💰 above sits behind a paid Kahoot subscription or is capped on their free plan. On Quizzap it is included at no cost.
           </p>
         </div>
-        </div>
 
         <p className="text-white/40 text-xs text-center mt-4">
           Comparison based on Kahoot&apos;s publicly documented plan features as of July 2026; their plans and limits may change. Kahoot! is a trademark of Kahoot! ASA — Quizzap is not affiliated with or endorsed by Kahoot! ASA.
