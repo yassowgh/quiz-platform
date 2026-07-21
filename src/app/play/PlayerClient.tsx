@@ -262,6 +262,7 @@ export default function PlayPage() {
               </Button>
             </form>
           ) : (
+          <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
             {[0, 1, 2, 3, 4, 5].slice(0, currentQ?.options?.length || 4).filter((i) => !currentQ || (currentQ.options?.[i] && currentQ.options[i].trim())).map((i) => (
               <AnswerButton
@@ -285,6 +286,7 @@ export default function PlayPage() {
               {t("submitSelection")} ({multiSel.length})
             </Button>
           )}
+          </>
           )}
           {selectedAnswer !== null && (
             <p className="text-center text-white/70 font-semibold animate-pulse">{t("waitingForResults")}</p>
