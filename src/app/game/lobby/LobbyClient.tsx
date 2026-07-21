@@ -76,7 +76,7 @@ export default function LobbyPage() {
           <Card className="text-center">
             <p className="text-gray-500 font-semibold mb-1">Game PIN</p>
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
-            <p className="text-gray-400 mt-2">Players join at quiz-platform-e46ba.web.app/join</p>
+            <p className="text-gray-400 mt-2">Players join at quiz-platform-e46ba.web.app</p>
             <div className="flex justify-center mt-4">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quiz-platform-e46ba.web.app/join?gameId=${gameId}`)}`}
