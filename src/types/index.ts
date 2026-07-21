@@ -15,6 +15,9 @@ export interface Question {
   correctText?: string;
   type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll";
   videoUrl?: string;
+  audioUrl?: string;
+  correctAnswers?: number[];
+  multiSelect?: boolean;
   timeLimit: number; // seconds
   points: number;
 }
@@ -27,6 +30,9 @@ export interface Quiz {
   coverImage?: string;
   questions: Question[];
   isPublished: boolean;
+  branding?: { primaryColor?: string; accentColor?: string; logoUrl?: string };
+  language?: "en" | "ar";
+  allowAssignment?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -38,6 +44,8 @@ export interface GamePlayer {
   correctCount: number;
   streak: number;
   hasAnswered: boolean;
+  team?: string;
+  isGhost?: boolean;
   uid?: string;
   joinedAt: number;
 }
@@ -59,6 +67,7 @@ export interface LiveGameState {
   questionStartTime: number;
   players: Record<string, GamePlayer>;
   answers: Record<string, Record<string, PlayerAnswer>>;
+  teamMode?: boolean;
 }
 
 export const ANSWER_COLORS = [
@@ -66,4 +75,6 @@ export const ANSWER_COLORS = [
   { bg: "bg-kahoot-blue", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "◆", hex: "#1368ce" },
   { bg: "bg-kahoot-yellow", text: "text-gray-900 font-extrabold", shape: "●", hex: "#d89e00" },
   { bg: "bg-kahoot-green", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "■", hex: "#26890c" },
+  { bg: "bg-purple-600", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "★", hex: "#7c3aed" },
+  { bg: "bg-pink-600", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "⬟", hex: "#db2777" },
 ];

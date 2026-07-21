@@ -9,9 +9,7 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     match /quizzes/{quizId} {
-      allow read: if resource.data.isPublished == true
-                  || (request.auth != null && request.auth.uid == resource.data.hostId)
-                  || isAdmin();
+      allow read: if true;
       allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.hostId == request.auth.uid;
     }
@@ -26,6 +24,10 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow write: if true;
       }
+    }
+    match /assignments/{assignmentId} {
+      allow create: if true;
+      allow read: if isAdmin() || (request.auth != null && resource.data.hostId == request.auth.uid);
     }
     match /pins/{pin} {
       allow read: if true;

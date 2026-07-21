@@ -106,6 +106,40 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
             placeholder="https://youtube.com/watch?v=..."
           />
           <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Audio (optional) — upload a clip or paste a URL</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 600 * 1024) {
+                    alert("Audio file is too large (max 600 KB). Please use a shorter clip or paste a URL instead.");
+                    e.target.value = "";
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => onChange({ ...question, audioUrl: String(reader.result || "") });
+                  reader.readAsDataURL(file);
+                  e.target.value = "";
+                }}
+                className="text-sm"
+              />
+              {question.audioUrl && (
+                <>
+                  <audio src={question.audioUrl} controls className="h-8" />
+                  <button type="button" onClick={() => onChange({ ...question, audioUrl: "" })} className="text-red-500 font-bold text-lg" title="Remove audio">✕</button>
+                </>
+              )}
+            </div>
+            <Input
+              value={question.audioUrl && question.audioUrl.startsWith("data:") ? "" : question.audioUrl || ""}
+              onChange={(e) => onChange({ ...question, audioUrl: e.target.value })}
+              placeholder="...or paste an audio URL (.mp3)"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Question type</label>
             <select
               value={question.type || "multiple"}
@@ -125,6 +159,24 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
               <option value="poll">Poll / vote (no points)</option>
             </select>
           </div>
+          {(!question.type || question.type === "multiple") && (
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={!!question.multiSelect}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  onChange({
+                    ...question,
+                    multiSelect: on,
+                    correctAnswers: on ? (question.correctAnswers?.length ? question.correctAnswers : [question.correctAnswer]) : undefined,
+                  });
+                }}
+                className="w-4 h-4"
+              />
+              Allow multiple correct answers (players pick all that apply)
+            </label>
+          )}
           {question.type === "typeanswer" ? (
             <Input
               label={`Correct answer (${(question.correctText || "").length}/75)`}
@@ -143,10 +195,19 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                 ) : (
                 <button
                   type="button"
-                  onClick={() => onChange({ ...question, correctAnswer: i })}
+                  onClick={() => {
+                    if (question.multiSelect) {
+                      const cur = question.correctAnswers?.length ? question.correctAnswers : [question.correctAnswer];
+                      const next = cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort((a, b) => a - b);
+                      onChange({ ...question, correctAnswers: next, correctAnswer: next[0] ?? 0 });
+                    } else {
+                      onChange({ ...question, correctAnswer: i, correctAnswers: [i] });
+                    }
+                  }}
                   className={cn(
-                    "mt-7 w-6 h-6 rounded-full border-2 flex-shrink-0 transition-colors",
-                    question.correctAnswer === i ? "bg-kahoot-green border-kahoot-green" : "border-gray-300"
+                    "mt-7 w-6 h-6 border-2 flex-shrink-0 transition-colors",
+                    question.multiSelect ? "rounded-md" : "rounded-full",
+                    (question.multiSelect ? (question.correctAnswers?.length ? question.correctAnswers : [question.correctAnswer]).includes(i) : question.correctAnswer === i) ? "bg-kahoot-green border-kahoot-green" : "border-gray-300"
                   )}
                   title="Mark as correct"
                 />
@@ -167,6 +228,33 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
             ))}
           </div>
           )}
+          {(!question.type || question.type === "multiple" || question.type === "sorting" || question.type === "poll") && (
+            <div className="flex gap-2">
+              {question.options.length < 6 && (
+                <Button variant="ghost" size="sm" onClick={() => onChange({ ...question, options: [...question.options, ""] })}>
+                  + Add option ({question.options.length}/6)
+                </Button>
+              )}
+              {question.options.length > 2 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const next = question.options.slice(0, -1);
+                    const lastIdx = next.length;
+                    onChange({
+                      ...question,
+                      options: next,
+                      correctAnswer: question.correctAnswer >= lastIdx ? 0 : question.correctAnswer,
+                      correctAnswers: question.correctAnswers?.filter((x) => x < lastIdx),
+                    });
+                  }}
+                >
+                  − Remove last
+                </Button>
+              )}
+            </div>
+          )}
           <div className="flex gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700">Time limit</label>
@@ -175,8 +263,8 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                 onChange={(e) => onChange({ ...question, timeLimit: Number(e.target.value) })}
                 className="px-3 py-2 border-2 border-gray-200 rounded-xl"
               >
-                {[5, 10, 20, 30, 60, 90, 120].map((t) => (
-                  <option key={t} value={t}>{t}s</option>
+                {[5, 10, 20, 30, 45, 60, 90, 120, 180, 240].map((t) => (
+                  <option key={t} value={t}>{t < 60 ? t + "s" : t / 60 + " min"}</option>
                 ))}
               </select>
             </div>
@@ -187,7 +275,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                 onChange={(e) => onChange({ ...question, points: Number(e.target.value) })}
                 className="px-3 py-2 border-2 border-gray-200 rounded-xl"
               >
-                {[500, 1000, 2000].map((p) => (
+                {[0, 500, 1000, 2000].map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>

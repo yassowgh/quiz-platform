@@ -44,6 +44,8 @@ export function makeBlankQuestion(): Question {
     text: "",
     options: ["", "", "", ""],
     correctAnswer: 0,
+    correctAnswers: [0],
+    multiSelect: false,
     timeLimit: 20,
     points: 1000,
   };
@@ -82,4 +84,22 @@ export async function listAllUsers() {
 export async function listAllQuizzes(): Promise<Quiz[]> {
   const snap = await getDocs(collection(db, "quizzes"));
   return snap.docs.map((d) => d.data() as Quiz);
+}
+
+
+export async function getGameRecord(gameId: string) {
+  const snap = await getDoc(doc(db, "games", gameId));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveAssignmentResult(result: object) {
+  const id = nanoid();
+  await setDoc(doc(db, "assignments", id), { ...result, id, createdAt: Date.now() });
+  return id;
+}
+
+export async function listAssignmentResults(quizId: string) {
+  const q = query(collection(db, "assignments"), where("quizId", "==", quizId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data()).sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 }

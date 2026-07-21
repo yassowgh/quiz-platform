@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
 import { createLiveGame, kickPlayer, lockLobby } from "@/lib/realtimeDb";
+import { listGamesByHost } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
 import type { Quiz } from "@/types";
 import Button from "@/components/ui/Button";
@@ -18,6 +19,9 @@ export default function LobbyPage() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [pin, setPin] = useState<string>("");
   const [creating, setCreating] = useState(false);
+  const [teamMode, setTeamMode] = useState(false);
+  const [ghostMode, setGhostMode] = useState(false);
+  const [pastGames, setPastGames] = useState<any[]>([]);
   const { state } = useGame(gameId);
   const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -44,10 +48,34 @@ export default function LobbyPage() {
     getQuiz(quizId).then(setQuiz);
   }, [quizId]);
 
+  useEffect(() => {
+    if (!user) return;
+    listGamesByHost(user.uid)
+      .then((gs) => setPastGames((gs as any[]).filter((g) => g.quizId === quizId && g.players?.length)))
+      .catch(() => setPastGames([]));
+  }, [user, quizId]);
+
   const startGame = async () => {
     if (!quiz || !user) return;
     setCreating(true);
-    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid, quiz);
+    let ghosts: Record<string, any> = {};
+    if (ghostMode && pastGames.length) {
+      const last = pastGames[0];
+      (last.players || []).slice(0, 5).forEach((gp: any, i: number) => {
+        const id = "ghost_" + i;
+        ghosts[id] = {
+          id,
+          nickname: "👻 " + (gp.nickname || "Ghost"),
+          score: gp.score || 0,
+          correctCount: gp.correctCount || 0,
+          streak: 0,
+          hasAnswered: true,
+          isGhost: true,
+          joinedAt: Date.now(),
+        };
+      });
+    }
+    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid, quiz, { teamMode, ghosts });
     setGameId(gid);
     setPin(p);
     setCreating(false);
@@ -67,7 +95,25 @@ export default function LobbyPage() {
         <Card className="w-full max-w-md text-center">
           <h1 className="text-3xl font-black mb-2">{quiz?.title || "Loading..."}</h1>
           <p className="text-gray-500 mb-6">{quiz?.questions.length} questions</p>
-          <Button onClick={startGame} loading={creating} size="lg" className="w-full">
+          <div className="flex flex-col gap-2 mb-4 text-left">
+            <label className="flex items-center gap-2 font-semibold text-gray-700">
+              <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-4 h-4" />
+              👥 Team mode — players join a team, scores are pooled
+            </label>
+            <label className="flex items-center gap-2 font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={ghostMode}
+                onChange={(e) => setGhostMode(e.target.checked)}
+                disabled={!pastGames.length}
+                className="w-4 h-4"
+              />
+              👻 Ghost mode — race the top 5 from your last game
+              {!pastGames.length && <span className="text-gray-400 text-xs">(no past games yet)</span>}
+            </label>
+          </div>
+          
+<Button onClick={startGame} loading={creating} size="lg" className="w-full">
             Create Game Room
           </Button>
         </Card>
@@ -90,7 +136,7 @@ export default function LobbyPage() {
           </Card>
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{players.length} Players</h2>
+              <h2 className="text-xl font-bold">{players.length} Players{state?.teamMode ? " · 👥 Teams" : ""}</h2>
               <div className="flex gap-2">
                 <Button size="sm" variant="secondary" onClick={() => lockLobby(gameId)}>Lock</Button>
                 <Button size="sm" onClick={handleStart} disabled={players.length === 0}>Start!</Button>
@@ -99,7 +145,7 @@ export default function LobbyPage() {
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {players.map((p) => (
                 <div key={p.id} className="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2">
-                  <span className="font-semibold truncate text-sm">{p.nickname}</span>
+                  <span className="font-semibold truncate text-sm" dir="auto">{p.nickname}{(p as any).team ? " · " + (p as any).team : ""}</span>
                   <button
                     onClick={() => kickPlayer(gameId, p.id)}
                     className="ml-1 text-red-400 hover:text-red-600 text-xs"

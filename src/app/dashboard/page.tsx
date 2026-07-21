@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [fetching, setFetching] = useState(true);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -64,6 +65,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-black">My Quizzes</h1>
         <Button onClick={createQuiz}>+ New Quiz</Button>
+        <Link href="/reports"><Button variant="ghost">📈 Reports</Button></Link>
       </div>
       {createError && <p className="text-red-500 mb-4 font-semibold">{createError}</p>}
       {quizzes.length === 0 ? (
@@ -86,6 +88,19 @@ export default function DashboardPage() {
                 <Link href={`/quiz/edit?id=${quiz.id}`}>
                   <Button size="sm" variant="secondary">Edit</Button>
                 </Link>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const url = window.location.origin + "/assignment?quizId=" + quiz.id;
+                    navigator.clipboard?.writeText(url);
+                    setCopied(quiz.id);
+                    setTimeout(() => setCopied(null), 2000);
+                  }}
+                  title="Copy a self-paced assignment link players can do any time"
+                >
+                  {copied === quiz.id ? "✓ Copied!" : "📝 Assign"}
+                </Button>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(quiz.id)}>Delete</Button>
               </div>
             </Card>

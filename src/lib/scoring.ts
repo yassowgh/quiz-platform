@@ -18,3 +18,17 @@ export function rankPlayers<T extends { score: number; streak: number; joinedAt:
     return a.joinedAt - b.joinedAt;
   });
 }
+export function aggregateTeams<T extends { score: number; streak: number; joinedAt: number; team?: string; nickname: string }>(
+  players: T[]
+): { id: string; nickname: string; score: number; streak: number; joinedAt: number; members: number }[] {
+  const map: Record<string, { id: string; nickname: string; score: number; streak: number; joinedAt: number; members: number }> = {};
+  players.forEach((p) => {
+    const key = p.team || "No team";
+    if (!map[key]) map[key] = { id: key, nickname: key, score: 0, streak: 0, joinedAt: p.joinedAt, members: 0 };
+    map[key].score += p.score;
+    map[key].streak = Math.max(map[key].streak, p.streak);
+    map[key].joinedAt = Math.min(map[key].joinedAt, p.joinedAt);
+    map[key].members++;
+  });
+  return Object.values(map).sort((a, b) => b.score - a.score);
+}

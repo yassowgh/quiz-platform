@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/ui/Navbar";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Quizzap — Free Kahoot Alternative | Live Multiplayer Quiz Game",
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-gray-50">
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
+          <LanguageProvider>
+            <Navbar />
+            <main>{children}</main>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

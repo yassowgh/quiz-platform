@@ -17,7 +17,8 @@ import { calculatePoints } from "./scoring";
 export async function createLiveGame(
   quizId: string,
   hostId: string,
-  quiz?: unknown
+  quiz?: unknown,
+  opts?: { teamMode?: boolean; ghosts?: Record<string, unknown> }
 ): Promise<{ gameId: string; pin: string }> {
   const gameId = nanoid();
   const pin = generatePin();
@@ -33,6 +34,8 @@ export async function createLiveGame(
     players: {},
     answers: {},
     ...(quiz ? { _quiz: JSON.parse(JSON.stringify(quiz)) } : {}),
+    ...(opts?.teamMode ? { teamMode: true } : {}),
+    ...(opts?.ghosts && Object.keys(opts.ghosts).length ? { players: opts.ghosts } : {}),
   };
 
   await set(ref(rtdb, `games/${gameId}`), initialState);
@@ -77,9 +80,9 @@ export async function joinGame(
   gameId: string,
   playerId: string,
   nickname: string,
-  uid?: string
+  team?: string
 ) {
-  await set(ref(rtdb, `games/${gameId}/players/${playerId}`), {
+  const player = {
     id: playerId,
     nickname,
     score: 0,
@@ -87,10 +90,10 @@ export async function joinGame(
     streak: 0,
     hasAnswered: false,
     joinedAt: Date.now(),
-    ...(uid ? { uid } : {}),
-  });
+    ...(team ? { team } : {}),
+  };
+  await set(ref(rtdb, `games/${gameId}/players/${playerId}`), player);
 }
-
 export async function submitAnswer(
   gameId: string,
   questionIndex: number,

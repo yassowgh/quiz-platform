@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { joinGame } from "@/lib/realtimeDb";
+import { useGame } from "@/hooks/useGame";
 import { randomNickname, nanoid } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -11,6 +12,8 @@ export default function JoinClient() {
   const searchParams = useSearchParams();
   const gameId = searchParams.get("gameId") || "";
   const [nickname, setNickname] = useState("");
+  const [team, setTeam] = useState("");
+  const { state } = useGame(gameId);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
 
@@ -25,7 +28,7 @@ export default function JoinClient() {
       const playerId = sessionStorage.getItem("playerId") || nanoid();
       sessionStorage.setItem("playerId", playerId);
       sessionStorage.setItem("nickname", nickname.trim());
-      await joinGame(gameId, playerId, nickname.trim());
+      await joinGame(gameId, playerId, nickname.trim(), state?.teamMode ? (team.trim() || "Team " + nickname.trim()) : undefined);
       router.push(`/play?gameId=${gameId}`);
     } catch {
       setError("Failed to join. Try again.");
@@ -55,6 +58,20 @@ export default function JoinClient() {
               title="Random nickname"
             >🎲</button>
           </div>
+          {state?.teamMode && (
+            <div className="flex flex-col gap-1 text-left">
+              <label className="text-sm font-semibold text-gray-700">👥 Team name (players with the same name share a score)</label>
+              <input
+                type="text"
+                dir="auto"
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                maxLength={20}
+                placeholder="e.g. Red Dragons"
+                className="text-center text-lg font-bold border-b-4 border-kahoot-purple py-2 focus:outline-none w-full"
+              />
+            </div>
+          )}
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" loading={joining} size="lg" className="w-full">Join Game!</Button>
         </form>

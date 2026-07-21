@@ -68,6 +68,80 @@ export default function EditQuizPage() {
       <div className="flex flex-col gap-4 mb-8">
         <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} />
         <Input label="Description" value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
+
+        <details className="border-2 border-gray-200 rounded-xl p-4">
+          <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
+          <div className="flex flex-col gap-3 mt-4">
+            <p className="text-sm text-gray-500">Give this quiz your own look — shown on the host screen and on players&apos; devices.</p>
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Background colour</label>
+                <input
+                  type="color"
+                  value={quiz.branding?.primaryColor || "#1a1a2e"}
+                  onChange={(e) => setQuiz({ ...quiz, branding: { ...quiz.branding, primaryColor: e.target.value } })}
+                  className="w-20 h-10 rounded border-2 border-gray-200"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Accent colour</label>
+                <input
+                  type="color"
+                  value={quiz.branding?.accentColor || "#46178f"}
+                  onChange={(e) => setQuiz({ ...quiz, branding: { ...quiz.branding, accentColor: e.target.value } })}
+                  className="w-20 h-10 rounded border-2 border-gray-200"
+                />
+              </div>
+              {(quiz.branding?.primaryColor || quiz.branding?.accentColor || quiz.branding?.logoUrl) && (
+                <Button variant="ghost" size="sm" onClick={() => setQuiz({ ...quiz, branding: {} })}>Reset branding</Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">Logo — upload or paste a URL</label>
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="text-sm"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const img = new Image();
+                      img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        const scale = Math.min(1, 240 / Math.max(img.width, img.height));
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const c = canvas.getContext("2d");
+                        if (!c) return;
+                        c.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        setQuiz({ ...quiz, branding: { ...quiz.branding, logoUrl: canvas.toDataURL("image/png") } });
+                      };
+                      img.src = String(reader.result || "");
+                    };
+                    reader.readAsDataURL(file);
+                    e.target.value = "";
+                  }}
+                />
+                {quiz.branding?.logoUrl && (
+                  <>
+                    <img src={quiz.branding.logoUrl} alt="" className="h-10 rounded bg-white p-1" />
+                    <button type="button" onClick={() => setQuiz({ ...quiz, branding: { ...quiz.branding, logoUrl: "" } })} className="text-red-500 font-bold text-lg">✕</button>
+                  </>
+                )}
+              </div>
+            </div>
+            <div
+              className="rounded-xl p-4 text-center text-white font-bold"
+              style={{ background: quiz.branding?.primaryColor || "#1a1a2e" }}
+            >
+              {quiz.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-8 mx-auto mb-2" />}
+              Preview — this is how your game screens will look
+            </div>
+          </div>
+        </details>
       </div>
       <QuizEditor questions={quiz.questions} onChange={(questions) => setQuiz({ ...quiz, questions })} />
     </div>
