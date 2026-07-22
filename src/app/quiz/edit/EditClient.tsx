@@ -40,6 +40,7 @@ export default function EditQuizPage() {
     setSaving(true);
     await updateQuiz({
       ...quiz,
+      creatorEmail: quiz.creatorEmail || user?.email || "",
       isPublished: publish !== undefined ? publish : quiz.isPublished,
       updatedAt: Date.now(),
     });
@@ -133,17 +134,35 @@ export default function EditQuizPage() {
                 )}
               </div>
             </div>
-            <div
-              className="rounded-xl p-4 text-center text-white font-bold"
-              style={{ background: quiz.branding?.primaryColor || "#1a1a2e" }}
-            >
-              {quiz.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-8 mx-auto mb-2" />}
-              Preview — this is how your game screens will look
+            <div className="select-none">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Live preview</p>
+              <div
+                className="rounded-xl p-5 text-center pointer-events-none border border-black/10"
+                style={{ background: quiz.branding?.primaryColor || "#1a1a2e" }}
+              >
+                {quiz.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-10 mx-auto mb-3" />}
+                <p className="text-white font-black text-lg mb-3">Sample question goes here?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {["bg-kahoot-red", "bg-kahoot-blue", "bg-kahoot-yellow", "bg-kahoot-green"].map((bg, i) => (
+                    <div
+                      key={i}
+                      className={bg + " rounded-lg py-2 text-white text-sm font-bold"}
+                      style={i === 0 && quiz.branding?.accentColor ? { background: quiz.branding.accentColor } : undefined}
+                    >
+                      Answer {i + 1}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </details>
       </div>
       <QuizEditor questions={quiz.questions} onChange={(questions) => setQuiz({ ...quiz, questions })} />
+      <div className="flex gap-2 justify-end mt-8 pt-6 border-t border-gray-200">
+        <Button variant="secondary" onClick={() => save(false)} loading={saving}>Save Draft</Button>
+        <Button onClick={() => save(true)} loading={saving}>Publish</Button>
+      </div>
     </div>
   );
 }

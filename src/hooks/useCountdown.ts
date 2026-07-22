@@ -12,7 +12,7 @@ export function useCountdown(durationMs: number, startTime: number): CountdownRe
   const rafRef = useRef<number>(0);
 
   const tick = useCallback(() => {
-    const e = Math.min(Date.now() - startTime, durationMs);
+    const e = Math.max(0, Math.min(Date.now() - startTime, durationMs));
     setElapsed(e);
     if (e < durationMs) {
       rafRef.current = requestAnimationFrame(tick);

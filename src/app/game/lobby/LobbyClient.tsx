@@ -92,28 +92,30 @@ export default function LobbyPage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex flex-col items-center justify-center p-6">
       <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
       {!gameId ? (
-        <Card className="w-full max-w-md text-center">
-          <h1 className="text-3xl font-black mb-2">{quiz?.title || "Loading..."}</h1>
-          <p className="text-gray-500 mb-6">{quiz?.questions.length} questions</p>
-          <div className="flex flex-col gap-2 mb-4 text-left">
-            <label className="flex items-center gap-2 font-semibold text-gray-700">
-              <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-4 h-4" />
-              👥 Team mode — players join a team, scores are pooled
+        <Card className="w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-2">🎮</div>
+            <h1 className="text-2xl font-black" dir="auto">{quiz?.title || "Loading..."}</h1>
+            <p className="text-gray-500">{quiz?.questions.length ?? 0} questions</p>
+          </div>
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Game options</p>
+          <div className="flex flex-col gap-3 mb-6">
+            <label className="flex items-start gap-3 p-3 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-kahoot-purple/40 transition-colors">
+              <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-5 h-5 mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-bold text-gray-800 block">👥 Team mode</span>
+                <span className="text-gray-500 text-sm">Players join a team; scores are pooled.</span>
+              </span>
             </label>
-            <label className="flex items-center gap-2 font-semibold text-gray-700">
-              <input
-                type="checkbox"
-                checked={ghostMode}
-                onChange={(e) => setGhostMode(e.target.checked)}
-                disabled={!pastGames.length}
-                className="w-4 h-4"
-              />
-              👻 Ghost mode — race the top 5 from your last game
-              {!pastGames.length && <span className="text-gray-400 text-xs">(no past games yet)</span>}
+            <label className={"flex items-start gap-3 p-3 rounded-xl border-2 transition-colors " + (pastGames.length ? "border-gray-200 cursor-pointer hover:border-kahoot-purple/40" : "border-gray-100 opacity-60 cursor-not-allowed")}>
+              <input type="checkbox" checked={ghostMode} onChange={(e) => setGhostMode(e.target.checked)} disabled={!pastGames.length} className="w-5 h-5 mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-bold text-gray-800 block">👻 Ghost mode {!pastGames.length && <span className="text-gray-400 text-xs font-normal">(no past games yet)</span>}</span>
+                <span className="text-gray-500 text-sm">Race against the top 5 from your last game.</span>
+              </span>
             </label>
           </div>
-          
-<Button onClick={startGame} loading={creating} size="lg" className="w-full">
+          <Button onClick={startGame} loading={creating} size="lg" className="w-full">
             Create Game Room
           </Button>
         </Card>

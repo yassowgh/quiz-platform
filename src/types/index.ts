@@ -33,6 +33,7 @@ export interface Quiz {
   branding?: { primaryColor?: string; accentColor?: string; logoUrl?: string };
   language?: "en" | "ar";
   allowAssignment?: boolean;
+  creatorEmail?: string;
   createdAt: number;
   updatedAt: number;
 }

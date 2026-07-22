@@ -133,7 +133,7 @@ export default function HomePage() {
         <div className="mt-8">
           <p className="text-white/60 mb-3">Want to host a quiz?</p>
           <a href="/dashboard">
-            <Button variant="ghost" size="lg">Create a Quiz →</Button>
+            <Button variant="secondary" size="lg">Create a Quiz →</Button>
           </a>
         </div>
       </div>

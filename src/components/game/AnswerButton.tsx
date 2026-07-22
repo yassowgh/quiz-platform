@@ -19,13 +19,13 @@ export default function AnswerButton({ index, text, selected, correct, disabled,
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex items-center gap-3 p-4 rounded-xl text-left font-bold text-lg w-full transition-all",
+        "flex items-center gap-3 p-4 rounded-xl text-left font-bold text-lg w-full transition-all shadow-md",
         color.bg, color.text,
         "hover:brightness-110 active:scale-95",
-        disabled && "opacity-70 cursor-default",
+        disabled && "cursor-default",
         selected && !correct && "ring-4 ring-white/50",
         correct && "ring-4 ring-white brightness-110 scale-105",
-        selected && !correct && disabled && "opacity-50"
+        selected && !correct && disabled && "opacity-90"
       )}
     >
       <span className="text-2xl w-8 text-center">{color.shape}</span>

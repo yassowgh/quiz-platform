@@ -115,7 +115,7 @@ export default function PlayPage() {
     if (state.status !== "question") return;
     const q = state.currentQuestionIndex;
     const question = (state as any)._quiz?.questions?.[q];
-    const timeTaken = Date.now() - state.questionStartTime;
+    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
     const timeLimit = question?.timeLimit || 20;
     const mode: "score" | "poll" = question?.type === "poll" ? "poll" : "score";
     const isCorrect = mode === "score" && question ? index === Number(question.correctAnswer) : false;
@@ -128,7 +128,7 @@ export default function PlayPage() {
     if (state.status !== "question") return;
     const q = state.currentQuestionIndex;
     const question = (state as any)._quiz?.questions?.[q];
-    const timeTaken = Date.now() - state.questionStartTime;
+    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
     const timeLimit = question?.timeLimit || 20;
     const isCorrect = question
       ? text.trim().toLowerCase() === String(question.correctText || "").trim().toLowerCase()
@@ -146,7 +146,7 @@ export default function PlayPage() {
     let match = 0;
     sortOrder.forEach((item, i) => { if (item === correct[i]) match++; });
     const ratio = correct.length ? match / correct.length : 0;
-    const timeTaken = Date.now() - state.questionStartTime;
+    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
     const timeLimit = question?.timeLimit || 20;
     setSelectedAnswer(-2);
     await submitAnswer(gameId, q, playerId, -2, timeTaken, timeLimit, ratio === 1, ratio);
@@ -167,7 +167,7 @@ export default function PlayPage() {
     const misses = picked.filter((i) => !correctSorted.includes(i)).length;
     const ratio = correctSorted.length ? Math.max(0, (hits - misses) / correctSorted.length) : 0;
     const exact = picked.length === correctSorted.length && picked.every((x, i) => x === correctSorted[i]);
-    const timeTaken = Date.now() - state.questionStartTime;
+    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
     const timeLimit = question?.timeLimit || 20;
     setSelectedAnswer(-3);
     const mode: "score" | "poll" = question?.type === "poll" ? "poll" : "score";
@@ -205,7 +205,7 @@ export default function PlayPage() {
             <span className="text-white/70 font-semibold">Q {state.currentQuestionIndex + 1}</span>
             <span className="font-bold">{myPlayer?.score.toLocaleString() ?? 0} pts</span>
           </div>
-          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={state.questionStartTime} className="mb-2" />
+          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={state.questionStartTime + 3000} className="mb-2" />
           {currentQ && (
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="font-bold text-lg" dir="auto">{currentQ.text}</p>

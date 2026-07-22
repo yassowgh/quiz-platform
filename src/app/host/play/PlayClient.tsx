@@ -199,7 +199,7 @@ export default function HostPlayPage() {
           <Timer
             key={timerKey}
             durationSeconds={currentQ.timeLimit}
-            startTime={state.questionStartTime}
+            startTime={state.questionStartTime + 3000}
             onExpire={handleReveal}
             className="mb-4"
           />

@@ -25,6 +25,7 @@ export default function AssignmentClient() {
   const [lastCorrect, setLastCorrect] = useState(false);
   const [lastPoints, setLastPoints] = useState(0);
   const [done, setDone] = useState(false);
+  const [ccEmail, setCcEmail] = useState("");
   const [error, setError] = useState("");
   const startRef = useRef<number>(0);
 
@@ -83,6 +84,7 @@ export default function AssignmentClient() {
           quizTitle: quiz.title,
           hostId: quiz.hostId,
           nickname: name.trim() || "Anonymous",
+          ccEmail: ccEmail.trim() || null,
           score,
           correctCount,
           totalQuestions: quiz.questions.length,
@@ -126,11 +128,26 @@ export default function AssignmentClient() {
     const pct = quiz.questions.length ? Math.round((correctCount / quiz.questions.length) * 100) : 0;
     return (
       <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white">
-        <div className="text-center">
-          <Confetti />
+        <Confetti />
+        <div className="flex flex-col items-center text-center w-full max-w-sm">
           <h1 className="text-4xl font-black mb-4">🎉 All done!</h1>
-          <p className="text-2xl font-bold mb-1">{score.toLocaleString()} pts</p>
+          <p className="text-3xl font-black mb-1">{score.toLocaleString()} pts</p>
           <p className="text-white/70 mb-6">{correctCount}/{quiz.questions.length} correct ({pct}%)</p>
+          <div className="bg-white/10 rounded-2xl p-4 mb-6 w-full text-sm">
+            <p className="text-white/80 mb-2">
+              📤 Your results have been sent to the quiz creator{quiz.creatorEmail ? ": " : "."}
+              {quiz.creatorEmail && <span className="font-bold">{quiz.creatorEmail}</span>}
+            </p>
+            <p className="text-white/60 mb-1">Want a copy sent to another email too?</p>
+            <input
+              type="email"
+              dir="auto"
+              value={ccEmail}
+              onChange={(e) => setCcEmail(e.target.value)}
+              placeholder="you@example.com (optional)"
+              className="w-full text-center rounded-lg py-2 px-3 text-gray-900 font-semibold"
+            />
+          </div>
           <a href="/"><Button size="lg">Back to Quizzap</Button></a>
         </div>
       </div>

@@ -14,7 +14,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       primary: "bg-kahoot-purple text-white hover:bg-purple-800 shadow-lg",
       secondary: "bg-white text-kahoot-purple border-2 border-kahoot-purple hover:bg-purple-50",
       danger: "bg-kahoot-red text-white hover:bg-red-700 shadow-lg",
-      ghost: "bg-transparent text-white hover:bg-white/20",
+      ghost: "bg-transparent text-gray-700 border border-gray-200 hover:bg-gray-100",
     };
     const sizes = { sm: "px-3 py-1.5 text-sm", md: "px-6 py-3 text-base", lg: "px-8 py-4 text-xl" };
     return (
