@@ -108,22 +108,20 @@ export default function HostPlayPage() {
   const handleReveal = () => revealAnswer(gameId);
   const handleLeaderboard = () => showLeaderboard(gameId);
 
-  // Background music during question phase
+  // Continuous background music for the whole game session
   useEffect(() => {
-    if (state?.status !== "question") return;
     const audio = new Audio("/music.mp3");
     audio.loop = true;
-    audio.volume = 0.4;
+    audio.volume = 0.35;
     musicRef.current = audio;
     const tryPlay = () => audio.play().catch(() => {
-      // Autoplay blocked: retry on first user interaction
       const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
       document.addEventListener("click", resume);
       document.addEventListener("touchstart", resume);
     });
     tryPlay();
     return () => { audio.pause(); audio.src = ""; };
-  }, [state?.status]);
+  }, []);
 
   // Per-question audio clip
   useEffect(() => {

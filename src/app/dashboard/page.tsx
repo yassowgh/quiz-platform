@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { listQuizzesByHost, deleteQuiz } from "@/lib/firestore";
 import { nanoid } from "@/lib/utils";
 import { updateQuiz } from "@/lib/firestore";
+import { sendAssignmentInvite } from "@/lib/integrations";
 import { makeBlankQuestion } from "@/lib/firestore";
 import type { Quiz } from "@/types";
 import Button from "@/components/ui/Button";
@@ -18,6 +19,23 @@ export default function DashboardPage() {
   const [fetching, setFetching] = useState(true);
   const [createError, setCreateError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [assignQuiz, setAssignQuiz] = useState<any>(null);
+  const [assignEmails, setAssignEmails] = useState("");
+  const [assignStatus, setAssignStatus] = useState<"" | "sending" | "sent" | "err">("");
+
+  const assignLink = assignQuiz ? (typeof window !== "undefined" ? window.location.origin : "") + "/assignment?quizId=" + assignQuiz.id : "";
+
+  const emailAssignment = async () => {
+    const list = assignEmails.split(/[,;\s]+/).map((e) => e.trim()).filter(Boolean);
+    if (!list.length || !assignQuiz) return;
+    setAssignStatus("sending");
+    try {
+      await sendAssignmentInvite({ toEmails: list, quizTitle: assignQuiz.title, link: assignLink });
+      setAssignStatus("sent");
+    } catch {
+      setAssignStatus("err");
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -95,20 +113,48 @@ export default function DashboardPage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={() => {
-                    const url = window.location.origin + "/assignment?quizId=" + quiz.id;
-                    navigator.clipboard?.writeText(url);
-                    setCopied(quiz.id);
-                    setTimeout(() => setCopied(null), 2000);
-                  }}
-                  title="Copy a self-paced assignment link players can do any time"
+                  onClick={() => { setAssignQuiz(quiz); setAssignEmails(""); setAssignStatus(""); }}
+                  title="Share a self-paced assignment link — copy it or email it"
                 >
-                  {copied === quiz.id ? "✓ Copied!" : "📝 Assign"}
+                  📝 Assign
                 </Button>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(quiz.id)}>Delete</Button>
               </div>
             </Card>
           ))}
+        </div>
+      )}
+
+      {assignQuiz && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setAssignQuiz(null)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-1">📝 Assign “{assignQuiz.title}”</h3>
+            <p className="text-sm text-gray-500 mb-4">Players open the link and complete the quiz at their own pace. Results come back to you.</p>
+
+            <label className="text-sm font-semibold text-gray-700">Assignment link</label>
+            <div className="flex gap-2 mb-4 mt-1">
+              <input readOnly value={assignLink} className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm text-gray-600" onFocus={(e) => e.target.select()} />
+              <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard?.writeText(assignLink); setCopied(assignQuiz.id); setTimeout(() => setCopied(null), 2000); }}>
+                {copied === assignQuiz.id ? "✓" : "Copy"}
+              </Button>
+            </div>
+
+            <label className="text-sm font-semibold text-gray-700">Or email it to players</label>
+            <textarea
+              value={assignEmails}
+              onChange={(e) => { setAssignEmails(e.target.value); setAssignStatus(""); }}
+              placeholder="Enter one or more emails, separated by commas"
+              rows={2}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm mt-1"
+            />
+            {assignStatus === "sent" && <p className="text-kahoot-green text-sm font-semibold mt-1">✓ Invitations sent!</p>}
+            {assignStatus === "err" && <p className="text-red-500 text-sm mt-1">Could not send. Check the addresses and try again.</p>}
+
+            <div className="flex gap-2 justify-end mt-4">
+              <Button variant="ghost" size="sm" onClick={() => setAssignQuiz(null)}>Close</Button>
+              <Button size="sm" onClick={emailAssignment} loading={assignStatus === "sending"} disabled={!assignEmails.trim()}>Send invites</Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

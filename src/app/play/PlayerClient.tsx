@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { submitAnswer } from "@/lib/realtimeDb";
@@ -25,27 +25,32 @@ export default function PlayPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [sortOrder, setSortOrder] = useState<string[] | null>(null);
   const [multiSel, setMultiSel] = useState<number[]>([]);
+  const [muted, setMuted] = useState(false);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
   useEffect(() => {
     setSelectedAnswer(null);
   }, [state?.currentQuestionIndex]);
 
-  // Background music during question phase
+  // Continuous background music for the whole play session
   useEffect(() => {
-    if (state?.status !== "question") return;
     const audio = new Audio("/music.mp3");
     audio.loop = true;
-    audio.volume = 0.4;
+    audio.volume = 0.35;
+    musicRef.current = audio;
     const tryPlay = () => audio.play().catch(() => {
-      // Autoplay blocked: retry on first user interaction
       const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
       document.addEventListener("click", resume);
       document.addEventListener("touchstart", resume);
     });
     tryPlay();
     return () => { audio.pause(); audio.src = ""; };
-  }, [state?.status]);
+  }, []);
+
+  useEffect(() => {
+    if (musicRef.current) musicRef.current.muted = muted;
+  }, [muted]);
 
   // Per-question audio clip
   useEffect(() => {
@@ -192,6 +197,7 @@ export default function PlayPage() {
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
         </div>
       )}
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6">
           <div className="text-6xl">🎮</div>

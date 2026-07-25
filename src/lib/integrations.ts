@@ -68,6 +68,15 @@ function loadEmailJs(): Promise<any> {
   return emailjsPromise;
 }
 
+// Generic send. We include both the new {subject, message} fields AND the older
+// named fields, so it works whether the EmailJS template is the new generic one
+// or the original results template.
+async function rawSend(fields: Record<string, string>): Promise<void> {
+  if (!EMAIL_ENABLED || !fields.to_email) return;
+  const ejs = await loadEmailJs();
+  await ejs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, fields);
+}
+
 export async function sendAssignmentEmail(params: {
   toEmail: string;
   ccEmail?: string;
@@ -77,18 +86,56 @@ export async function sendAssignmentEmail(params: {
   correctCount: number;
   totalQuestions: number;
 }): Promise<void> {
-  if (!EMAIL_ENABLED || !params.toEmail) return;
-  const ejs = await loadEmailJs();
-  const base = {
+  if (!params.toEmail) return;
+  const completed = new Date().toLocaleString();
+  const subject = "Quizzap results: " + params.quizTitle;
+  const message =
+    params.playerName + ' completed your quiz "' + params.quizTitle + '".<br><br>' +
+    "Score: " + params.score.toLocaleString() + " points<br>" +
+    "Correct answers: " + params.correctCount + " / " + params.totalQuestions + "<br>" +
+    "Completed: " + completed + "<br><br>— Sent by Quizzap";
+  const base: Record<string, string> = {
+    subject,
+    message,
     quiz_title: params.quizTitle,
     player_name: params.playerName,
     score: params.score.toLocaleString(),
     correct_count: String(params.correctCount),
     total_questions: String(params.totalQuestions),
-    completed_at: new Date().toLocaleString(),
+    completed_at: completed,
   };
-  await ejs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { ...base, to_email: params.toEmail });
+  await rawSend({ ...base, to_email: params.toEmail });
   if (params.ccEmail && params.ccEmail !== params.toEmail) {
-    await ejs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { ...base, to_email: params.ccEmail });
+    await rawSend({ ...base, to_email: params.ccEmail });
   }
+}
+
+export async function sendAssignmentInvite(params: {
+  toEmails: string[];
+  quizTitle: string;
+  link: string;
+}): Promise<number> {
+  const subject = "You're invited: " + params.quizTitle + " (Quizzap quiz)";
+  const message =
+    'You have been invited to take the quiz "' + params.quizTitle + '" on Quizzap.<br><br>' +
+    '👉 Start here: <a href="' + params.link + '">' + params.link + "</a><br><br>" +
+    "You can complete it any time, at your own pace.";
+  const base: Record<string, string> = {
+    subject,
+    message,
+    quiz_title: params.quizTitle,
+    player_name: "A quiz host",
+    score: "",
+    correct_count: "",
+    total_questions: "",
+    completed_at: "",
+  };
+  let sent = 0;
+  for (const to of params.toEmails) {
+    const t = to.trim();
+    if (!t) continue;
+    await rawSend({ ...base, to_email: t });
+    sent++;
+  }
+  return sent;
 }
