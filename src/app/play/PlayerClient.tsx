@@ -26,6 +26,8 @@ export default function PlayPage() {
   const [sortOrder, setSortOrder] = useState<string[] | null>(null);
   const [multiSel, setMultiSel] = useState<number[]>([]);
   const [muted, setMuted] = useState(false);
+  const [questionShownAt, setQuestionShownAt] = useState(0);
+  const [timeUp, setTimeUp] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -111,16 +113,18 @@ export default function PlayPage() {
     if (state?.status === "question") {
       setSelectedAnswer(null);
       setMultiSel([]);
+      setTimeUp(false);
+      setQuestionShownAt(Date.now());
       setTimerKey((k) => k + 1);
     }
   }, [state?.status, state?.currentQuestionIndex]);
 
   const handleAnswer = async (index: number) => {
-    if (!state || !playerId || selectedAnswer !== null) return;
+    if (!state || !playerId || selectedAnswer !== null || timeUp) return;
     if (state.status !== "question") return;
     const q = state.currentQuestionIndex;
     const question = (state as any)._quiz?.questions?.[q];
-    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
+    const timeTaken = Math.max(0, Date.now() - questionShownAt - 3000);
     const timeLimit = question?.timeLimit || 20;
     const mode: "score" | "poll" = question?.type === "poll" ? "poll" : "score";
     const isCorrect = mode === "score" && question ? index === Number(question.correctAnswer) : false;
@@ -129,11 +133,11 @@ export default function PlayPage() {
   };
 
   const handleTypeAnswer = async (text: string) => {
-    if (!state || !playerId || selectedAnswer !== null) return;
+    if (!state || !playerId || selectedAnswer !== null || timeUp) return;
     if (state.status !== "question") return;
     const q = state.currentQuestionIndex;
     const question = (state as any)._quiz?.questions?.[q];
-    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
+    const timeTaken = Math.max(0, Date.now() - questionShownAt - 3000);
     const timeLimit = question?.timeLimit || 20;
     const isCorrect = question
       ? text.trim().toLowerCase() === String(question.correctText || "").trim().toLowerCase()
@@ -151,14 +155,14 @@ export default function PlayPage() {
     let match = 0;
     sortOrder.forEach((item, i) => { if (item === correct[i]) match++; });
     const ratio = correct.length ? match / correct.length : 0;
-    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
+    const timeTaken = Math.max(0, Date.now() - questionShownAt - 3000);
     const timeLimit = question?.timeLimit || 20;
     setSelectedAnswer(-2);
     await submitAnswer(gameId, q, playerId, -2, timeTaken, timeLimit, ratio === 1, ratio);
   };
 
   const handleMultiSubmit = async () => {
-    if (!state || !playerId || selectedAnswer !== null) return;
+    if (!state || !playerId || selectedAnswer !== null || timeUp) return;
     if (state.status !== "question") return;
     const q = state.currentQuestionIndex;
     const question = (state as any)._quiz?.questions?.[q];
@@ -172,7 +176,7 @@ export default function PlayPage() {
     const misses = picked.filter((i) => !correctSorted.includes(i)).length;
     const ratio = correctSorted.length ? Math.max(0, (hits - misses) / correctSorted.length) : 0;
     const exact = picked.length === correctSorted.length && picked.every((x, i) => x === correctSorted[i]);
-    const timeTaken = Math.max(0, Date.now() - state.questionStartTime - 3000);
+    const timeTaken = Math.max(0, Date.now() - questionShownAt - 3000);
     const timeLimit = question?.timeLimit || 20;
     setSelectedAnswer(-3);
     const mode: "score" | "poll" = question?.type === "poll" ? "poll" : "score";
@@ -211,7 +215,7 @@ export default function PlayPage() {
             <span className="text-white/70 font-semibold">Q {state.currentQuestionIndex + 1}</span>
             <span className="font-bold">{myPlayer?.score.toLocaleString() ?? 0} pts</span>
           </div>
-          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={state.questionStartTime + 3000} className="mb-2" />
+          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={questionShownAt + 3000} onExpire={() => setTimeUp(true)} className="mb-2" />
           {currentQ && (
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="font-bold text-lg" dir="auto">{currentQ.text}</p>
@@ -240,7 +244,7 @@ export default function PlayPage() {
                   <button type="button" disabled={i === sortOrder.length - 1 || selectedAnswer !== null} onClick={() => setSortOrder((o) => { if (!o) return o; const n = [...o]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; return n; })} className="text-xl px-2 disabled:opacity-30">⬇️</button>
                 </div>
               ))}
-              <Button size="lg" disabled={selectedAnswer !== null || countdown !== null} onClick={handleSortSubmit}>
+              <Button size="lg" disabled={selectedAnswer !== null || countdown !== null || timeUp} onClick={handleSortSubmit}>
                 {t("submitOrder")}
               </Button>
               {selectedAnswer !== null && <p className="text-center text-white/70 font-semibold animate-pulse">{t("orderSubmitted")}</p>}
@@ -258,12 +262,12 @@ export default function PlayPage() {
                 name="ta"
                 dir="auto"
                 type="text"
-                disabled={selectedAnswer !== null || countdown !== null}
+                disabled={selectedAnswer !== null || countdown !== null || timeUp}
                 placeholder={t("typeYourAnswer")}
                 autoComplete="off"
                 className="text-center text-2xl font-bold rounded-xl py-4 px-3 text-gray-900"
               />
-              <Button type="submit" size="lg" disabled={selectedAnswer !== null || countdown !== null}>
+              <Button type="submit" size="lg" disabled={selectedAnswer !== null || countdown !== null || timeUp}>
                 {t("submitAnswer")}
               </Button>
             </form>
@@ -276,7 +280,7 @@ export default function PlayPage() {
                 index={i}
                 text={currentQ?.options?.[i] ?? (selectedAnswer !== null ? (i === selectedAnswer ? t("yourAnswer") : "") : t("tapToAnswer"))}
                 selected={currentQ?.multiSelect ? multiSel.includes(i) : selectedAnswer === i}
-                disabled={selectedAnswer !== null || countdown !== null}
+                disabled={selectedAnswer !== null || countdown !== null || timeUp}
                 onClick={() => {
                   if (currentQ?.multiSelect) {
                     setMultiSel((cur) => (cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i]));
@@ -288,7 +292,7 @@ export default function PlayPage() {
             ))}
           </div>
           {currentQ?.multiSelect && selectedAnswer === null && (
-            <Button size="lg" disabled={!multiSel.length || countdown !== null} onClick={handleMultiSubmit} className="mt-2">
+            <Button size="lg" disabled={!multiSel.length || countdown !== null || timeUp} onClick={handleMultiSubmit} className="mt-2">
               {t("submitSelection")} ({multiSel.length})
             </Button>
           )}
@@ -296,6 +300,9 @@ export default function PlayPage() {
           )}
           {selectedAnswer !== null && (
             <p className="text-center text-white/70 font-semibold animate-pulse">{t("waitingForResults")}</p>
+          )}
+          {timeUp && selectedAnswer === null && (
+            <p className="text-center text-kahoot-red font-bold text-lg">⏰ {t("timesUp")}</p>
           )}
         </div>
       )}

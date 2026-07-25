@@ -5,6 +5,8 @@ export function calculatePoints(
   maxPoints = 1000
 ): number {
   if (!isCorrect) return 0;
+  // Answered after the time ran out — no points.
+  if (timeTakenMs >= timeLimitSeconds * 1000) return 0;
   const fraction = Math.max(0, 1 - timeTakenMs / (timeLimitSeconds * 1000));
   return Math.round(maxPoints * (0.5 + 0.5 * fraction));
 }
