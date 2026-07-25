@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getQuiz, saveAssignmentResult } from "@/lib/firestore";
 import { calculatePoints } from "@/lib/scoring";
 import { playSuccess, playFail } from "@/lib/sfx";
+import { sendAssignmentEmail } from "@/lib/integrations";
 import type { Quiz } from "@/types";
 import { ANSWER_COLORS } from "@/types";
 import Button from "@/components/ui/Button";
@@ -26,6 +27,7 @@ export default function AssignmentClient() {
   const [lastPoints, setLastPoints] = useState(0);
   const [done, setDone] = useState(false);
   const [ccEmail, setCcEmail] = useState("");
+  const [copyStatus, setCopyStatus] = useState<"" | "sending" | "sent" | "err">("");
   const [error, setError] = useState("");
   const startRef = useRef<number>(0);
 
@@ -89,6 +91,16 @@ export default function AssignmentClient() {
           correctCount,
           totalQuestions: quiz.questions.length,
         });
+        try {
+          await sendAssignmentEmail({
+            toEmail: (quiz as any).creatorEmail || "",
+            quizTitle: quiz.title,
+            playerName: name.trim() || "Anonymous",
+            score,
+            correctCount,
+            totalQuestions: quiz.questions.length,
+          });
+        } catch { /* email is best-effort; results are still saved */ }
       } catch {}
       return;
     }
@@ -97,6 +109,24 @@ export default function AssignmentClient() {
     setTyped("");
     setRevealed(false);
     startRef.current = Date.now();
+  };
+
+  const sendCopy = async () => {
+    if (!ccEmail.trim() || !quiz) return;
+    setCopyStatus("sending");
+    try {
+      await sendAssignmentEmail({
+        toEmail: ccEmail.trim(),
+        quizTitle: quiz.title,
+        playerName: name.trim() || "Anonymous",
+        score,
+        correctCount,
+        totalQuestions: quiz.questions.length,
+      });
+      setCopyStatus("sent");
+    } catch {
+      setCopyStatus("err");
+    }
   };
 
   if (error) return <div className="p-10 text-center text-red-500 font-semibold">{error}</div>;
@@ -138,15 +168,21 @@ export default function AssignmentClient() {
               📤 Your results have been sent to the quiz creator{quiz.creatorEmail ? ": " : "."}
               {quiz.creatorEmail && <span className="font-bold">{quiz.creatorEmail}</span>}
             </p>
-            <p className="text-white/60 mb-1">Want a copy sent to another email too?</p>
-            <input
-              type="email"
-              dir="auto"
-              value={ccEmail}
-              onChange={(e) => setCcEmail(e.target.value)}
-              placeholder="you@example.com (optional)"
-              className="w-full text-center rounded-lg py-2 px-3 text-gray-900 font-semibold"
-            />
+            <p className="text-white/60 mb-1">Want a copy sent to your email too?</p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                dir="auto"
+                value={ccEmail}
+                onChange={(e) => { setCcEmail(e.target.value); setCopyStatus(""); }}
+                placeholder="you@example.com"
+                className="flex-1 text-center rounded-lg py-2 px-3 text-gray-900 font-semibold"
+              />
+              <Button size="sm" onClick={sendCopy} loading={copyStatus === "sending"} disabled={!ccEmail.trim() || copyStatus === "sent"}>
+                {copyStatus === "sent" ? "✓ Sent" : "Send"}
+              </Button>
+            </div>
+            {copyStatus === "err" && <p className="text-red-300 text-xs mt-1">Could not send. Check the email and try again.</p>}
           </div>
           <a href="/"><Button size="lg">Back to Quizzap</Button></a>
         </div>

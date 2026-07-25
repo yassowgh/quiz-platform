@@ -19,6 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
+import { generateQuestions } from "@/lib/integrations";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
@@ -310,6 +311,28 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
   };
 
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiCount, setAiCount] = useState(5);
+  const [aiLang, setAiLang] = useState<"en" | "ar">("en");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+
+  const runAi = async () => {
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const qs = await generateQuestions(aiTopic.trim(), aiCount, aiLang);
+      if (!qs.length) throw new Error("No questions were returned. Try a different topic.");
+      onChange([...questions, ...qs]);
+      setAiOpen(false);
+      setAiTopic("");
+    } catch (e: any) {
+      setAiError(e?.message || "Generation failed. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const downloadTemplate = () => {
     const rows = [
@@ -410,13 +433,12 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
           ))}
         </SortableContext>
       </DndContext>
-      <Button
-        variant="secondary"
-        onClick={() => onChange([...questions, makeBlankQuestion()])}
-        className="self-start"
-      >
-        + Add Question
-      </Button>
+      <div className="flex flex-wrap gap-2 self-start">
+        <Button variant="secondary" onClick={() => onChange([...questions, makeBlankQuestion()])}>
+          + Add Question
+        </Button>
+        <Button onClick={() => setAiOpen(true)}>✨ Generate with AI</Button>
+      </div>
 
       <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">
         <p className="font-semibold text-gray-700">📥 Bulk import questions (CSV)</p>
@@ -444,6 +466,48 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
           </div>
         )}
       </div>
+
+      {aiOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !aiLoading && setAiOpen(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-1">✨ Generate questions with AI</h3>
+            <p className="text-sm text-gray-500 mb-4">Describe a topic and Quizzap will draft multiple-choice questions for you.</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Topic</label>
+                <input
+                  value={aiTopic}
+                  dir="auto"
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  placeholder="e.g. World capitals, Photosynthesis, Ottoman history"
+                  className="px-3 py-2 border-2 border-gray-200 rounded-xl"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-semibold text-gray-700">How many</label>
+                  <select value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
+                    {[3, 5, 8, 10].map((n) => (<option key={n} value={n}>{n} questions</option>))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-semibold text-gray-700">Language</label>
+                  <select value={aiLang} onChange={(e) => setAiLang(e.target.value as "en" | "ar")} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                  </select>
+                </div>
+              </div>
+              {aiError && <p className="text-red-500 text-sm">{aiError}</p>}
+              <div className="flex gap-2 justify-end mt-1">
+                <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
+                <Button onClick={runAi} loading={aiLoading} disabled={!aiTopic.trim()}>Generate</Button>
+              </div>
+              <p className="text-xs text-gray-400">AI can make mistakes — review the questions before publishing.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
