@@ -3,7 +3,7 @@ import { nanoid } from "@/lib/utils";
 import type { Question } from "@/types";
 
 export const AI_WORKER_URL = "https://polished-shadow-f08c.yassow.workers.dev/";
-export const EMAILJS_SERVICE_ID = "service_rfgjm2s";
+export const EMAILJS_SERVICE_ID = "service_pu433a4";
 export const EMAILJS_TEMPLATE_ID = "template_l62666k";
 export const EMAILJS_PUBLIC_KEY = "tSIOLMDkcK9CCwiiJ";
 
