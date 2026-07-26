@@ -184,7 +184,7 @@ export default function AssignmentClient() {
             </div>
             {copyStatus === "err" && <p className="text-red-300 text-xs mt-1">Could not send. Check the email and try again.</p>}
           </div>
-          <a href="/"><Button size="lg">Back to Quizzap</Button></a>
+          <a href="/"><Button size="lg">Back to QuizUps</Button></a>
         </div>
       </div>
     );

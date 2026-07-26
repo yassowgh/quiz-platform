@@ -88,12 +88,12 @@ export async function sendAssignmentEmail(params: {
 }): Promise<void> {
   if (!params.toEmail) return;
   const completed = new Date().toLocaleString();
-  const subject = "Quizzap results: " + params.quizTitle;
+  const subject = "QuizUps results: " + params.quizTitle;
   const message =
     params.playerName + ' completed your quiz "' + params.quizTitle + '".<br><br>' +
     "Score: " + params.score.toLocaleString() + " points<br>" +
     "Correct answers: " + params.correctCount + " / " + params.totalQuestions + "<br>" +
-    "Completed: " + completed + "<br><br>— Sent by Quizzap";
+    "Completed: " + completed + "<br><br>— Sent by QuizUps";
   const base: Record<string, string> = {
     subject,
     message,
@@ -115,9 +115,9 @@ export async function sendAssignmentInvite(params: {
   quizTitle: string;
   link: string;
 }): Promise<number> {
-  const subject = "You're invited: " + params.quizTitle + " (Quizzap quiz)";
+  const subject = "You're invited: " + params.quizTitle + " (QuizUps quiz)";
   const message =
-    'You have been invited to take the quiz "' + params.quizTitle + '" on Quizzap.<br><br>' +
+    'You have been invited to take the quiz "' + params.quizTitle + '" on QuizUps.<br><br>' +
     '👉 Start here: <a href="' + params.link + '">' + params.link + "</a><br><br>" +
     "You can complete it any time, at your own pace.";
   const base: Record<string, string> = {

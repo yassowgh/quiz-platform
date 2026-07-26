@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 
 type Row = {
   feature: string;
-  quizzap: boolean | string;
+  quizups: boolean | string;
   kahoot: boolean | string;
   kahootPaid?: boolean;
 };
@@ -16,53 +16,53 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
   {
     title: "Pricing & limits",
     rows: [
-      { feature: "Price for full feature set", quizzap: "Free forever", kahoot: "Paid subscription", kahootPaid: true },
-      { feature: "Players per game", quizzap: "Unlimited", kahoot: "Capped on free plan", kahootPaid: true },
-      { feature: "Ads", quizzap: "None", kahoot: "Yes on free tier" },
-      { feature: "Account needed to play", quizzap: "No", kahoot: "No" },
+      { feature: "Price for full feature set", quizups: "Free forever", kahoot: "Paid subscription", kahootPaid: true },
+      { feature: "Players per game", quizups: "Unlimited", kahoot: "Capped on free plan", kahootPaid: true },
+      { feature: "Ads", quizups: "None", kahoot: "Yes on free tier" },
+      { feature: "Account needed to play", quizups: "No", kahoot: "No" },
     ],
   },
   {
     title: "Question types",
     rows: [
-      { feature: "Multiple choice", quizzap: true, kahoot: true },
-      { feature: "True / False", quizzap: true, kahoot: true },
-      { feature: "Type-the-answer", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Sorting / ordering", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Polls (no scoring)", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Multi-select answers", quizzap: "Free, partial credit", kahoot: "Paid plan", kahootPaid: true },
-      { feature: "5–6 answer options", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Multiple choice", quizups: true, kahoot: true },
+      { feature: "True / False", quizups: true, kahoot: true },
+      { feature: "Type-the-answer", quizups: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Sorting / ordering", quizups: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Polls (no scoring)", quizups: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Multi-select answers", quizups: "Free, partial credit", kahoot: "Paid plan", kahootPaid: true },
+      { feature: "5–6 answer options", quizups: true, kahoot: "Paid plan", kahootPaid: true },
     ],
   },
   {
     title: "Media in questions",
     rows: [
-      { feature: "Images", quizzap: "Upload or link", kahoot: "Limited on free", kahootPaid: true },
-      { feature: "Video", quizzap: "YouTube or MP4", kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Audio clips", quizzap: "Upload or link", kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Time limit up to 4 minutes", quizzap: true, kahoot: true },
+      { feature: "Images", quizups: "Upload or link", kahoot: "Limited on free", kahootPaid: true },
+      { feature: "Video", quizups: "YouTube or MP4", kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Audio clips", quizups: "Upload or link", kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Time limit up to 4 minutes", quizups: true, kahoot: true },
     ],
   },
   {
     title: "Hosting & game modes",
     rows: [
-      { feature: "Live hosted games", quizzap: true, kahoot: true },
-      { feature: "Team mode (pooled scores)", quizzap: true, kahoot: true },
-      { feature: "Ghost mode (race past scores)", quizzap: true, kahoot: true },
-      { feature: "Self-paced assignments", quizzap: true, kahoot: true },
-      { feature: "QR code to join", quizzap: true, kahoot: true },
-      { feature: "Music & sound effects", quizzap: true, kahoot: true },
-      { feature: "Streak bonuses", quizzap: true, kahoot: true },
-      { feature: "Podium celebration", quizzap: true, kahoot: true },
+      { feature: "Live hosted games", quizups: true, kahoot: true },
+      { feature: "Team mode (pooled scores)", quizups: true, kahoot: true },
+      { feature: "Ghost mode (race past scores)", quizups: true, kahoot: true },
+      { feature: "Self-paced assignments", quizups: true, kahoot: true },
+      { feature: "QR code to join", quizups: true, kahoot: true },
+      { feature: "Music & sound effects", quizups: true, kahoot: true },
+      { feature: "Streak bonuses", quizups: true, kahoot: true },
+      { feature: "Podium celebration", quizups: true, kahoot: true },
     ],
   },
   {
     title: "Authoring & admin",
     rows: [
-      { feature: "Bulk import (CSV) + template", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Detailed post-game reports", quizzap: "Free + CSV export", kahoot: "Full reports paid", kahootPaid: true },
-      { feature: "Custom branding (colours + logo)", quizzap: true, kahoot: "Paid plan", kahootPaid: true },
-      { feature: "Arabic / right-to-left interface", quizzap: "Full RTL + translated UI", kahoot: "Partial" },
+      { feature: "Bulk import (CSV) + template", quizups: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Detailed post-game reports", quizups: "Free + CSV export", kahoot: "Full reports paid", kahootPaid: true },
+      { feature: "Custom branding (colours + logo)", quizups: true, kahoot: "Paid plan", kahootPaid: true },
+      { feature: "Arabic / right-to-left interface", quizups: "Full RTL + translated UI", kahoot: "Partial" },
     ],
   },
 ];
@@ -111,7 +111,8 @@ export default function HomePage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern px-6 py-12">
       {/* Hero + join */}
       <div className="max-w-md mx-auto text-center">
-        <h1 className="text-6xl font-black text-white mb-2">⚡ Quizzap</h1>
+        <img src="/logo-full.png" alt="QuizUps" className="w-60 mx-auto mb-3" />
+        <h1 className="sr-only">QuizUps</h1>
         <p className="text-white/70 text-xl mb-1">Live multiplayer quizzes</p>
         <p className="text-kahoot-yellow font-bold mb-8">The free Kahoot alternative</p>
 
@@ -138,11 +139,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Why Quizzap */}
+      {/* Why QuizUps */}
       <section className="max-w-4xl mx-auto mt-20 text-white">
         <h2 className="text-3xl font-black text-center mb-2">Everything you need — nothing locked away</h2>
         <p className="text-center text-white/70 mb-8 text-lg">
-          Quizzap gives you the features other quiz platforms charge for. No subscriptions, no player limits, no ads.
+          QuizUps gives you the features other quiz platforms charge for. No subscriptions, no player limits, no ads.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white/10 rounded-2xl p-5 text-center">
@@ -165,7 +166,7 @@ export default function HomePage() {
 
       {/* Comparison table */}
       <section className="max-w-4xl mx-auto mt-16 text-white">
-        <h2 className="text-3xl font-black text-center mb-2">Quizzap vs Kahoot</h2>
+        <h2 className="text-3xl font-black text-center mb-2">QuizUps vs Kahoot</h2>
         <p className="text-center text-white/70 mb-8">
           How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan.
         </p>
@@ -175,7 +176,7 @@ export default function HomePage() {
             <thead>
               <tr className="bg-white/10">
                 <th className="text-left p-4 font-bold">Feature</th>
-                <th className="p-4 font-black text-kahoot-yellow whitespace-nowrap">⚡ Quizzap</th>
+                <th className="p-4 font-black text-kahoot-yellow whitespace-nowrap">⚡ QuizUps</th>
                 <th className="p-4 font-semibold text-white/70">Kahoot</th>
               </tr>
             </thead>
@@ -191,7 +192,7 @@ export default function HomePage() {
                     <tr key={row.feature} className="border-t border-white/10">
                       <td className="p-4 font-semibold text-sm">{row.feature}</td>
                       <td className="p-4 text-center bg-white/5">
-                        <Cell value={row.quizzap} highlight />
+                        <Cell value={row.quizups} highlight />
                       </td>
                       <td className="p-4 text-center">
                         <Cell value={row.kahoot} paid={row.kahootPaid} />
@@ -206,15 +207,15 @@ export default function HomePage() {
 
         <div className="mt-6 bg-amber-400/10 border border-amber-400/30 rounded-2xl p-5 text-center">
           <p className="text-amber-300 font-bold text-lg mb-1">
-            💰 {PAID_COUNT} features that cost money on Kahoot are free on Quizzap
+            💰 {PAID_COUNT} features that cost money on Kahoot are free on QuizUps
           </p>
           <p className="text-white/60 text-sm">
-            Everything marked 💰 above sits behind a paid Kahoot subscription or is capped on their free plan. On Quizzap it is included at no cost.
+            Everything marked 💰 above sits behind a paid Kahoot subscription or is capped on their free plan. On QuizUps it is included at no cost.
           </p>
         </div>
 
         <p className="text-white/40 text-xs text-center mt-4">
-          Comparison based on Kahoot&apos;s publicly documented plan features as of July 2026; their plans and limits may change. Kahoot! is a trademark of Kahoot! ASA — Quizzap is not affiliated with or endorsed by Kahoot! ASA.
+          Comparison based on Kahoot&apos;s publicly documented plan features as of July 2026; their plans and limits may change. Kahoot! is a trademark of Kahoot! ASA — QuizUps is not affiliated with or endorsed by Kahoot! ASA.
         </p>
 
         <div className="text-center mt-10 pb-8">

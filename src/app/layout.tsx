@@ -5,11 +5,13 @@ import Navbar from "@/components/ui/Navbar";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export const metadata: Metadata = {
-  title: "Quizzap — Free Kahoot Alternative | Live Multiplayer Quiz Game",
+  metadataBase: new URL("https://quizups.com"),
+  icons: { icon: "/favicon.ico", apple: "/apple-icon.png" },
+  title: "QuizUps — Free Kahoot Alternative | Live Multiplayer Quiz Game",
   description:
-    "Quizzap is a 100% free Kahoot alternative. Host live multiplayer quizzes with unlimited players — no subscription, no player caps. Multiple choice, true/false, type-answer, sorting and polls.",
+    "QuizUps is a 100% free Kahoot alternative. Host live multiplayer quizzes with unlimited players — no subscription, no player caps. Multiple choice, true/false, type-answer, sorting and polls.",
   keywords: [
-    "quizzap",
+    "quizups",
     "free kahoot alternative",
     "kahoot alternative",
     "live quiz game",
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
     "team trivia game",
   ],
   openGraph: {
-    title: "Quizzap — Free Kahoot Alternative",
+    title: "QuizUps — Free Kahoot Alternative",
     description:
       "Host live multiplayer quizzes free forever. Unlimited players, 5 question types, images, video, music and podium celebrations.",
     type: "website",

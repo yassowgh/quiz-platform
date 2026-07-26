@@ -471,7 +471,7 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !aiLoading && setAiOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-black mb-1">✨ Generate questions with AI</h3>
-            <p className="text-sm text-gray-500 mb-4">Describe a topic and Quizzap will draft multiple-choice questions for you.</p>
+            <p className="text-sm text-gray-500 mb-4">Describe a topic and QuizUps will draft multiple-choice questions for you.</p>
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-gray-700">Topic</label>
