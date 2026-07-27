@@ -32,6 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "if(/quiz-platform-e46ba\\.(web\\.app|firebaseapp\\.com)$/.test(location.hostname)){location.replace('https://quizups.com'+location.pathname+location.search+location.hash);}",
+          }}
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap"
           rel="stylesheet"
