@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "if(/quiz-platform-e46ba\\.(web\\.app|firebaseapp\\.com)$/.test(location.hostname)){location.replace('https://quizups.com'+location.pathname+location.search+location.hash);}",
+              "if(location.hostname==='www.quizups.com'||/quiz-platform-e46ba\\.(web\\.app|firebaseapp\\.com)$/.test(location.hostname)){location.replace('https://quizups.com'+location.pathname+location.search+location.hash);}",
           }}
         />
         <link
