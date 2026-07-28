@@ -37,9 +37,20 @@ export default function EditQuizPage() {
 
   const save = async (publish?: boolean) => {
     if (!quiz) return;
+    let questions = quiz.questions;
+    if (publish) {
+      questions = quiz.questions.filter(
+        (qq) => qq.type === "typeanswer" || (qq.options || []).some((o) => o && o.trim())
+      );
+      if (!questions.length) {
+        alert("Add at least one answerable question (with options, or a type-answer) before publishing.");
+        return;
+      }
+    }
     setSaving(true);
     await updateQuiz({
       ...quiz,
+      questions,
       creatorEmail: quiz.creatorEmail || user?.email || "",
       isPublished: publish !== undefined ? publish : quiz.isPublished,
       updatedAt: Date.now(),

@@ -322,8 +322,13 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
     setAiLoading(true);
     setAiError("");
     try {
-      const qs = await generateQuestions(aiTopic.trim(), aiCount, aiLang);
-      if (!qs.length) throw new Error("No questions were returned. Try a different topic.");
+      const qs = await generateQuestions(
+        aiTopic.trim(),
+        aiCount,
+        aiLang,
+        questions.map((q) => q.text).filter(Boolean)
+      );
+      if (!qs.length) throw new Error("No new questions came back — they may all duplicate existing ones. Try a more specific topic.");
       onChange([...questions, ...qs]);
       setAiOpen(false);
       setAiTopic("");

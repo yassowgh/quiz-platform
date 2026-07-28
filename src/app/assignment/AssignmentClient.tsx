@@ -35,8 +35,15 @@ export default function AssignmentClient() {
     if (!quizId) { setError("No quiz specified."); return; }
     getQuiz(quizId)
       .then((q) => {
-        if (!q) setError("Quiz not found or not shared.");
-        else setQuiz(q);
+        if (!q) { setError("Quiz not found or not shared."); return; }
+        const playable = {
+          ...q,
+          questions: (q.questions || []).filter(
+            (qq: any) => qq.type === "typeanswer" || (qq.options || []).some((o: string) => o && o.trim())
+          ),
+        };
+        if (!playable.questions.length) setError("This quiz has no playable questions yet.");
+        else setQuiz(playable);
       })
       .catch(() => setError("Could not load this quiz. The host may not have shared it."));
   }, [quizId]);
@@ -276,10 +283,10 @@ export default function AssignmentClient() {
             <Button
               size="lg"
               className="w-full"
-              disabled={q.type === "typeanswer" ? !typed.trim() : !picked.length}
+              disabled={q.type === "typeanswer" ? !typed.trim() : (opts.length > 0 && !picked.length)}
               onClick={submit}
             >
-              Submit
+              {opts.length === 0 && q.type !== "typeanswer" ? "Skip question" : "Submit"}
             </Button>
           )}
         </div>

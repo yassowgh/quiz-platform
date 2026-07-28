@@ -13,12 +13,13 @@ export const EMAIL_ENABLED = EMAILJS_PUBLIC_KEY.length > 0;
 export async function generateQuestions(
   topic: string,
   count: number,
-  language: "en" | "ar"
+  language: "en" | "ar",
+  avoid: string[] = []
 ): Promise<Question[]> {
   const r = await fetch(AI_WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, count, language }),
+    body: JSON.stringify({ topic, count, language, avoid }),
   });
   let data: any = {};
   try { data = await r.json(); } catch { /* ignore */ }
@@ -26,7 +27,15 @@ export async function generateQuestions(
     throw new Error(String(data.detail || data.error || ("AI request failed (" + r.status + ")")));
   }
   const arr = Array.isArray(data.questions) ? data.questions : [];
-  return arr.map((q: any): Question => {
+  const norm = (t: string) =>
+    String(t || "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, " ").trim();
+  const seen = new Set((avoid || []).map(norm).filter(Boolean));
+  const out: Question[] = [];
+  for (const q of arr) {
+    const text = String(q.text || "").slice(0, 150);
+    const key = norm(text);
+    if (!key || seen.has(key)) continue; // skip blanks and duplicates
+    seen.add(key);
     const options = Array.isArray(q.options)
       ? q.options.slice(0, 6).map((o: any) => String(o).slice(0, 75))
       : ["", "", "", ""];
@@ -34,9 +43,9 @@ export async function generateQuestions(
     const ci = Number.isInteger(q.correctIndex)
       ? Math.max(0, Math.min(q.correctIndex, options.length - 1))
       : 0;
-    return {
+    out.push({
       id: nanoid(),
-      text: String(q.text || "").slice(0, 150),
+      text,
       options,
       correctAnswer: ci,
       correctAnswers: [ci],
@@ -44,8 +53,9 @@ export async function generateQuestions(
       type: "multiple",
       timeLimit: 20,
       points: 1000,
-    };
-  });
+    });
+  }
+  return out;
 }
 
 let emailjsPromise: Promise<any> | null = null;
