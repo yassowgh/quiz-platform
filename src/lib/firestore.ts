@@ -103,3 +103,13 @@ export async function listAssignmentResults(quizId: string) {
   const snap = await getDocs(q);
   return snap.docs.map((d) => d.data()).sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 }
+
+
+export async function getHomeContent(): Promise<Record<string, string>> {
+  const snap = await getDoc(doc(db, "siteContent", "home"));
+  return snap.exists() ? (snap.data() as Record<string, string>) : {};
+}
+
+export async function saveHomeContent(data: Record<string, string>): Promise<void> {
+  await setDoc(doc(db, "siteContent", "home"), data, { merge: true });
+}

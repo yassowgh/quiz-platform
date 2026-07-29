@@ -1,7 +1,8 @@
 "use client";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { resolvePin } from "@/lib/firestore";
+import { useAuth } from "@/contexts/AuthContext";
+import { resolvePin, getHomeContent, saveHomeContent } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -90,6 +91,16 @@ export default function HomePage() {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.email === "yassow@gmail.com";
+  const [home, setHome] = useState<Record<string, string>>({});
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  useEffect(() => { getHomeContent().then(setHome).catch(() => {}); }, []);
+  const line1 = home.heroLine1 ?? "Live multiplayer quizzes";
+  const line2 = home.heroLine2 ?? "The free Kahoot alternative";
+  const startEdit = () => { setDraft({ heroLine1: line1, heroLine2: line2 }); setEditing(true); };
+  const saveEdit = async () => { await saveHomeContent(draft); setHome({ ...home, ...draft }); setEditing(false); };
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,8 +124,23 @@ export default function HomePage() {
       <div className="max-w-md mx-auto text-center">
         <img src="/logo-full.png" alt="QuizUps" className="w-60 mx-auto mb-3" />
         <h1 className="sr-only">QuizUps</h1>
-        <p className="text-white/70 text-xl mb-1">Live multiplayer quizzes</p>
-        <p className="text-kahoot-yellow font-bold mb-8">The free Kahoot alternative</p>
+        <p className="text-white/70 text-xl mb-1">{line1}</p>
+        <p className="text-kahoot-yellow font-bold mb-8">{line2}</p>
+        {isAdmin && !editing && (
+          <button onClick={startEdit} className="text-white/50 hover:text-white text-xs underline mb-4">✏️ Edit page text</button>
+        )}
+        {isAdmin && editing && (
+          <div className="bg-white/10 rounded-2xl p-4 mb-6 text-left flex flex-col gap-2">
+            <label className="text-white/80 text-sm font-semibold">Line 1</label>
+            <input value={draft.heroLine1 || ""} onChange={(e) => setDraft({ ...draft, heroLine1: e.target.value })} className="px-3 py-2 rounded-lg text-gray-900" />
+            <label className="text-white/80 text-sm font-semibold">Line 2</label>
+            <input value={draft.heroLine2 || ""} onChange={(e) => setDraft({ ...draft, heroLine2: e.target.value })} className="px-3 py-2 rounded-lg text-gray-900" />
+            <div className="flex gap-2 mt-2">
+              <button onClick={saveEdit} className="bg-kahoot-blue text-white font-bold px-4 py-2 rounded-lg">Save</button>
+              <button onClick={() => setEditing(false)} className="bg-white/20 text-white px-4 py-2 rounded-lg">Cancel</button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleJoin}>
           <div className="flex flex-col gap-3">
