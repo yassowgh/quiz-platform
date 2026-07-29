@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getQuiz, saveAssignmentResult } from "@/lib/firestore";
 import { calculatePoints } from "@/lib/scoring";
-import { playSuccess, playFail } from "@/lib/sfx";
+import { playSuccess, playFail, toggleSfx, isSfxEnabled } from "@/lib/sfx";
 import { sendAssignmentEmail } from "@/lib/integrations";
 import type { Quiz } from "@/types";
 import { ANSWER_COLORS } from "@/types";
@@ -29,6 +29,8 @@ export default function AssignmentClient() {
   const [ccEmail, setCcEmail] = useState("");
   const [copyStatus, setCopyStatus] = useState<"" | "sending" | "sent" | "err">("");
   const [error, setError] = useState("");
+  const [sound, setSound] = useState(true);
+  useEffect(() => { setSound(isSfxEnabled()); }, []);
   const startRef = useRef<number>(0);
 
   useEffect(() => {
@@ -202,7 +204,10 @@ export default function AssignmentClient() {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <span className="text-white/70 font-semibold">Q {idx + 1}/{quiz.questions.length}</span>
-          <span className="font-bold">{score.toLocaleString()} pts</span>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setSound(toggleSfx())} className="text-2xl leading-none" title="Sound effects on/off" aria-label="Toggle sound">{sound ? "\uD83D\uDD0A" : "\uD83D\uDD07"}</button>
+            <span className="font-bold">{score.toLocaleString()} pts</span>
+          </div>
         </div>
 
         <Card className="mb-4 text-center text-gray-900">

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -44,14 +44,16 @@ function compressImageToDataUrl(file: File, cb: (url: string) => void) {
 }
 
 interface SortableQuestionProps {
+  startExpanded?: boolean;
   question: Question;
   index: number;
   onChange: (q: Question) => void;
   onDelete: () => void;
 }
 
-function SortableQuestion({ question, index, onChange, onDelete }: SortableQuestionProps) {
-  const [expanded, setExpanded] = useState(false);
+function SortableQuestion({ question, index, onChange, onDelete, startExpanded }: SortableQuestionProps) {
+  const [expanded, setExpanded] = useState(!!startExpanded);
+  const [adv, setAdv] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: question.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
@@ -74,6 +76,14 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
             onChange={(e) => onChange({ ...question, text: e.target.value })}
             placeholder="Enter your question..."
           />
+          <button
+            type="button"
+            onClick={() => setAdv(!adv)}
+            className="self-start text-sm font-semibold text-kahoot-purple"
+          >
+            {adv ? "- Hide advanced options" : "+ Advanced options (image, audio, video, timer, points)"}
+          </button>
+          {adv && (<>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
             <div className="flex items-center gap-2 flex-wrap">
@@ -140,6 +150,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
               placeholder="...or paste an audio URL (.mp3)"
             />
           </div>
+          </>)}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Question type</label>
             <select
@@ -160,7 +171,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
               <option value="poll">Poll / vote (no points)</option>
             </select>
           </div>
-          {(!question.type || question.type === "multiple") && (
+          {adv && (!question.type || question.type === "multiple") && (
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <input
                 type="checkbox"
@@ -257,6 +268,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
             </div>
           )}
           <div className="flex gap-4">
+            {adv && (<>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-700">Time limit</label>
               <select
@@ -281,6 +293,7 @@ function SortableQuestion({ question, index, onChange, onDelete }: SortableQuest
                 ))}
               </select>
             </div>
+            </>)}
             <div className="flex-1" />
             <Button variant="danger" size="sm" onClick={onDelete} className="self-end">Delete</Button>
           </div>
@@ -296,6 +309,7 @@ interface QuizEditorProps {
 }
 
 export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
+  const initialIds = useRef<Set<string>>(new Set(questions.map((q) => q.id)));
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -428,6 +442,7 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
               key={q.id}
               question={q}
               index={i}
+              startExpanded={!initialIds.current.has(q.id)}
               onChange={(updated) => {
                 const next = [...questions];
                 next[i] = updated;

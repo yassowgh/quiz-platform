@@ -95,12 +95,12 @@ export default function DashboardPage() {
       ) : (
         <div className="grid gap-4">
           {quizzes.map((quiz) => (
-            <Card key={quiz.id} className="flex items-center gap-4">
+            <Card key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
                 <h2 className="text-xl font-bold">{quiz.title}</h2>
                 <p className="text-gray-500">{quiz.questions.length} questions · {quiz.isPublished ? "Published" : "Draft"}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link href={`/game/lobby?quizId=${quiz.id}`}>
                   <Button size="sm">Host</Button>
                 </Link>
