@@ -81,6 +81,13 @@ export default function EditQuizPage() {
         <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} />
         <Input label="Description" value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
 
+        <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
+          <input type="checkbox" checked={!!quiz.examMode} onChange={(ev) => setQuiz({ ...quiz, examMode: ev.target.checked })} className="mt-1 w-5 h-5" />
+          <span>
+            <span className="font-bold text-gray-700">📝 Exam mode</span>
+            <span className="block text-sm text-gray-500">Randomises question &amp; answer order per student, requires sign-in, allows only one attempt, and (once the exam worker is set up) grades on the server so answers stay hidden.</span>
+          </span>
+        </label>
         <details className="border-2 border-gray-200 rounded-xl p-4">
           <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
           <div className="flex flex-col gap-3 mt-4">

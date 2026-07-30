@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { getQuiz, saveAssignmentResult } from "@/lib/firestore";
+import { useAuth } from "@/contexts/AuthContext";
+import { getQuiz, saveAssignmentResult, hasExamAttempt, recordExamAttempt } from "@/lib/firestore";
 import { calculatePoints } from "@/lib/scoring";
 import { playSuccess, playFail, toggleSfx, isSfxEnabled } from "@/lib/sfx";
 import { sendAssignmentEmail } from "@/lib/integrations";
@@ -10,6 +11,24 @@ import { ANSWER_COLORS } from "@/types";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Confetti from "@/components/game/Confetti";
+
+function shuffleArr<T>(arr: T[]): T[] {
+  const b = [...arr];
+  for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+  return b;
+}
+function shuffleForExam(questions: any[]): any[] {
+  return shuffleArr(questions).map((q: any) => {
+    if ((q.type === "multiple" || q.type === "truefalse" || !q.type) && Array.isArray(q.options) && q.options.length) {
+      const idxMap: number[] = shuffleArr(q.options.map((_: string, i: number) => i));
+      const nq: any = { ...q, options: idxMap.map((i: number) => q.options[i]) };
+      if (typeof q.correctAnswer === "number") nq.correctAnswer = idxMap.indexOf(q.correctAnswer);
+      if (Array.isArray(q.correctAnswers)) nq.correctAnswers = q.correctAnswers.map((old: number) => idxMap.indexOf(old));
+      return nq;
+    }
+    return q;
+  });
+}
 
 export default function AssignmentClient() {
   const params = useSearchParams();
@@ -31,6 +50,8 @@ export default function AssignmentClient() {
   const [error, setError] = useState("");
   const [sound, setSound] = useState(true);
   useEffect(() => { setSound(isSfxEnabled()); }, []);
+  const { user, loginWithGoogle } = useAuth();
+  const [examBlocked, setExamBlocked] = useState("");
   const startRef = useRef<number>(0);
 
   useEffect(() => {
@@ -45,15 +66,24 @@ export default function AssignmentClient() {
           ),
         };
         if (!playable.questions.length) setError("This quiz has no playable questions yet.");
-        else setQuiz(playable);
+        else setQuiz({ ...playable, questions: (q as any).examMode ? shuffleForExam(playable.questions) : playable.questions });
       })
       .catch(() => setError("Could not load this quiz. The host may not have shared it."));
   }, [quizId]);
 
+  useEffect(() => {
+    if (quiz && (quiz as any).examMode && user && quizId) {
+      hasExamAttempt(quizId, user.uid).then((taken) => { if (taken) setExamBlocked("attempted"); }).catch(() => {});
+    }
+  }, [quiz, user, quizId]);
+
   const q: any = quiz?.questions?.[idx] ?? null;
   const opts: string[] = (q?.options || []).filter((o: string) => o && o.trim());
 
-  const begin = () => { setStarted(true); startRef.current = Date.now(); };
+  const begin = () => {
+    if (quiz && (quiz as any).examMode && !user) { setExamBlocked("login"); return; }
+    setStarted(true); startRef.current = Date.now();
+  };
 
   const submit = () => {
     if (!q || revealed) return;
@@ -89,6 +119,7 @@ export default function AssignmentClient() {
     if (!quiz) return;
     if (idx + 1 >= quiz.questions.length) {
       setDone(true);
+      if ((quiz as any).examMode && user) { try { await recordExamAttempt(quizId, user.uid, user.email || ""); } catch {} }
       try {
         await saveAssignmentResult({
           quizId,
@@ -140,6 +171,21 @@ export default function AssignmentClient() {
 
   if (error) return <div className="p-10 text-center text-red-500 font-semibold">{error}</div>;
   if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">Loading quiz...</div>;
+  if ((quiz as any).examMode && examBlocked === "attempted") return (
+    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+      <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">Already completed</h1><p className="text-white/70">You have already taken this exam. Only one attempt is allowed.</p></div>
+    </div>
+  );
+  if ((quiz as any).examMode && !user) return (
+    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+      <div className="max-w-sm">
+        <h1 className="text-3xl font-black mb-2">Exam sign-in</h1>
+        <p className="text-white/70 mb-6">This is an exam. Sign in so your result can be recorded &mdash; only one attempt is allowed.</p>
+        <button onClick={() => loginWithGoogle().catch(() => {})} className="bg-white text-gray-900 font-bold px-6 py-3 rounded-xl w-full mb-3">Continue with Google</button>
+        <a href="/login" className="text-white/60 underline text-sm">or sign in with email</a>
+      </div>
+    </div>
+  );
 
   if (!started) {
     return (

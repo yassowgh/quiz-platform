@@ -113,3 +113,13 @@ export async function getHomeContent(): Promise<Record<string, string>> {
 export async function saveHomeContent(data: Record<string, string>): Promise<void> {
   await setDoc(doc(db, "siteContent", "home"), data, { merge: true });
 }
+
+
+export async function hasExamAttempt(quizId: string, uid: string): Promise<boolean> {
+  const snap = await getDoc(doc(db, "examAttempts", quizId + "_" + uid));
+  return snap.exists();
+}
+
+export async function recordExamAttempt(quizId: string, uid: string, email: string): Promise<void> {
+  await setDoc(doc(db, "examAttempts", quizId + "_" + uid), { quizId, uid, email, at: Date.now() });
+}
