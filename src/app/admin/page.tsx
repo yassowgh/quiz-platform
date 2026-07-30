@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { listAllUsers, listAllQuizzes } from "@/lib/firestore";
 import Card from "@/components/ui/Card";
 
-const ADMIN_EMAIL = "yassow@gmail.com";
+const ADMIN_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -18,7 +18,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) { router.push("/login"); return; }
-    if (user.email !== ADMIN_EMAIL) { router.push("/dashboard"); return; }
+    if (!ADMIN_EMAILS.includes(user.email)) { router.push("/dashboard"); return; }
     Promise.all([listAllUsers(), listAllQuizzes()])
       .then(([u, q]) => { setUsers(u); setQuizzes(q); })
       .catch((e) => setError("Failed to load reports: " + String(e?.message || e)))

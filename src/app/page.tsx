@@ -92,7 +92,7 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const isAdmin = user?.email === "yassow@gmail.com";
+  const isAdmin = !!user?.email && ["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email);
   const [home, setHome] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});

@@ -16,7 +16,7 @@ export default function Navbar() {
         <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="text-sm font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-2 py-1" title="Language">{lang === "en" ? "🌐 عربي" : "🌐 EN"}</button>
         {user ? (
           <>
-            {user.email === "yassow@gmail.com" && (
+            {["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email) && (
               <Link href="/admin" className="hover:underline font-bold text-kahoot-purple">📊 {t("reports")}</Link>
             )}
             <Link href="/dashboard" className="hover:underline font-semibold text-gray-700">{user.displayName || user.email}</Link>
