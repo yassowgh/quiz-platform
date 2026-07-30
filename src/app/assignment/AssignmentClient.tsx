@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { getQuiz, saveAssignmentResult, hasExamAttempt, recordExamAttempt } from "@/lib/firestore";
+import { getQuiz, getExamPublic, saveAssignmentResult, hasExamAttempt, recordExamAttempt } from "@/lib/firestore";
 import { calculatePoints } from "@/lib/scoring";
 import { playSuccess, playFail, toggleSfx, isSfxEnabled } from "@/lib/sfx";
-import { sendAssignmentEmail } from "@/lib/integrations";
+import { sendAssignmentEmail, gradeExam } from "@/lib/integrations";
 import type { Quiz } from "@/types";
 import { ANSWER_COLORS } from "@/types";
 import Button from "@/components/ui/Button";
@@ -53,10 +53,11 @@ export default function AssignmentClient() {
   const { user, loginWithGoogle } = useAuth();
   const [examBlocked, setExamBlocked] = useState("");
   const startRef = useRef<number>(0);
+  const answerLog = useRef<any[]>([]);
 
   useEffect(() => {
     if (!quizId) { setError("No quiz specified."); return; }
-    getQuiz(quizId)
+    getExamPublic(quizId).catch(() => null).then((ep: any) => ep || getQuiz(quizId))
       .then((q) => {
         if (!q) { setError("Quiz not found or not shared."); return; }
         const playable = {
@@ -79,6 +80,7 @@ export default function AssignmentClient() {
 
   const q: any = quiz?.questions?.[idx] ?? null;
   const opts: string[] = (q?.options || []).filter((o: string) => o && o.trim());
+  const sealed = !!(quiz && (quiz as any).examMode && (quiz as any).examSeal);
 
   const begin = () => {
     if (quiz && (quiz as any).examMode && !user) { setExamBlocked("login"); return; }
@@ -87,6 +89,14 @@ export default function AssignmentClient() {
 
   const submit = () => {
     if (!q || revealed) return;
+    if (sealed) {
+      const sel = q.type === "typeanswer"
+        ? { id: q.id, type: q.type, text: typed.trim() }
+        : { id: q.id, type: q.type, picked: (picked || []).map((i: number) => q.options[i]) };
+      answerLog.current = [...answerLog.current.filter((x: any) => x.id !== q.id), sel];
+      setRevealed(true);
+      return;
+    }
     const timeTaken = Date.now() - startRef.current;
     const limit = q.timeLimit || 20;
     let ratio = 0;
@@ -119,6 +129,15 @@ export default function AssignmentClient() {
     if (!quiz) return;
     if (idx + 1 >= quiz.questions.length) {
       setDone(true);
+      let finalScore = score;
+      let finalCorrect = correctCount;
+      if (sealed) {
+        try {
+          const res: any = await gradeExam((quiz as any).examSeal, answerLog.current);
+          finalScore = res.score; finalCorrect = res.correctCount;
+          setScore(res.score); setCorrectCount(res.correctCount);
+        } catch {}
+      }
       if ((quiz as any).examMode && user) { try { await recordExamAttempt(quizId, user.uid, user.email || ""); } catch {} }
       try {
         await saveAssignmentResult({
@@ -127,8 +146,8 @@ export default function AssignmentClient() {
           hostId: quiz.hostId,
           nickname: name.trim() || "Anonymous",
           ccEmail: ccEmail.trim() || null,
-          score,
-          correctCount,
+          score: finalScore,
+          correctCount: finalCorrect,
           totalQuestions: quiz.questions.length,
         });
         try {
@@ -136,8 +155,8 @@ export default function AssignmentClient() {
             toEmail: (quiz as any).creatorEmail || "",
             quizTitle: quiz.title,
             playerName: name.trim() || "Anonymous",
-            score,
-            correctCount,
+            score: finalScore,
+            correctCount: finalCorrect,
             totalQuestions: quiz.questions.length,
           });
         } catch { /* email is best-effort; results are still saved */ }
@@ -302,7 +321,7 @@ export default function AssignmentClient() {
           </div>
         )}
 
-        {revealed && (
+        {revealed && !sealed && (
           <div className="text-center mt-4">
             {q.type === "poll" ? (
               <p className="text-2xl font-black">🗳️ Vote recorded!</p>

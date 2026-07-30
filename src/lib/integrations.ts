@@ -149,3 +149,19 @@ export async function sendAssignmentInvite(params: {
   }
   return sent;
 }
+
+
+export async function sealExam(items: any[]): Promise<string | null> {
+  try {
+    const r = await fetch(AI_WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "seal", items }) });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.sealed || null;
+  } catch { return null; }
+}
+
+export async function gradeExam(sealed: string, answers: any[]): Promise<{ correctCount: number; total: number; score: number }> {
+  const r = await fetch(AI_WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "grade", sealed, answers }) });
+  if (!r.ok) throw new Error("grade failed");
+  return await r.json();
+}

@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { getQuiz, updateQuiz } from "@/lib/firestore";
+import { getQuiz, updateQuiz, saveExamPublic } from "@/lib/firestore";
+import { sealExam } from "@/lib/integrations";
 import type { Quiz } from "@/types";
 import QuizEditor from "@/components/quiz/QuizEditor";
 import Button from "@/components/ui/Button";
@@ -55,6 +56,34 @@ export default function EditQuizPage() {
       isPublished: publish !== undefined ? publish : quiz.isPublished,
       updatedAt: Date.now(),
     });
+    if (quiz.examMode && (publish !== undefined ? publish : quiz.isPublished)) {
+      const items = questions.map((qq: any) => ({
+        id: qq.id,
+        type: qq.type || "multiple",
+        points: qq.points || 0,
+        correct:
+          qq.type === "typeanswer"
+            ? [String(qq.correctText || "")]
+            : qq.multiSelect && qq.correctAnswers?.length
+            ? qq.correctAnswers.map((i: number) => qq.options?.[i])
+            : [qq.options?.[Number(qq.correctAnswer ?? 0)]],
+      }));
+      const sealed = await sealExam(items);
+      const strip = (qq: any) => { const s: any = { ...qq }; delete s.correctAnswer; delete s.correctAnswers; delete s.correctText; return s; };
+      await saveExamPublic(quiz.id, {
+        hostId: quiz.hostId,
+        title: quiz.title,
+        description: quiz.description || "",
+        questions: sealed ? questions.map(strip) : questions,
+        examMode: true,
+        examSeal: sealed || null,
+        branding: quiz.branding || null,
+        language: quiz.language || "en",
+        allowAssignment: true,
+        creatorEmail: quiz.creatorEmail || user?.email || "",
+        updatedAt: Date.now(),
+      });
+    }
     setSaving(false);
     router.push("/dashboard");
   };

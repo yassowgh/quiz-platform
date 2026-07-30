@@ -123,3 +123,13 @@ export async function hasExamAttempt(quizId: string, uid: string): Promise<boole
 export async function recordExamAttempt(quizId: string, uid: string, email: string): Promise<void> {
   await setDoc(doc(db, "examAttempts", quizId + "_" + uid), { quizId, uid, email, at: Date.now() });
 }
+
+
+export async function getExamPublic(quizId: string): Promise<any | null> {
+  const snap = await getDoc(doc(db, "examPublic", quizId));
+  return snap.exists() ? { id: quizId, ...snap.data() } : null;
+}
+
+export async function saveExamPublic(quizId: string, data: any): Promise<void> {
+  await setDoc(doc(db, "examPublic", quizId), data, { merge: true });
+}
