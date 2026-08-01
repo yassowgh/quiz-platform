@@ -56,7 +56,7 @@ export default function DashboardPage() {
         id: nanoid(),
         hostId: user.uid,
         creatorEmail: user.email || "",
-        title: "Untitled Quiz",
+        title: "",
         description: "",
         questions: [makeBlankQuestion()],
         isPublished: false,

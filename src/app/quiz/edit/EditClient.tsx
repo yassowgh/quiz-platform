@@ -38,6 +38,7 @@ export default function EditQuizPage() {
 
   const save = async (publish?: boolean) => {
     if (!quiz) return;
+    if (publish && !quiz.title.trim()) { alert("Please give your quiz a title before publishing."); return; }
     let questions = quiz.questions;
     if (publish) {
       questions = quiz.questions.filter(
@@ -107,7 +108,7 @@ export default function EditQuizPage() {
         </div>
       </div>
       <div className="flex flex-col gap-4 mb-8">
-        <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} />
+        <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} placeholder="Name your quiz…" />
         <Input label="Description" value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
 
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">

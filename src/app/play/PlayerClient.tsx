@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { submitAnswer } from "@/lib/realtimeDb";
 import AnswerButton from "@/components/game/AnswerButton";
+import MathText from "@/components/ui/MathText";
 import Timer from "@/components/game/Timer";
 import Leaderboard from "@/components/game/Leaderboard";
 import Confetti from "@/components/game/Confetti";
@@ -218,7 +219,7 @@ export default function PlayPage() {
           <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={questionShownAt + 3000} onExpire={() => setTimeUp(true)} className="mb-2" />
           {currentQ && (
             <div className="bg-white/10 rounded-xl p-3 text-center">
-              <p className="font-bold text-lg" dir="auto">{currentQ.text}</p>
+              <p className="font-bold text-lg" dir="auto"><MathText text={currentQ.text} /></p>
               {currentQ.multiSelect && (
                 <p className="text-kahoot-yellow text-sm font-semibold mt-1">☑️ {t("selectAllThatApply")}</p>
               )}

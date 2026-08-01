@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [resetMode, setResetMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleEmail = async (e: React.FormEvent) => {
@@ -59,9 +60,15 @@ export default function LoginPage() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {notice && <p className="text-kahoot-green text-sm font-semibold">{notice}</p>}
           <Button type="submit" loading={loading} className="w-full">Log in</Button>
-          <button type="button" onClick={handleReset} className="text-sm text-kahoot-purple font-semibold hover:underline self-center">
+          <button type="button" onClick={() => { setError(""); setNotice(""); setResetMode(true); }} className="text-sm text-kahoot-purple font-semibold hover:underline self-center">
             Forgot your password?
           </button>
+          {resetMode && (
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+              <p className="text-sm text-gray-600">Enter your email above, then send yourself a password reset link.</p>
+              <Button type="button" onClick={handleReset} disabled={loading} className="w-full">Send reset link</Button>
+            </div>
+          )}
         </form>
         <div className="relative my-4 text-center text-gray-400">— or —</div>
         <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading}>

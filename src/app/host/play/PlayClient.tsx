@@ -1,4 +1,5 @@
 "use client";
+import MathText from "@/components/ui/MathText";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -182,7 +183,7 @@ export default function HostPlayPage() {
             <span className="text-white/70">{answeredCount}/{players.length} {t("answered")}</span>
           </div>
           <Card className="mb-4 text-center text-gray-900">
-            <h2 className="text-2xl font-black" dir="auto">{currentQ.text}</h2>
+            <h2 className="text-2xl font-black" dir="auto"><MathText text={currentQ.text} /></h2>
             {currentQ.imageUrl && (
               <img src={currentQ.imageUrl} alt="" className="max-h-64 mx-auto rounded-xl mt-3" />
             )}
@@ -208,7 +209,7 @@ export default function HostPlayPage() {
               <p className="text-center text-xl font-bold mb-3">🔀 Sort these on your device!</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {currentQ.options.filter((o) => o && o.trim()).map((opt, i) => (
-                  <span key={i} dir="auto" className="bg-white text-gray-900 rounded-lg px-3 py-1 font-bold">{opt}</span>
+                  <span key={i} dir="auto" className="bg-white text-gray-900 rounded-lg px-3 py-1 font-bold"><MathText text={opt} /></span>
                 ))}
               </div>
             </div>
@@ -216,7 +217,7 @@ export default function HostPlayPage() {
           <div className="grid grid-cols-2 gap-3 mb-4">
             {currentQ.options.map((opt, i) => !opt || !opt.trim() ? null : (
               <div key={i} className={`p-4 rounded-xl font-bold flex items-center gap-2 ${ANSWER_COLORS[i].bg} ${ANSWER_COLORS[i].text}`}>
-                <span className="text-2xl">{ANSWER_COLORS[i].shape}</span> <span dir="auto">{opt}</span>
+                <span className="text-2xl">{ANSWER_COLORS[i].shape}</span> <span dir="auto"><MathText text={opt} /></span>
               </div>
             ))}
           </div>
@@ -227,7 +228,7 @@ export default function HostPlayPage() {
       {state.status === "answer_reveal" && currentQ && (
         <div className="max-w-3xl mx-auto">
           <Card className="mb-4 text-center text-gray-900">
-            <h2 className="text-2xl font-black mb-1" dir="auto">{currentQ.text}</h2>
+            <h2 className="text-2xl font-black mb-1" dir="auto"><MathText text={currentQ.text} /></h2>
             <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.multiSelect && currentQ.correctAnswers?.length ? currentQ.correctAnswers.map((ci) => currentQ.options[ci]).join(", ") : currentQ.type === "typeanswer" ? currentQ.correctText : currentQ.type === "sorting" ? currentQ.options.filter((o) => o && o.trim()).join(" → ") : currentQ.type === "poll" ? "Poll — every vote counts!" : currentQ.options[Number(currentQ.correctAnswer)]}</p>
           </Card>
           {currentQ.type !== "typeanswer" && currentQ.type !== "sorting" && (

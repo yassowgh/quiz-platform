@@ -11,6 +11,7 @@ import { ANSWER_COLORS } from "@/types";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Confetti from "@/components/game/Confetti";
+import MathText from "@/components/ui/MathText";
 
 function shuffleArr<T>(arr: T[]): T[] {
   const b = [...arr];
@@ -276,7 +277,7 @@ export default function AssignmentClient() {
         </div>
 
         <Card className="mb-4 text-center text-gray-900">
-          <h2 className="text-xl font-black" dir="auto">{q.text}</h2>
+          <h2 className="text-xl font-black" dir="auto"><MathText text={q.text} /></h2>
           {q.multiSelect && <p className="text-sm text-gray-500 mt-1">☑️ Select all that apply</p>}
           {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-52 mx-auto rounded-xl mt-3" />}
           {q.audioUrl && <audio src={q.audioUrl} controls className="mx-auto mt-3" />}
@@ -314,7 +315,7 @@ export default function AssignmentClient() {
                     color.bg + " " + color.text + (isPicked ? " ring-4 ring-white" : "") + (revealed ? " opacity-70" : "")
                   }
                 >
-                  <span className="text-2xl">{color.shape}</span> {opt}
+                  <span className="text-2xl">{color.shape}</span> <MathText text={opt} />
                 </button>
               );
             })}

@@ -1,6 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { ANSWER_COLORS } from "@/types";
+import MathText from "@/components/ui/MathText";
 
 interface AnswerButtonProps {
   index: number;
@@ -29,7 +30,7 @@ export default function AnswerButton({ index, text, selected, correct, disabled,
       )}
     >
       <span className="text-2xl w-8 text-center">{color.shape}</span>
-      <span className="flex-1">{text}</span>
+      <span className="flex-1"><MathText text={text} /></span>
       {correct && <span className="text-2xl">✓</span>}
       {selected && !correct && disabled && <span className="text-2xl">✗</span>}
     </button>
