@@ -14,12 +14,13 @@ export async function generateQuestions(
   topic: string,
   count: number,
   language: "en" | "ar",
-  avoid: string[] = []
+  avoid: string[] = [],
+  source: string = ""
 ): Promise<Question[]> {
   const r = await fetch(AI_WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, count, language, avoid }),
+    body: JSON.stringify({ topic, count, language, avoid, source }),
   });
   let data: any = {};
   try { data = await r.json(); } catch { /* ignore */ }

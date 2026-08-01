@@ -20,6 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
 import { generateQuestions } from "@/lib/integrations";
+import { extractTextFromFile } from "@/lib/docExtract";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
@@ -331,21 +332,27 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
   const [aiLang, setAiLang] = useState<"en" | "ar">("en");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [aiDoc, setAiDoc] = useState("");
+  const [aiDocName, setAiDocName] = useState("");
+  const [aiDocBusy, setAiDocBusy] = useState(false);
 
   const runAi = async () => {
     setAiLoading(true);
     setAiError("");
+    if (!aiTopic.trim() && !aiDoc) { setAiError("Enter a topic or upload a document."); setAiLoading(false); return; }
     try {
       const qs = await generateQuestions(
         aiTopic.trim(),
         aiCount,
         aiLang,
-        questions.map((q) => q.text).filter(Boolean)
+        questions.map((q) => q.text).filter(Boolean),
+        aiDoc
       );
       if (!qs.length) throw new Error("No new questions came back — they may all duplicate existing ones. Try a more specific topic.");
       onChange([...questions, ...qs]);
       setAiOpen(false);
       setAiTopic("");
+      setAiDoc(""); setAiDocName("");
     } catch (e: any) {
       setAiError(e?.message || "Generation failed. Please try again.");
     } finally {
@@ -491,7 +498,7 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !aiLoading && setAiOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-black mb-1">✨ Generate questions with AI</h3>
-            <p className="text-sm text-gray-500 mb-4">Describe a topic and QuizUps will draft multiple-choice questions for you.</p>
+            <p className="text-sm text-gray-500 mb-4">Describe a topic, or upload a document (PDF, Word, PowerPoint, text), and QuizUps will draft multiple-choice questions.</p>
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-gray-700">Topic</label>
@@ -503,11 +510,35 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
                   className="px-3 py-2 border-2 border-gray-200 rounded-xl"
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Or generate from a document</label>
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.pptx,.txt"
+                  onChange={async (ev) => {
+                    const f = ev.target.files?.[0];
+                    if (!f) return;
+                    if (f.size > 10 * 1024 * 1024) { setAiError("File too large (max 10MB)."); return; }
+                    setAiDocBusy(true); setAiError("");
+                    try {
+                      const txt = await extractTextFromFile(f);
+                      if (!txt.trim()) throw new Error("No readable text found in that file.");
+                      setAiDoc(txt); setAiDocName(f.name);
+                    } catch (err: any) {
+                      setAiError(err?.message || "Could not read that file."); setAiDoc(""); setAiDocName("");
+                    } finally { setAiDocBusy(false); }
+                  }}
+                  className="text-sm"
+                />
+                {aiDocBusy && <p className="text-xs text-gray-500">Reading document…</p>}
+                {aiDocName && !aiDocBusy && <p className="text-xs text-kahoot-green font-semibold">Loaded: {aiDocName} — questions will come from its content.</p>}
+                <p className="text-xs text-gray-400">PDF, Word, PowerPoint or text. Long files are trimmed to keep AI free.</p>
+              </div>
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1 flex-1">
                   <label className="text-sm font-semibold text-gray-700">How many</label>
                   <select value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
-                    {[3, 5, 8, 10].map((n) => (<option key={n} value={n}>{n} questions</option>))}
+                    {[5, 10, 15, 20].map((n) => (<option key={n} value={n}>{n} questions</option>))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
