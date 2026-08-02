@@ -28,3 +28,8 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-70vh) scale(1.6); opacity: 0; }
+}

@@ -1,5 +1,6 @@
 "use client";
 import MathText from "@/components/ui/MathText";
+import { ReactionOverlay } from "@/components/game/Reactions";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -160,6 +161,7 @@ export default function HostPlayPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6" style={quiz?.branding?.primaryColor ? { background: quiz.branding.primaryColor } : undefined}>
+      <ReactionOverlay gameId={gameId} />
       {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-10 mx-auto mb-3" />}
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">

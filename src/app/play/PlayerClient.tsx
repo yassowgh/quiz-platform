@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ReactionBar } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { submitAnswer } from "@/lib/realtimeDb";
@@ -197,6 +198,7 @@ export default function PlayPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col" style={(state as any)?._quiz?.branding?.primaryColor ? { background: (state as any)._quiz.branding.primaryColor } : undefined}>
+      <ReactionBar gameId={gameId} />
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
