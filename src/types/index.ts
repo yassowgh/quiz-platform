@@ -20,6 +20,7 @@ export interface Question {
   multiSelect?: boolean;
   timeLimit: number; // seconds
   points: number;
+  difficulty?: "easy" | "medium" | "hard";
 }
 
 export interface VideoSegment {
@@ -39,6 +40,7 @@ export interface Quiz {
   language?: "en" | "ar";
   allowAssignment?: boolean;
   examMode?: boolean;
+  adaptive?: boolean;
   videoMode?: boolean;
   videoType?: "youtube" | "url";
   videoUrl?: string;

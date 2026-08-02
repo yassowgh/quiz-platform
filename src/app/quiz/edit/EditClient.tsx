@@ -120,6 +120,13 @@ export default function EditQuizPage() {
           </span>
         </label>
         <VideoQuizEditor quiz={quiz} onChange={setQuiz} />
+        <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
+          <input type="checkbox" checked={!!quiz.adaptive} onChange={(ev) => setQuiz({ ...quiz, adaptive: ev.target.checked })} className="mt-1 w-5 h-5" />
+          <span>
+            <span className="font-bold text-gray-700">📊 Adaptive difficulty</span>
+            <span className="block text-sm text-gray-500">In assignments, questions are ordered easy → hard using each question\u2019s Difficulty (set under a question\u2019s Advanced options).</span>
+          </span>
+        </label>
         <details className="border-2 border-gray-200 rounded-xl p-4">
           <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
           <div className="flex flex-col gap-3 mt-4">

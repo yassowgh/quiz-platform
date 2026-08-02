@@ -86,6 +86,14 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
           </button>
           {adv && (<>
           <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Difficulty</label>
+            <select value={question.difficulty || "medium"} onChange={(e) => onChange({ ...question, difficulty: e.target.value as any })} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
             <div className="flex items-center gap-2 flex-wrap">
               <input

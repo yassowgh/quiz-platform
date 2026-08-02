@@ -68,7 +68,7 @@ export default function AssignmentClient() {
           ),
         };
         if (!playable.questions.length) setError("This quiz has no playable questions yet.");
-        else setQuiz({ ...playable, questions: (q as any).examMode ? shuffleForExam(playable.questions) : playable.questions });
+        else { const rank = (v: any) => ({ easy: 0, medium: 1, hard: 2 } as any)[v?.difficulty || "medium"] ?? 1; const qs = (q as any).examMode ? shuffleForExam(playable.questions) : ((q as any).adaptive ? playable.questions.slice().sort((a: any, b: any) => rank(a) - rank(b)) : playable.questions); setQuiz({ ...playable, questions: qs }); }
       })
       .catch(() => setError("Could not load this quiz. The host may not have shared it."));
   }, [quizId]);
