@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz, updateQuiz, saveExamPublic } from "@/lib/firestore";
 import { sealExam } from "@/lib/integrations";
+import VideoQuizEditor from "@/components/quiz/VideoQuizEditor";
 import type { Quiz } from "@/types";
 import QuizEditor from "@/components/quiz/QuizEditor";
 import Button from "@/components/ui/Button";
@@ -118,6 +119,7 @@ export default function EditQuizPage() {
             <span className="block text-sm text-gray-500">Randomises question &amp; answer order per student, requires sign-in, allows only one attempt, and (once the exam worker is set up) grades on the server so answers stay hidden.</span>
           </span>
         </label>
+        <VideoQuizEditor quiz={quiz} onChange={setQuiz} />
         <details className="border-2 border-gray-200 rounded-xl p-4">
           <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
           <div className="flex flex-col gap-3 mt-4">

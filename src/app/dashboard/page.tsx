@@ -101,7 +101,8 @@ export default function DashboardPage() {
                 <p className="text-gray-500">{quiz.questions.length} questions · {quiz.isPublished ? "Published" : "Draft"}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link href={`/game/lobby?quizId=${quiz.id}`}>
+                {quiz.videoMode && (<Link href={`/watch?quizId=${quiz.id}`}><Button size="sm">▶ Video</Button></Link>)}
+              <Link href={`/game/lobby?quizId=${quiz.id}`}>
                   <Button size="sm">Host</Button>
                 </Link>
                 <Link href={`/reports?quizId=${quiz.id}`}>
