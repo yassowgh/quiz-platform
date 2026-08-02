@@ -22,6 +22,11 @@ export interface Question {
   points: number;
 }
 
+export interface VideoSegment {
+  time: number;
+  questions: Question[];
+}
+
 export interface Quiz {
   id: string;
   hostId: string;
@@ -34,6 +39,11 @@ export interface Quiz {
   language?: "en" | "ar";
   allowAssignment?: boolean;
   examMode?: boolean;
+  videoMode?: boolean;
+  videoType?: "youtube" | "url";
+  videoUrl?: string;
+  videoBlockUntilCorrect?: boolean;
+  videoSegments?: VideoSegment[];
   creatorEmail?: string;
   createdAt: number;
   updatedAt: number;

@@ -166,3 +166,32 @@ export async function gradeExam(sealed: string, answers: any[]): Promise<{ corre
   if (!r.ok) throw new Error("grade failed");
   return await r.json();
 }
+
+
+export async function generateVideoQuestions(
+  url: string,
+  from: number,
+  to: number,
+  count: number,
+  language: "en" | "ar" = "en"
+): Promise<Question[]> {
+  const r = await fetch(AI_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "videoq", url, from, to, count, language }),
+  });
+  let data: any = {};
+  try { data = await r.json(); } catch {}
+  if (!r.ok || data.error) throw new Error(String(data.detail || data.error || "Video analysis failed"));
+  const arr = Array.isArray(data.questions) ? data.questions : [];
+  const out: Question[] = [];
+  for (const q of arr) {
+    const text = String(q.text || "").slice(0, 150);
+    if (!text) continue;
+    const options = Array.isArray(q.options) ? q.options.slice(0, 6).map((o: any) => String(o).slice(0, 75)) : ["", "", "", ""];
+    while (options.length < 2) options.push("");
+    const ci = Number.isInteger(q.correctIndex) ? Math.max(0, Math.min(q.correctIndex, options.length - 1)) : 0;
+    out.push({ id: nanoid(), text, options, correctAnswer: ci, correctAnswers: [ci], multiSelect: false, type: "multiple", timeLimit: 20, points: 1000 });
+  }
+  return out;
+}
