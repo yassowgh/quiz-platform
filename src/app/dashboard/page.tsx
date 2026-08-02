@@ -105,7 +105,8 @@ export default function DashboardPage() {
               <Link href={`/game/lobby?quizId=${quiz.id}`}>
                   <Button size="sm">Host</Button>
                 </Link>
-                <Link href={`/reports?quizId=${quiz.id}`}>
+                {!quiz.videoMode && (<Link href={`/study?quizId=${quiz.id}`}><Button size="sm" variant="secondary">🃏 Study</Button></Link>)}
+              <Link href={`/reports?quizId=${quiz.id}`}>
                   <Button size="sm" variant="secondary">📊 Analytics</Button>
                 </Link>
                 <Link href={`/quiz/edit?id=${quiz.id}`}>

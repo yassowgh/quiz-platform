@@ -19,7 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
-import { generateQuestions } from "@/lib/integrations";
+import { generateQuestions, generateFromUrl } from "@/lib/integrations";
 import { extractTextFromFile } from "@/lib/docExtract";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -335,13 +335,14 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
   const [aiDoc, setAiDoc] = useState("");
   const [aiDocName, setAiDocName] = useState("");
   const [aiDocBusy, setAiDocBusy] = useState(false);
+  const [aiUrl, setAiUrl] = useState("");
 
   const runAi = async () => {
     setAiLoading(true);
     setAiError("");
-    if (!aiTopic.trim() && !aiDoc) { setAiError("Enter a topic or upload a document."); setAiLoading(false); return; }
+    if (!aiTopic.trim() && !aiDoc && !aiUrl.trim()) { setAiError("Enter a topic, a website URL, or upload a document."); setAiLoading(false); return; }
     try {
-      const qs = await generateQuestions(
+      const qs = aiUrl.trim() ? await generateFromUrl(aiUrl.trim(), aiCount, aiLang, questions.map((q) => q.text).filter(Boolean)) : await generateQuestions(
         aiTopic.trim(),
         aiCount,
         aiLang,
@@ -352,7 +353,7 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
       onChange([...questions, ...qs]);
       setAiOpen(false);
       setAiTopic("");
-      setAiDoc(""); setAiDocName("");
+      setAiDoc(""); setAiDocName(""); setAiUrl("");
     } catch (e: any) {
       setAiError(e?.message || "Generation failed. Please try again.");
     } finally {
@@ -533,6 +534,10 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
                 {aiDocBusy && <p className="text-xs text-gray-500">Reading document…</p>}
                 {aiDocName && !aiDocBusy && <p className="text-xs text-kahoot-green font-semibold">Loaded: {aiDocName} — questions will come from its content.</p>}
                 <p className="text-xs text-gray-400">PDF, Word, PowerPoint or text. Long files are trimmed to keep AI free.</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Or generate from a website URL</label>
+                <input value={aiUrl} onChange={(e) => setAiUrl(e.target.value)} placeholder="https://en.wikipedia.org/wiki/..." className="px-3 py-2 border-2 border-gray-200 rounded-xl" />
               </div>
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1 flex-1">
