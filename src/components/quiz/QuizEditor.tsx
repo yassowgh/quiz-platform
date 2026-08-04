@@ -19,11 +19,23 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
-import { generateQuestions, generateFromUrl } from "@/lib/integrations";
+import { generateQuestions, generateFromUrl, uploadImage } from "@/lib/integrations";
 import { extractTextFromFile } from "@/lib/docExtract";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
+
+function uploadCompressed(file: File, cb: (url: string) => void) {
+  compressImageToDataUrl(file, async (dataUrl) => {
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const url = await uploadImage(blob);
+      cb(url);
+    } catch {
+      cb(dataUrl);
+    }
+  });
+}
 
 function compressImageToDataUrl(file: File, cb: (url: string) => void) {
   const reader = new FileReader();
@@ -101,7 +113,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) compressImageToDataUrl(file, (url) => onChange({ ...question, imageUrl: url }));
+                  if (file) uploadCompressed(file, (url) => onChange({ ...question, imageUrl: url }));
                   e.target.value = "";
                 }}
                 className="text-sm"

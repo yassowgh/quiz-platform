@@ -223,3 +223,15 @@ export async function generateFromUrl(
   }
   return out;
 }
+
+
+export async function uploadImage(blob: Blob): Promise<string> {
+  const r = await fetch(AI_WORKER_URL.replace(/\/$/, "") + "/upload", {
+    method: "POST",
+    headers: { "Content-Type": blob.type || "image/jpeg" },
+    body: blob,
+  });
+  const j: any = await r.json().catch(() => ({}));
+  if (!r.ok || !j.url) throw new Error(j.error || "upload failed");
+  return j.url as string;
+}
