@@ -30,21 +30,13 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy RTDB rules
+      - name: Deploy Firestore + RTDB rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$SERVICE_ACCOUNT" > /tmp/sa.json
-          npx --yes firebase-tools deploy --only database --project quiz-platform-e46ba --non-interactive
-
-      - name: Deploy Firestore rules
-        continue-on-error: true
-        env:
-          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          pip install cryptography --quiet --break-system-packages
-          python3 scripts/deploy_firestore_rules.py
+          npx --yes firebase-tools deploy --only database,firestore:rules --project quiz-platform-e46ba --non-interactive
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
