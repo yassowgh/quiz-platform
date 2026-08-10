@@ -7,9 +7,9 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 export const metadata: Metadata = {
   metadataBase: new URL("https://quizups.com"),
   icons: { icon: "/favicon.ico", apple: "/apple-icon.png" },
-  title: "QuizUps — Free Kahoot Alternative | Live Multiplayer Quiz Game",
+  title: { default: "QuizUps — Free Kahoot & Quizizz Alternative | Live Multiplayer Quiz Game", template: "%s | QuizUps" },
   description:
-    "QuizUps is a 100% free Kahoot alternative. Host live multiplayer quizzes with unlimited players — no subscription, no player caps. Multiple choice, true/false, type-answer, sorting and polls.",
+    "QuizUps is a 100% free Kahoot and Quizizz alternative. Host live multiplayer quizzes with unlimited players — no subscription, no player caps. AI question generation, interactive video quizzes, exams, flashcards and 5 question types.",
   keywords: [
     "quizups",
     "free kahoot alternative",
@@ -19,12 +19,34 @@ export const metadata: Metadata = {
     "classroom quiz tool",
     "free quiz maker",
     "team trivia game",
+    "quizizz alternative",
+    "free quizizz alternative",
+    "wayground alternative",
+    "blooket alternative",
+    "gimkit alternative",
+    "AI quiz generator",
+    "interactive video quiz",
+    "online exam maker",
+    "flashcards maker",
+    "trivia game maker",
+    "quiz app for teachers",
+    "live quiz for classroom",
   ],
+  applicationName: "QuizUps",
+  authors: [{ name: "QuizUps" }],
+  creator: "QuizUps",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  twitter: { card: "summary_large_image", title: "QuizUps — Free Kahoot & Quizizz Alternative", description: "Free forever live multiplayer quizzes — unlimited players, AI questions, video quizzes, exams and more.", images: ["/logo-full.png"] },
   openGraph: {
     title: "QuizUps — Free Kahoot Alternative",
     description:
       "Host live multiplayer quizzes free forever. Unlimited players, 5 question types, images, video, music and podium celebrations.",
     type: "website",
+    url: "https://quizups.com",
+    siteName: "QuizUps",
+    locale: "en_US",
+    images: [{ url: "/logo-full.png", width: 1200, height: 630, alt: "QuizUps — Free Kahoot & Quizizz Alternative" }],
   },
 };
 
@@ -44,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap"
           rel="stylesheet"
         />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ "@context": "https://schema.org", "@type": "WebSite", name: "QuizUps", url: "https://quizups.com" }, { "@context": "https://schema.org", "@type": "Organization", name: "QuizUps", url: "https://quizups.com", logo: "https://quizups.com/logo-full.png" }, { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "QuizUps", applicationCategory: "EducationalApplication", operatingSystem: "Web", description: "Free live multiplayer quiz platform — a free Kahoot and Quizizz alternative with unlimited players, AI question generation, interactive video quizzes and exams.", url: "https://quizups.com", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }]) }} />
       </head>
       <body className="min-h-screen bg-gray-50">
         {/* Google Tag Manager (noscript) */}

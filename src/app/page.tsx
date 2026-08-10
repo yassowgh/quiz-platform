@@ -123,7 +123,7 @@ export default function HomePage() {
       {/* Hero + join */}
       <div className="max-w-md mx-auto text-center">
         <img src="/logo-full.png" alt="QuizUps" className="w-60 mx-auto mb-3" />
-        <h1 className="sr-only">QuizUps</h1>
+        <h1 className="sr-only">QuizUps — Free Kahoot & Quizizz Alternative | Live Multiplayer Quiz Game</h1>
         <p className="text-white/70 text-xl mb-1">{line1}</p>
         <p className="text-kahoot-yellow font-bold mb-8">{line2}</p>
         {isAdmin && !editing && (
