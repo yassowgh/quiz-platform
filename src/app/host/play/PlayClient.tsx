@@ -110,20 +110,31 @@ export default function HostPlayPage() {
   const handleReveal = () => revealAnswer(gameId);
   const handleLeaderboard = () => showLeaderboard(gameId);
 
-  // Continuous background music for the whole game session
+  // Rotating background music per question (host only). Songs cycle each question.
+  const SONGS = ["/music/song1.mp3", "/music/song2.mp3", "/music/song3.mp3"];
   useEffect(() => {
-    const audio = new Audio("/music.mp3");
-    audio.loop = true;
-    audio.volume = 0.35;
+    if (!state || state.status !== "question") { if (musicRef.current) { try { musicRef.current.pause(); } catch (e) {} } return; }
+    const idx = state.currentQuestionIndex >= 0 ? state.currentQuestionIndex : 0;
+    const audio = new Audio(SONGS[idx % SONGS.length]);
+    audio.loop = true; audio.volume = 0.35; audio.muted = muted;
     musicRef.current = audio;
     const tryPlay = () => audio.play().catch(() => {
       const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
-      document.addEventListener("click", resume);
-      document.addEventListener("touchstart", resume);
+      document.addEventListener("click", resume); document.addEventListener("touchstart", resume);
     });
     tryPlay();
     return () => { audio.pause(); audio.src = ""; };
-  }, []);
+  }, [state?.status, state?.currentQuestionIndex]);
+
+  // Question-ending sound effect when the answer is revealed
+  useEffect(() => {
+    if (state?.status === "answer_reveal") {
+      if (musicRef.current) { try { musicRef.current.pause(); } catch (e) {} }
+      const fx = new Audio("/music/question-end.mp3");
+      fx.volume = muted ? 0 : 0.6;
+      fx.play().catch(() => {});
+    }
+  }, [state?.status]);
 
   // Per-question audio clip
   useEffect(() => {
@@ -243,13 +254,13 @@ export default function HostPlayPage() {
             />
           </div>
           )}
-          <Button onClick={handleLeaderboard} size="lg" className="w-full">{t("showLeaderboard")}</Button>
+          <Button onClick={handleLeaderboard} size="lg" className="w-full">{t("next")}</Button>
         </div>
       )}
       {state.status === "leaderboard" && (
         <div className="max-w-xl mx-auto">
-          <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}{state.teamMode ? " (Teams)" : ""}</h2>
-          {state.teamMode ? (
+          <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
+          {false ? (
             <div className="flex flex-col gap-2">
               {aggregateTeams(players as any).map((tm, i) => (
                 <div key={tm.id} className="flex items-center gap-3 bg-white/10 rounded-xl p-3">
@@ -261,7 +272,7 @@ export default function HostPlayPage() {
               ))}
             </div>
           ) : (
-            <Leaderboard players={state.players} />
+            <Leaderboard players={state.players} limit={5} />
           )}
           <Button onClick={nextQuestion} size="lg" className="w-full mt-6">
             {quiz && state.currentQuestionIndex + 1 >= quiz.questions.length ? t("showPodium") : t("nextQuestion")}

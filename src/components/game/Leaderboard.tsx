@@ -11,8 +11,11 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ players, currentPlayerId, limit = 10 }: LeaderboardProps) {
-  const ranked = rankPlayers(Object.values(players)).slice(0, limit);
+  const all = rankPlayers(Object.values(players));
+  const ranked = all.slice(0, limit);
   const medals = ["🥇", "🥈", "🥉"];
+  const myIndex = currentPlayerId ? all.findIndex((p) => p.id === currentPlayerId) : -1;
+  const me = myIndex >= limit ? all[myIndex] : null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -25,11 +28,20 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10 }: Le
           )}
         >
           <span className="w-8 text-center text-xl">{medals[i] || ordinal(i + 1)}</span>
-          <span className="flex-1">{player.nickname}</span>
-          {player.streak >= 3 && <span title="On a streak!">🔥</span>}
+          <span className="flex-1" dir="auto">{player.nickname}</span>
           <span className="tabular-nums">{player.score.toLocaleString()} pts</span>
         </div>
       ))}
+      {me && (
+        <>
+          <div className="text-center text-white/40 text-sm py-1">• • •</div>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-lg bg-kahoot-yellow text-black">
+            <span className="w-8 text-center text-xl">{ordinal(myIndex + 1)}</span>
+            <span className="flex-1" dir="auto">{me.nickname}</span>
+            <span className="tabular-nums">{me.score.toLocaleString()} pts</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }

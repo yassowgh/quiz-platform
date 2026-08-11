@@ -250,6 +250,15 @@ export default function HomePage() {
             <Button size="lg">Get started free →</Button>
           </a>
         </div>
+              <div className="text-center mt-8 pb-10 border-t border-white/10 pt-6">
+          <p className="text-white/50 text-sm mb-3">Compare QuizUps with other quiz apps:</p>
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-kahoot-yellow font-semibold text-sm">
+            <a href="/vs/kahoot" className="hover:underline">vs Kahoot</a>
+            <a href="/vs/quizizz" className="hover:underline">vs Quizizz</a>
+            <a href="/vs/blooket" className="hover:underline">vs Blooket</a>
+            <a href="/vs/gimkit" className="hover:underline">vs Gimkit</a>
+          </div>
+        </div>
       </section>
     </div>
   );

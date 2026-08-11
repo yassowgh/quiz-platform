@@ -37,20 +37,7 @@ export default function PlayPage() {
     setSelectedAnswer(null);
   }, [state?.currentQuestionIndex]);
 
-  // Continuous background music for the whole play session
-  useEffect(() => {
-    const audio = new Audio("/music.mp3");
-    audio.loop = true;
-    audio.volume = 0.35;
-    musicRef.current = audio;
-    const tryPlay = () => audio.play().catch(() => {
-      const resume = () => { audio.play().catch(() => {}); document.removeEventListener("click", resume); document.removeEventListener("touchstart", resume); };
-      document.addEventListener("click", resume);
-      document.addEventListener("touchstart", resume);
-    });
-    tryPlay();
-    return () => { audio.pause(); audio.src = ""; };
-  }, []);
+  // Background music is disabled on players' devices in competition mode (the host plays the music).
 
   useEffect(() => {
     if (musicRef.current) musicRef.current.muted = muted;
@@ -204,7 +191,7 @@ export default function PlayPage() {
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
         </div>
       )}
-      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
+      
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6">
           <div className="text-6xl">🎮</div>
@@ -302,7 +289,10 @@ export default function PlayPage() {
           </>
           )}
           {selectedAnswer !== null && (
-            <p className="text-center text-white/70 font-semibold animate-pulse">{t("waitingForResults")}</p>
+            <div className="text-center space-y-2">
+              <p className="text-white/70 font-semibold animate-pulse">{t("waitingForResults")}</p>
+              <p className="text-2xl font-black text-kahoot-yellow">{t("yourScore")}: {(myPlayer?.score ?? 0).toLocaleString()} pts</p>
+            </div>
           )}
           {timeUp && selectedAnswer === null && (
             <p className="text-center text-kahoot-red font-bold text-lg">⏰ {t("timesUp")}</p>
@@ -331,7 +321,7 @@ export default function PlayPage() {
       {state.status === "leaderboard" && (
         <div className="p-6">
           <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
-          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} />
+          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
         </div>
       )}
       {state.status === "podium" && (
