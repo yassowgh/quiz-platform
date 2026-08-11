@@ -8,10 +8,16 @@ interface LeaderboardProps {
   players: Record<string, GamePlayer>;
   currentPlayerId?: string;
   limit?: number;
+  metric?: "score" | "gold";
 }
 
-export default function Leaderboard({ players, currentPlayerId, limit = 10 }: LeaderboardProps) {
-  const all = rankPlayers(Object.values(players));
+export default function Leaderboard({ players, currentPlayerId, limit = 10, metric = "score" }: LeaderboardProps) {
+  const arr = Object.values(players || {});
+  const all: any[] = metric === "gold"
+    ? [...arr].sort((a: any, b: any) => (b.gold || 0) - (a.gold || 0) || a.joinedAt - b.joinedAt)
+    : rankPlayers(arr as any);
+  const val = (p: any) => (metric === "gold" ? (p.gold || 0) : p.score);
+  const unit = metric === "gold" ? "🪙" : "pts";
   const ranked = all.slice(0, limit);
   const medals = ["🥇", "🥈", "🥉"];
   const myIndex = currentPlayerId ? all.findIndex((p) => p.id === currentPlayerId) : -1;
@@ -29,7 +35,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10 }: Le
         >
           <span className="w-8 text-center text-xl">{medals[i] || ordinal(i + 1)}</span>
           <span className="flex-1" dir="auto">{player.nickname}</span>
-          <span className="tabular-nums">{player.score.toLocaleString()} pts</span>
+          <span className="tabular-nums">{val(player).toLocaleString()} {unit}</span>
         </div>
       ))}
       {me && (
@@ -38,7 +44,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10 }: Le
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-lg bg-kahoot-yellow text-black">
             <span className="w-8 text-center text-xl">{ordinal(myIndex + 1)}</span>
             <span className="flex-1" dir="auto">{me.nickname}</span>
-            <span className="tabular-nums">{me.score.toLocaleString()} pts</span>
+            <span className="tabular-nums">{val(me).toLocaleString()} {unit}</span>
           </div>
         </>
       )}

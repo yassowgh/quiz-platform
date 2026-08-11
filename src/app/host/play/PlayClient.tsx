@@ -272,7 +272,7 @@ export default function HostPlayPage() {
               ))}
             </div>
           ) : (
-            <Leaderboard players={state.players} limit={5} />
+            <Leaderboard players={state.players} limit={5} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
           )}
           <Button onClick={nextQuestion} size="lg" className="w-full mt-6">
             {quiz && state.currentQuestionIndex + 1 >= quiz.questions.length ? t("showPodium") : t("nextQuestion")}
@@ -283,7 +283,7 @@ export default function HostPlayPage() {
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 {t("finalResults")}</h2>
-          <Podium players={state.players || {}} />
+          <Podium players={state.players || {}} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">{t("endGame")}</Button>
         </div>
       )}

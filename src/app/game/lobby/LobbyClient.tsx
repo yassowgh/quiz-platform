@@ -20,6 +20,7 @@ export default function LobbyPage() {
   const [pin, setPin] = useState<string>("");
   const [creating, setCreating] = useState(false);
   const [teamMode, setTeamMode] = useState(false);
+  const [mode, setMode] = useState<"classic" | "goldquest">("classic");
   const [ghostMode, setGhostMode] = useState(false);
   const [pastGames, setPastGames] = useState<any[]>([]);
   const { state } = useGame(gameId);
@@ -75,7 +76,7 @@ export default function LobbyPage() {
         };
       });
     }
-    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid, quiz, { teamMode, ghosts });
+    const { gameId: gid, pin: p } = await createLiveGame(quiz.id, user.uid, quiz, { teamMode, ghosts, mode });
     setGameId(gid);
     setPin(p);
     setCreating(false);
@@ -99,6 +100,16 @@ export default function LobbyPage() {
             <p className="text-gray-500">{quiz?.questions.length ?? 0} questions</p>
           </div>
           <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Game options</p>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <button type="button" onClick={() => setMode("classic")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "classic" ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
+              <span className="font-bold text-gray-800 block">🏁 Classic</span>
+              <span className="text-gray-500 text-xs">Fastest correct answers win.</span>
+            </button>
+            <button type="button" onClick={() => setMode("goldquest")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "goldquest" ? "border-kahoot-yellow bg-kahoot-yellow/10" : "border-gray-200 hover:border-gray-300")}>
+              <span className="font-bold text-gray-800 block">🪙 Gold Quest</span>
+              <span className="text-gray-500 text-xs">Open chests &amp; steal gold. Most gold wins!</span>
+            </button>
+          </div>
           <div className="flex flex-col gap-3 mb-6">
             <label className="flex items-start gap-3 p-3 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-kahoot-purple/40 transition-colors">
               <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-5 h-5 mt-0.5 flex-shrink-0" />

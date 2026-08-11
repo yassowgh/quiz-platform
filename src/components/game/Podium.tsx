@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import type { GamePlayer } from "@/types";
 import { playFanfare } from "@/lib/sfx";
 
-export default function Podium({ players, withSound = true }: { players: Record<string, GamePlayer>; withSound?: boolean }) {
-  const ranked = Object.values(players || {}).sort((a, b) => b.score - a.score);
+export default function Podium({ players, withSound = true, metric = "score" }: { players: Record<string, GamePlayer>; withSound?: boolean; metric?: "score" | "gold" }) {
+  const ranked = Object.values(players || {}).sort((a: any, b: any) => (metric === "gold" ? (b.gold || 0) - (a.gold || 0) : b.score - a.score));
   const [stage, setStage] = useState(0);
 
   // Reveal one by one: 3rd → 2nd → 1st (biggest fanfare last)
@@ -36,7 +36,7 @@ export default function Podium({ players, withSound = true }: { players: Record<
           >
             <div className="text-3xl mb-1">{md[i]}</div>
             <div className="font-bold text-white text-sm mb-1 truncate max-w-[90px]" dir="auto">{p.nickname}</div>
-            <div className="text-white/80 text-xs mb-2">{p.score.toLocaleString()} pts</div>
+            <div className="text-white/80 text-xs mb-2">{(metric === "gold" ? ((p as any).gold || 0) : p.score).toLocaleString()} {metric === "gold" ? "🪙" : "pts"}</div>
             <div className={["w-24", ht[i], bg[i], "rounded-t-xl flex items-center justify-center font-black text-white text-xl"].join(" ")}>
               {lb[i]}
             </div>

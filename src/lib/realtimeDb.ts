@@ -18,7 +18,7 @@ export async function createLiveGame(
   quizId: string,
   hostId: string,
   quiz?: unknown,
-  opts?: { teamMode?: boolean; ghosts?: Record<string, unknown> }
+  opts?: { teamMode?: boolean; ghosts?: Record<string, unknown>; mode?: "classic" | "goldquest" }
 ): Promise<{ gameId: string; pin: string }> {
   const gameId = nanoid();
   const pin = generatePin();
@@ -35,6 +35,7 @@ export async function createLiveGame(
     answers: {},
     ...(quiz ? { _quiz: JSON.parse(JSON.stringify(quiz)) } : {}),
     ...(opts?.teamMode ? { teamMode: true } : {}),
+    ...(opts?.mode && opts.mode !== "classic" ? { mode: opts.mode } : {}),
     ...(opts?.ghosts && Object.keys(opts.ghosts).length ? { players: opts.ghosts } : {}),
   };
 
@@ -159,4 +160,26 @@ export async function resetPlayerAnswered(gameId: string, players: Record<string
     updates[`games/${gameId}/players/${id}/hasAnswered`] = false;
   });
   await update(ref(rtdb), updates);
+}
+export async function applyChest(
+  gameId: string,
+  playerId: string,
+  outcome: { type: "gain" | "lose" | "steal"; amount: number; targetId?: string }
+) {
+  const meRef = ref(rtdb, "games/" + gameId + "/players/" + playerId);
+  const meSnap = await get(meRef);
+  if (!meSnap.exists()) return;
+  const meGold = meSnap.val().gold || 0;
+  if (outcome.type === "gain") {
+    await update(meRef, { gold: meGold + outcome.amount });
+  } else if (outcome.type === "lose") {
+    await update(meRef, { gold: Math.max(0, meGold - outcome.amount) });
+  } else if (outcome.type === "steal" && outcome.targetId) {
+    const tRef = ref(rtdb, "games/" + gameId + "/players/" + outcome.targetId);
+    const tSnap = await get(tRef);
+    const tGold = tSnap.exists() ? (tSnap.val().gold || 0) : 0;
+    const stolen = Math.min(tGold, outcome.amount);
+    await update(meRef, { gold: meGold + stolen });
+    if (tSnap.exists()) await update(tRef, { gold: Math.max(0, tGold - stolen) });
+  }
 }

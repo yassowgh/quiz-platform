@@ -61,6 +61,8 @@ export interface GamePlayer {
   team?: string;
   isGhost?: boolean;
   uid?: string;
+  gold?: number;
+  eliminated?: boolean;
   joinedAt: number;
 }
 
@@ -82,6 +84,7 @@ export interface LiveGameState {
   players: Record<string, GamePlayer>;
   answers: Record<string, Record<string, PlayerAnswer>>;
   teamMode?: boolean;
+  mode?: "classic" | "goldquest";
 }
 
 export const ANSWER_COLORS = [

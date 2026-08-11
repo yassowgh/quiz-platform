@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ReactionBar } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
-import { submitAnswer } from "@/lib/realtimeDb";
+import { submitAnswer, applyChest } from "@/lib/realtimeDb";
 import AnswerButton from "@/components/game/AnswerButton";
 import MathText from "@/components/ui/MathText";
 import Timer from "@/components/game/Timer";
@@ -30,6 +30,8 @@ export default function PlayPage() {
   const [muted, setMuted] = useState(false);
   const [questionShownAt, setQuestionShownAt] = useState(0);
   const [timeUp, setTimeUp] = useState(false);
+  const [chestQ, setChestQ] = useState(-1);
+  const [chestMsg, setChestMsg] = useState("");
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -173,6 +175,21 @@ export default function PlayPage() {
   };
 
   const myPlayer = state && playerId ? state.players[playerId] : null;
+  const isGold = (state as any)?.mode === "goldquest";
+  const openChest = async () => {
+    if (!state || !playerId) return;
+    if (chestQ === state.currentQuestionIndex) return;
+    setChestQ(state.currentQuestionIndex);
+    const roll = Math.random();
+    const others: any[] = Object.values(state.players || {}).filter((p: any) => p.id !== playerId);
+    let outcome: any; let msg = "";
+    if (roll < 0.10) { const amt = 50 + Math.floor(Math.random() * 11) * 10; outcome = { type: "lose", amount: amt }; msg = "💀 Lost " + amt + " gold!"; }
+    else if (roll < 0.25 && others.length) { const tgt: any = others[Math.floor(Math.random() * others.length)]; const amt = 50 + Math.floor(Math.random() * 16) * 10; outcome = { type: "steal", amount: amt, targetId: tgt.id }; msg = "🗡️ Stole " + amt + " from " + tgt.nickname + "!"; }
+    else if (roll < 0.80) { const amt = 50 + Math.floor(Math.random() * 26) * 10; outcome = { type: "gain", amount: amt }; msg = "🪙 +" + amt + " gold!"; }
+    else { const amt = 300 + Math.floor(Math.random() * 31) * 10; outcome = { type: "gain", amount: amt }; msg = "💰 JACKPOT +" + amt + " gold!"; }
+    setChestMsg(msg);
+    try { await applyChest(gameId, playerId, outcome); } catch (e) {}
+  };
   const answerMap = state && state.currentQuestionIndex >= 0 ? (state.answers?.[state.currentQuestionIndex] || {}) : {};
   const myAnswer = playerId ? answerMap[playerId] : null;
 
@@ -291,7 +308,7 @@ export default function PlayPage() {
           {selectedAnswer !== null && (
             <div className="text-center space-y-2">
               <p className="text-white/70 font-semibold animate-pulse">{t("waitingForResults")}</p>
-              <p className="text-2xl font-black text-kahoot-yellow">{t("yourScore")}: {(myPlayer?.score ?? 0).toLocaleString()} pts</p>
+              <p className="text-2xl font-black text-kahoot-yellow">{t("yourScore")}: {isGold ? (((((myPlayer as any) || {}).gold) || 0).toLocaleString() + " 🪙") : ((myPlayer?.score ?? 0).toLocaleString() + " pts")}</p>
             </div>
           )}
           {timeUp && selectedAnswer === null && (
@@ -305,31 +322,47 @@ export default function PlayPage() {
             <>
               <div className="text-6xl">{currentQ?.type === "poll" ? "🗳️" : myAnswer.isCorrect ? "✓" : "✗"}</div>
               <h2 className="text-3xl font-black">{currentQ?.type === "poll" ? t("voteRecorded") : myAnswer.isCorrect ? t("correct") : t("wrong")}</h2>
+              {isGold && myAnswer.isCorrect && chestQ !== state.currentQuestionIndex && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-white/80 font-bold">Pick a chest!</p>
+                  <div className="flex gap-4">
+                    {[0, 1, 2].map((c) => (
+                      <button key={c} onClick={openChest} className="text-5xl hover:scale-125 transition-transform">🎁</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {isGold && chestQ === state.currentQuestionIndex && chestMsg && (
+                <p className="text-2xl font-black text-kahoot-yellow">{chestMsg}</p>
+              )}
+              {isGold && (
+                <p className="text-white/70 font-bold text-lg">🪙 {((((myPlayer as any) || {}).gold) || 0).toLocaleString()} gold</p>
+              )}
               {myAnswer.isCorrect && (state.players?.[playerId || ""]?.streak || 0) > 1 && (
                 <p className="text-orange-400 font-bold text-xl">🔥 {state.players?.[playerId || ""]?.streak} {t("answerStreak")}</p>
               )}
-              {myAnswer.pointsEarned > 0 && (
+              {!isGold && myAnswer.pointsEarned > 0 && (
                 <p className="text-2xl font-bold text-kahoot-yellow">+{myAnswer.pointsEarned} pts</p>
               )}
             </>
           ) : (
             <h2 className="text-3xl font-black">{t("timesUp")}</h2>
           )}
-          <p className="text-white/60">Total: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
+          {!isGold && (<p className="text-white/60">Total: {(myPlayer?.score ?? 0).toLocaleString()} pts</p>)}
         </div>
       )}
       {state.status === "leaderboard" && (
         <div className="p-6">
           <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
-          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
+          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
         </div>
       )}
       {state.status === "podium" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🎉 {t("gameOver")}</h2>
-          <Podium players={state.players || {}} />
-          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} />
+          <Podium players={state.players || {}} metric={isGold ? "gold" : "score"} />
+          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
         </div>
       )}
       {state.status === "ended" && (
