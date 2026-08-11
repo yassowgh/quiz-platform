@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico", apple: "/apple-icon.png" },
   title: { default: "QuizUps — Free Kahoot & Quizizz Alternative | Live Multiplayer Quiz Game", template: "%s | QuizUps" },
   description:
-    "QuizUps is a 100% free Kahoot and Quizizz alternative. Host live multiplayer quizzes with unlimited players — no subscription, no player caps. AI question generation, interactive video quizzes, exams, flashcards and 5 question types.",
+    "Free Kahoot & Quizizz alternative. Host live multiplayer quizzes with unlimited players — AI-generated questions, interactive video, exams and flashcards.",
   keywords: [
     "quizups",
     "free kahoot alternative",

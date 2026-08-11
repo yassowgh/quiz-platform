@@ -138,9 +138,9 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
   const { slug } = await params;
   const c = DATA[slug];
   if (!c) return {};
-  const title = "QuizUps vs " + c.name + ": Free " + c.name + " Alternative";
+  const title = "QuizUps vs " + c.name + " — Free Alternative";
   const description =
-    "Looking for a free " + c.name + " alternative? QuizUps is 100% free with unlimited players, AI question generation, interactive video quizzes and exams. Compare QuizUps vs " + c.name + " feature by feature.";
+    "A free " + c.name + " alternative — 100% free with unlimited players, AI questions, interactive video and exams. See how QuizUps compares, feature by feature.";
   return {
     title,
     description,
