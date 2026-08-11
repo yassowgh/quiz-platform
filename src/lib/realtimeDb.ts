@@ -18,7 +18,7 @@ export async function createLiveGame(
   quizId: string,
   hostId: string,
   quiz?: unknown,
-  opts?: { teamMode?: boolean; ghosts?: Record<string, unknown>; mode?: "classic" | "goldquest" }
+  opts?: { teamMode?: boolean; ghosts?: Record<string, unknown>; mode?: "classic" | "goldquest" | "battle" }
 ): Promise<{ gameId: string; pin: string }> {
   const gameId = nanoid();
   const pin = generatePin();
@@ -182,4 +182,22 @@ export async function applyChest(
     await update(meRef, { gold: meGold + stolen });
     if (tSnap.exists()) await update(tRef, { gold: Math.max(0, tGold - stolen) });
   }
+}
+
+export async function applyBattleElimination(gameId: string, questionIndex: number) {
+  const gRef = ref(rtdb, "games/" + gameId);
+  const snap = await get(gRef);
+  if (!snap.exists()) return;
+  const g = snap.val();
+  const players = g.players || {};
+  const answers = (g.answers && g.answers[questionIndex]) || {};
+  const active = Object.values(players).filter((p: any) => !p.eliminated);
+  const survivors = active.filter((p: any) => { const a = answers[(p as any).id]; return a && a.isCorrect; });
+  if (survivors.length === 0) return; // don't wipe everyone on a question nobody got right
+  const updates: any = {};
+  for (const p of active as any[]) {
+    const a = answers[p.id];
+    if (!(a && a.isCorrect)) updates["players/" + p.id + "/eliminated"] = true;
+  }
+  if (Object.keys(updates).length) await update(gRef, updates);
 }

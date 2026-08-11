@@ -20,7 +20,7 @@ export default function LobbyPage() {
   const [pin, setPin] = useState<string>("");
   const [creating, setCreating] = useState(false);
   const [teamMode, setTeamMode] = useState(false);
-  const [mode, setMode] = useState<"classic" | "goldquest">("classic");
+  const [mode, setMode] = useState<"classic" | "goldquest" | "battle">("classic");
   const [ghostMode, setGhostMode] = useState(false);
   const [pastGames, setPastGames] = useState<any[]>([]);
   const { state } = useGame(gameId);
@@ -100,7 +100,7 @@ export default function LobbyPage() {
             <p className="text-gray-500">{quiz?.questions.length ?? 0} questions</p>
           </div>
           <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Game options</p>
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
             <button type="button" onClick={() => setMode("classic")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "classic" ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
               <span className="font-bold text-gray-800 block">🏁 Classic</span>
               <span className="text-gray-500 text-xs">Fastest correct answers win.</span>
@@ -108,6 +108,10 @@ export default function LobbyPage() {
             <button type="button" onClick={() => setMode("goldquest")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "goldquest" ? "border-kahoot-yellow bg-kahoot-yellow/10" : "border-gray-200 hover:border-gray-300")}>
               <span className="font-bold text-gray-800 block">🪙 Gold Quest</span>
               <span className="text-gray-500 text-xs">Open chests &amp; steal gold. Most gold wins!</span>
+            </button>
+            <button type="button" onClick={() => setMode("battle")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "battle" ? "border-kahoot-red bg-kahoot-red/10" : "border-gray-200 hover:border-gray-300")}>
+              <span className="font-bold text-gray-800 block">⚔️ Battle Royale</span>
+              <span className="text-gray-500 text-xs">Miss a question, you're out. Last one standing wins!</span>
             </button>
           </div>
           <div className="flex flex-col gap-3 mb-6">

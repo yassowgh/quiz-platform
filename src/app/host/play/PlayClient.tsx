@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
-import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered } from "@/lib/realtimeDb";
+import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered, applyBattleElimination } from "@/lib/realtimeDb";
 import { saveGameRecord } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
 import { rankPlayers, aggregateTeams } from "@/lib/scoring";
@@ -45,6 +45,8 @@ export default function HostPlayPage() {
 
   const nextQuestion = useCallback(async () => {
     if (!state || !quiz) return;
+    const activeBR = (state as any).mode === "battle" ? Object.values(state.players || {}).filter((p: any) => !p.eliminated && !p.isGhost) : [];
+    if ((state as any).mode === "battle" && activeBR.length <= 1) { await showPodium(gameId); return; }
     const next = state.currentQuestionIndex + 1;
     if (next >= quiz.questions.length) {
       await showPodium(gameId);
@@ -167,6 +169,13 @@ export default function HostPlayPage() {
       revealAnswer(gameId);
     }
   }, [answeredCount, players.length, state?.status, gameId]);
+
+  // Battle Royale: eliminate players who missed the question when it's revealed
+  useEffect(() => {
+    if ((state as any)?.mode === "battle" && state?.status === "answer_reveal") {
+      applyBattleElimination(gameId, state.currentQuestionIndex);
+    }
+  }, [state?.status]);
 
   if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">Loading game...</div>;
 

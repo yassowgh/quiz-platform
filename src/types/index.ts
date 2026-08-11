@@ -84,7 +84,7 @@ export interface LiveGameState {
   players: Record<string, GamePlayer>;
   answers: Record<string, Record<string, PlayerAnswer>>;
   teamMode?: boolean;
-  mode?: "classic" | "goldquest";
+  mode?: "classic" | "goldquest" | "battle";
 }
 
 export const ANSWER_COLORS = [

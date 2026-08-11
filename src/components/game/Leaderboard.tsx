@@ -16,6 +16,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10, metr
   const all: any[] = metric === "gold"
     ? [...arr].sort((a: any, b: any) => (b.gold || 0) - (a.gold || 0) || a.joinedAt - b.joinedAt)
     : rankPlayers(arr as any);
+  all.sort((a: any, b: any) => (a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0));
   const val = (p: any) => (metric === "gold" ? (p.gold || 0) : p.score);
   const unit = metric === "gold" ? "🪙" : "pts";
   const ranked = all.slice(0, limit);
@@ -34,7 +35,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10, metr
           )}
         >
           <span className="w-8 text-center text-xl">{medals[i] || ordinal(i + 1)}</span>
-          <span className="flex-1" dir="auto">{player.nickname}</span>
+          <span className="flex-1" dir="auto">{(player as any).eliminated ? "💀 " : ""}{player.nickname}</span>
           <span className="tabular-nums">{val(player).toLocaleString()} {unit}</span>
         </div>
       ))}
@@ -43,7 +44,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10, metr
           <div className="text-center text-white/40 text-sm py-1">• • •</div>
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-lg bg-kahoot-yellow text-black">
             <span className="w-8 text-center text-xl">{ordinal(myIndex + 1)}</span>
-            <span className="flex-1" dir="auto">{me.nickname}</span>
+            <span className="flex-1" dir="auto">{(me as any).eliminated ? "💀 " : ""}{me.nickname}</span>
             <span className="tabular-nums">{val(me).toLocaleString()} {unit}</span>
           </div>
         </>

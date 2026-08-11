@@ -4,7 +4,7 @@ import type { GamePlayer } from "@/types";
 import { playFanfare } from "@/lib/sfx";
 
 export default function Podium({ players, withSound = true, metric = "score" }: { players: Record<string, GamePlayer>; withSound?: boolean; metric?: "score" | "gold" }) {
-  const ranked = Object.values(players || {}).sort((a: any, b: any) => (metric === "gold" ? (b.gold || 0) - (a.gold || 0) : b.score - a.score));
+  const ranked = Object.values(players || {}).sort((a: any, b: any) => ((a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0)) || (metric === "gold" ? (b.gold || 0) - (a.gold || 0) : b.score - a.score));
   const [stage, setStage] = useState(0);
 
   // Reveal one by one: 3rd → 2nd → 1st (biggest fanfare last)

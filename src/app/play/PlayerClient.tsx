@@ -176,6 +176,7 @@ export default function PlayPage() {
 
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
+  const isBattle = (state as any)?.mode === "battle";
   const openChest = async () => {
     if (!state || !playerId) return;
     if (chestQ === state.currentQuestionIndex) return;
@@ -216,7 +217,14 @@ export default function PlayPage() {
           <p className="text-white/60 text-xl animate-pulse">{t("waitingForHost")}</p>
         </div>
       )}
-      {state.status === "question" && (
+      {state.status === "question" && isBattle && (myPlayer as any)?.eliminated && (
+        <div className="flex flex-col items-center justify-center flex-1 gap-3 p-6 text-center">
+          <div className="text-6xl">💀</div>
+          <h2 className="text-2xl font-black">You're eliminated</h2>
+          <p className="text-white/60">Watching the rest of the battle…</p>
+        </div>
+      )}
+      {state.status === "question" && !(isBattle && (myPlayer as any)?.eliminated) && (
         <div className="flex flex-col flex-1 p-4 gap-4">
           <div className="flex justify-between items-center">
             <span className="text-white/70 font-semibold">Q {state.currentQuestionIndex + 1}</span>
@@ -322,6 +330,9 @@ export default function PlayPage() {
             <>
               <div className="text-6xl">{currentQ?.type === "poll" ? "🗳️" : myAnswer.isCorrect ? "✓" : "✗"}</div>
               <h2 className="text-3xl font-black">{currentQ?.type === "poll" ? t("voteRecorded") : myAnswer.isCorrect ? t("correct") : t("wrong")}</h2>
+              {isBattle && (
+                <p className={"text-xl font-black " + (myAnswer.isCorrect ? "text-green-400" : "text-kahoot-red")}>{myAnswer.isCorrect ? "✓ Survived!" : "💀 Knocked out"}</p>
+              )}
               {isGold && myAnswer.isCorrect && chestQ !== state.currentQuestionIndex && (
                 <div className="flex flex-col items-center gap-2">
                   <p className="text-white/80 font-bold">Pick a chest!</p>
