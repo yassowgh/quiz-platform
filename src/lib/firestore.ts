@@ -133,3 +133,24 @@ export async function getExamPublic(quizId: string): Promise<any | null> {
 export async function saveExamPublic(quizId: string, data: any): Promise<void> {
   await setDoc(doc(db, "examPublic", quizId), data, { merge: true });
 }
+
+export async function getAdmins(): Promise<string[]> {
+  try {
+    const snap = await getDoc(doc(db, "config", "admins"));
+    const arr = snap.exists() ? (snap.data() as any).emails : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+export async function saveAdmins(emails: string[]): Promise<void> {
+  await setDoc(doc(db, "config", "admins"), { emails }, { merge: true });
+}
+export async function getUserProfile(uid: string): Promise<any | null> {
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? snap.data() : null;
+}
+export async function setUserDisabled(uid: string, disabled: boolean): Promise<void> {
+  await updateDoc(doc(db, "users", uid), { disabled });
+}
+export async function deleteUserDoc(uid: string): Promise<void> {
+  await deleteDoc(doc(db, "users", uid));
+}

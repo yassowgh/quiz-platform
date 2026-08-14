@@ -12,7 +12,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { createUserProfile } from "@/lib/firestore";
+import { createUserProfile, getUserProfile } from "@/lib/firestore";
 
 interface AuthContextType {
   user: User | null;
@@ -31,7 +31,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        try {
+          const prof = await getUserProfile(u.uid);
+          if (prof && prof.disabled === true) {
+            await signOut(auth);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {}
+      }
       setUser(u);
       setLoading(false);
     });
