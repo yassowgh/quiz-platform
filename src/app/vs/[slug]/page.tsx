@@ -145,8 +145,8 @@ export async function generateMetadata({ params }: { params: any }): Promise<Met
     title,
     description,
     alternates: { canonical: "/vs/" + slug },
-    openGraph: { title, description, url: "https://quizups.com/vs/" + slug, type: "article", images: [{ url: "/logo-full.png", width: 1200, height: 630 }] },
-    twitter: { card: "summary_large_image", title, description, images: ["/logo-full.png"] },
+    openGraph: { title, description, url: "https://quizups.com/vs/" + slug, type: "article", images: [{ url: "/og-image.png", width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", title, description, images: ["/og-image.png"] },
   };
 }
 

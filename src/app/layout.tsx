@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   creator: "QuizUps",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
-  twitter: { card: "summary_large_image", title: "QuizUps — Free Kahoot & Quizizz Alternative", description: "Free forever live multiplayer quizzes — unlimited players, AI questions, video quizzes, exams and more.", images: ["/logo-full.png"] },
+  twitter: { card: "summary_large_image", title: "QuizUps — Free Kahoot & Quizizz Alternative", description: "Free forever live multiplayer quizzes — unlimited players, AI questions, video quizzes, exams and more.", images: ["/og-image.png"] },
   openGraph: {
     title: "QuizUps — Free Kahoot Alternative",
     description:
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     url: "https://quizups.com",
     siteName: "QuizUps",
     locale: "en_US",
-    images: [{ url: "/logo-full.png", width: 1200, height: 630, alt: "QuizUps — Free Kahoot & Quizizz Alternative" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "QuizUps — Free Kahoot & Quizizz Alternative" }],
   },
 };
 
