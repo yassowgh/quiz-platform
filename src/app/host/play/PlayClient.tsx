@@ -16,6 +16,7 @@ import AnswerDistribution from "@/components/game/AnswerDistribution";
 import Leaderboard from "@/components/game/Leaderboard";
 import Podium from "@/components/game/Podium";
 import WordCloud from "@/components/game/WordCloud";
+import RatingResult from "@/components/game/RatingResult";
 import Confetti from "@/components/game/Confetti";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -243,7 +244,11 @@ export default function HostPlayPage() {
             onExpire={handleReveal}
             className="mb-4"
           />
-          {currentQ.type === "wordcloud" ? (
+          {currentQ.type === "rating" ? (
+            <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[240px] flex items-center justify-center">
+              <RatingResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
+            </div>
+          ) : currentQ.type === "wordcloud" ? (
             <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[280px] flex items-center justify-center">
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
@@ -276,6 +281,11 @@ export default function HostPlayPage() {
             <h2 className="text-2xl font-black mb-1" dir="auto"><MathText text={currentQ.text} /></h2>
             <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.multiSelect && currentQ.correctAnswers?.length ? currentQ.correctAnswers.map((ci) => currentQ.options[ci]).join(", ") : currentQ.type === "typeanswer" ? currentQ.correctText : currentQ.type === "sorting" ? currentQ.options.filter((o) => o && o.trim()).join(" → ") : currentQ.type === "poll" ? "Poll — every vote counts!" : currentQ.options[Number(currentQ.correctAnswer)]}</p>
           </Card>
+          {currentQ.type === "rating" && (
+            <div className="bg-white/5 rounded-2xl p-6 mb-6 min-h-[220px] flex items-center justify-center">
+              <RatingResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
+            </div>
+          )}
           {currentQ.type === "wordcloud" && (
             <div className="bg-white/5 rounded-2xl p-6 mb-6 min-h-[220px] flex items-center justify-center">
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />

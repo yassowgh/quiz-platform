@@ -40,6 +40,7 @@ export interface Quiz {
   language?: "en" | "ar";
   allowAssignment?: boolean;
   examMode?: boolean;
+  kind?: "quiz" | "poll";
   adaptive?: boolean;
   videoMode?: boolean;
   videoType?: "youtube" | "url";

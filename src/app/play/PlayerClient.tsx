@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ReactionBar } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
-import { submitAnswer, applyChest, submitResponse } from "@/lib/realtimeDb";
+import { submitAnswer, applyChest, submitResponse, setPlayerResponse } from "@/lib/realtimeDb";
 import AnswerButton from "@/components/game/AnswerButton";
 import MathText from "@/components/ui/MathText";
 import Timer from "@/components/game/Timer";
@@ -34,6 +34,7 @@ export default function PlayPage() {
   const [chestMsg, setChestMsg] = useState("");
   const [wordDraft, setWordDraft] = useState("");
   const [wordSent, setWordSent] = useState(0);
+  const [myRating, setMyRating] = useState(0);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -179,7 +180,11 @@ export default function PlayPage() {
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
-  useEffect(() => { setWordSent(0); setWordDraft(""); }, [state?.currentQuestionIndex]);
+  useEffect(() => { setWordSent(0); setWordDraft(""); setMyRating(0); }, [state?.currentQuestionIndex]);
+  const rateStar = async (s: number) => {
+    setMyRating(s);
+    if (playerId && state) await setPlayerResponse(gameId, state.currentQuestionIndex, playerId, String(s));
+  };
   const sendWord = async () => {
     const w = wordDraft.trim();
     if (!w || !playerId || !state) return;
@@ -259,7 +264,16 @@ export default function PlayPage() {
               )}
             </div>
           )}
-          {currentQ?.type === "wordcloud" ? (
+          {currentQ?.type === "rating" ? (
+            <div className="flex flex-col gap-4 flex-1 justify-center items-center">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button key={s} type="button" onClick={() => rateStar(s)} className={"text-5xl transition-transform hover:scale-110 " + ((myRating || 0) >= s ? "opacity-100" : "opacity-30")}>⭐</button>
+                ))}
+              </div>
+              <p className="text-white/70 font-semibold">{myRating ? "You rated " + myRating + "/5 — tap to change" : "Tap a star to rate"}</p>
+            </div>
+          ) : currentQ?.type === "wordcloud" ? (
             <div className="flex flex-col gap-3 flex-1 justify-center">
               <input value={wordDraft} onChange={(e) => setWordDraft(e.target.value)} maxLength={30} placeholder="Type a word…" onKeyDown={(e) => { if (e.key === "Enter") sendWord(); }} className="px-4 py-4 rounded-2xl text-gray-900 text-xl text-center font-bold" dir="auto" />
               <button type="button" onClick={sendWord} disabled={!wordDraft.trim() || wordSent >= 8} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{wordSent >= 8 ? "Max reached" : "Send word" + (wordSent > 0 ? " (" + wordSent + ")" : "")}</button>

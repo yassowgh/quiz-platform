@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [fetching, setFetching] = useState(true);
   const [createError, setCreateError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "quiz" | "poll">("all");
   const [assignQuiz, setAssignQuiz] = useState<any>(null);
   const [assignEmails, setAssignEmails] = useState("");
   const [assignStatus, setAssignStatus] = useState<"" | "sending" | "sent" | "err">("");
@@ -71,6 +72,30 @@ export default function DashboardPage() {
     }
   };
 
+  const createPoll = async () => {
+    if (!user) return;
+    setCreateError(null);
+    try {
+      const newQuiz: Quiz = {
+        id: nanoid(),
+        hostId: user.uid,
+        creatorEmail: user.email || "",
+        title: "",
+        description: "",
+        kind: "poll",
+        questions: [{ ...makeBlankQuestion(), type: "poll" }],
+        isPublished: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      await updateQuiz(newQuiz);
+      router.push("/quiz/edit?id=" + newQuiz.id);
+    } catch (err: any) {
+      console.error("Failed to create poll:", err);
+      setCreateError(err?.message ?? "Failed to create poll. Please try again.");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this quiz?")) return;
     await deleteQuiz(id);
@@ -84,7 +109,13 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-black">My Quizzes</h1>
         <Button onClick={createQuiz}>+ New Quiz</Button>
+        <Button onClick={createPoll} variant="secondary">+ New Poll</Button>
         <Link href="/reports"><Button variant="secondary">📈 All Reports</Button></Link>
+      </div>
+      <div className="flex gap-2 mb-4">
+        {(["all", "quiz", "poll"] as const).map((f) => (
+          <button key={f} onClick={() => setFilter(f)} className={"px-3 py-1 rounded-lg text-sm font-bold " + (filter === f ? "bg-kahoot-purple text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>{f === "all" ? "All" : f === "quiz" ? "Quizzes" : "Polls"}</button>
+        ))}
       </div>
       {createError && <p className="text-red-500 mb-4 font-semibold">{createError}</p>}
       {quizzes.length === 0 ? (
@@ -94,10 +125,10 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {quizzes.map((quiz) => (
+          {quizzes.filter((q) => filter === "all" || (filter === "poll" ? (q as any).kind === "poll" : (q as any).kind !== "poll")).map((quiz) => (
             <Card key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <h2 className="text-xl font-bold">{quiz.title}</h2>
+                <h2 className="text-xl font-bold">{quiz.title || "Untitled"}{(quiz as any).kind === "poll" && <span className="ml-2 align-middle text-xs font-black bg-kahoot-purple text-white rounded-full px-2 py-0.5">POLL</span>}</h2>
                 <p className="text-gray-500">{quiz.questions.length} questions · {quiz.isPublished ? "Published" : "Draft"}</p>
               </div>
               <div className="flex flex-wrap gap-2">

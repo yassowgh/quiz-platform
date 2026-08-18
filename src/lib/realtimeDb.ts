@@ -213,3 +213,7 @@ export async function upvoteResponse(gameId: string, questionIndex: number, resp
   const snap = await get(r);
   await set(r, (snap.exists() ? Number(snap.val()) || 0 : 0) + 1);
 }
+
+export async function setPlayerResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
+  await set(ref(rtdb, "games/" + gameId + "/responses/" + questionIndex + "/" + playerId), { pid: playerId, text: String(text).slice(0, 140), ts: Date.now() });
+}
