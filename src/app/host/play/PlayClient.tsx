@@ -138,6 +138,24 @@ export default function HostPlayPage() {
     }
   }, [state?.status]);
 
+  // Leaderboard success sound each round; final podium plays success then the gold-leaf ceremony (host screen)
+  useEffect(() => {
+    if (state?.status === "leaderboard") {
+      if (musicRef.current) { try { musicRef.current.pause(); } catch (e) {} }
+      const s = new Audio("/music/leaderboard-success.m4a");
+      s.volume = muted ? 0 : 0.7;
+      s.play().catch(() => {});
+    }
+    if (state?.status === "podium") {
+      if (musicRef.current) { try { musicRef.current.pause(); } catch (e) {} }
+      const playCeremony = () => { const c = new Audio("/music/podium-ceremony.mp3"); c.volume = muted ? 0 : 0.85; c.play().catch(() => {}); };
+      const s = new Audio("/music/leaderboard-success.m4a");
+      s.volume = muted ? 0 : 0.85;
+      s.onended = playCeremony;
+      s.play().catch(playCeremony);
+    }
+  }, [state?.status]);
+
   // Per-question audio clip
   useEffect(() => {
     if (state?.status !== "question" || !currentQ?.audioUrl) return;
@@ -281,7 +299,7 @@ export default function HostPlayPage() {
               ))}
             </div>
           ) : (
-            <Leaderboard players={state.players} limit={5} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
+            <Leaderboard players={state.players} limit={5} metric={(state as any).mode === "goldquest" ? "gold" : "score"} withSound={false} />
           )}
           <Button onClick={nextQuestion} size="lg" className="w-full mt-6">
             {quiz && state.currentQuestionIndex + 1 >= quiz.questions.length ? t("showPodium") : t("nextQuestion")}
