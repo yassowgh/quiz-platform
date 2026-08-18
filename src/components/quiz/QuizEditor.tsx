@@ -181,6 +181,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
                 if (t === "truefalse") onChange({ ...question, type: t, options: ["True", "False"], correctAnswer: 0 });
                 else if (t === "typeanswer") onChange({ ...question, type: t, correctText: question.correctText || "" });
                 else if (t === "sorting" || t === "poll") onChange({ ...question, type: t, correctAnswer: 0 });
+                else if (t === "wordcloud" || t === "openended" || t === "rating") onChange({ ...question, type: t });
                 else onChange({ ...question, type: t, options: question.options.length === 4 ? question.options : ["", "", "", ""] });
               }}
               className="px-3 py-2 border-2 border-gray-200 rounded-xl"
@@ -190,6 +191,9 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
               <option value="typeanswer">Type answer</option>
               <option value="sorting">Sorting (order matters)</option>
               <option value="poll">Poll / vote (no points)</option>
+              <option value="wordcloud">☁️ Word cloud (survey)</option>
+              <option value="openended">💬 Open-ended (survey)</option>
+              <option value="rating">⭐ Rating 1–5 (survey)</option>
             </select>
           </div>
           {adv && (!question.type || question.type === "multiple") && (
@@ -219,6 +223,12 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
               onChange={(e) => onChange({ ...question, correctText: e.target.value })}
               placeholder="e.g. Paris"
             />
+          ) : (question.type === "wordcloud" || question.type === "openended" || question.type === "rating") ? (
+            <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">
+              {question.type === "wordcloud" && "☁️ Word cloud: participants type words from their phones; the host screen shows a live cloud (bigger = more mentions). No options needed."}
+              {question.type === "openended" && "💬 Open-ended: participants submit text answers shown live on a wall. No options needed."}
+              {question.type === "rating" && "⭐ Rating: participants rate 1–5 stars; the host shows the live average. No options needed."}
+            </div>
           ) : (
           <div className="grid grid-cols-2 gap-3">
             {question.options.map((opt, i) => (

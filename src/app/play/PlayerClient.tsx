@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ReactionBar } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
-import { submitAnswer, applyChest } from "@/lib/realtimeDb";
+import { submitAnswer, applyChest, submitResponse } from "@/lib/realtimeDb";
 import AnswerButton from "@/components/game/AnswerButton";
 import MathText from "@/components/ui/MathText";
 import Timer from "@/components/game/Timer";
@@ -32,6 +32,8 @@ export default function PlayPage() {
   const [timeUp, setTimeUp] = useState(false);
   const [chestQ, setChestQ] = useState(-1);
   const [chestMsg, setChestMsg] = useState("");
+  const [wordDraft, setWordDraft] = useState("");
+  const [wordSent, setWordSent] = useState(0);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -177,6 +179,14 @@ export default function PlayPage() {
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
+  useEffect(() => { setWordSent(0); setWordDraft(""); }, [state?.currentQuestionIndex]);
+  const sendWord = async () => {
+    const w = wordDraft.trim();
+    if (!w || !playerId || !state) return;
+    await submitResponse(gameId, state.currentQuestionIndex, playerId, w);
+    setWordSent((n) => n + 1);
+    setWordDraft("");
+  };
   const openChest = async () => {
     if (!state || !playerId) return;
     if (chestQ === state.currentQuestionIndex) return;
@@ -249,7 +259,13 @@ export default function PlayPage() {
               )}
             </div>
           )}
-          {currentQ?.type === "sorting" && sortOrder ? (
+          {currentQ?.type === "wordcloud" ? (
+            <div className="flex flex-col gap-3 flex-1 justify-center">
+              <input value={wordDraft} onChange={(e) => setWordDraft(e.target.value)} maxLength={30} placeholder="Type a word…" onKeyDown={(e) => { if (e.key === "Enter") sendWord(); }} className="px-4 py-4 rounded-2xl text-gray-900 text-xl text-center font-bold" dir="auto" />
+              <button type="button" onClick={sendWord} disabled={!wordDraft.trim() || wordSent >= 8} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{wordSent >= 8 ? "Max reached" : "Send word" + (wordSent > 0 ? " (" + wordSent + ")" : "")}</button>
+              <p className="text-center text-white/60 text-sm">Add up to 8 words from your phone.</p>
+            </div>
+          ) : currentQ?.type === "sorting" && sortOrder ? (
             <div className="flex flex-col gap-2 flex-1 justify-center">
               {sortOrder.map((item, i) => (
                 <div key={item} className="flex items-center gap-2 bg-white text-gray-900 rounded-xl p-3 font-bold">

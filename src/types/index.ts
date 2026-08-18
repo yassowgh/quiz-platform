@@ -13,7 +13,7 @@ export interface Question {
   options: string[];
   correctAnswer: number;
   correctText?: string;
-  type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll";
+  type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll" | "wordcloud" | "openended" | "rating";
   videoUrl?: string;
   audioUrl?: string;
   correctAnswers?: number[];

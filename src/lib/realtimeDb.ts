@@ -201,3 +201,15 @@ export async function applyBattleElimination(gameId: string, questionIndex: numb
   }
   if (Object.keys(updates).length) await update(gRef, updates);
 }
+
+export async function submitResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
+  const t = String(text || "").slice(0, 140);
+  if (!t.trim()) return;
+  const key = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  await set(ref(rtdb, "games/" + gameId + "/responses/" + questionIndex + "/" + key), { pid: playerId, text: t, ts: Date.now(), votes: 0 });
+}
+export async function upvoteResponse(gameId: string, questionIndex: number, respId: string) {
+  const r = ref(rtdb, "games/" + gameId + "/responses/" + questionIndex + "/" + respId + "/votes");
+  const snap = await get(r);
+  await set(r, (snap.exists() ? Number(snap.val()) || 0 : 0) + 1);
+}

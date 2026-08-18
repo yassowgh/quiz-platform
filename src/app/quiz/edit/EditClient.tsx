@@ -43,7 +43,7 @@ export default function EditQuizPage() {
     let questions = quiz.questions;
     if (publish) {
       questions = quiz.questions.filter(
-        (qq) => qq.type === "typeanswer" || (qq.options || []).some((o) => o && o.trim())
+        (qq) => qq.type === "typeanswer" || qq.type === "wordcloud" || qq.type === "openended" || qq.type === "rating" || (qq.options || []).some((o) => o && o.trim())
       );
       if (!questions.length) {
         alert("Add at least one answerable question (with options, or a type-answer) before publishing.");
