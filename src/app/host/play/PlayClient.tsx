@@ -19,6 +19,7 @@ import WordCloud from "@/components/game/WordCloud";
 import RatingResult from "@/components/game/RatingResult";
 import ResponseWall from "@/components/game/ResponseWall";
 import PollResult from "@/components/game/PollResult";
+import RankingResult from "@/components/game/RankingResult";
 import Confetti from "@/components/game/Confetti";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -270,7 +271,11 @@ export default function HostPlayPage() {
             onExpire={handleReveal}
             className="mb-4"
           />
-          {currentQ.type === "poll" ? (
+          {currentQ.type === "ranking" ? (
+            <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
+              <RankingResult options={currentQ.options} responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
+            </div>
+          ) : currentQ.type === "poll" ? (
             <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
               <PollResult options={currentQ.options} answers={answers} />
             </div>
@@ -330,12 +335,17 @@ export default function HostPlayPage() {
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
           )}
+          {currentQ.type === "ranking" && (
+            <div className="bg-white rounded-2xl p-6 sm:p-8 mb-6">
+              <RankingResult options={currentQ.options} responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
+            </div>
+          )}
           {currentQ.type === "poll" && (
             <div className="bg-white rounded-2xl p-6 sm:p-8 mb-6">
               <PollResult options={currentQ.options} answers={answers} />
             </div>
           )}
-          {currentQ.type !== "typeanswer" && currentQ.type !== "sorting" && currentQ.type !== "wordcloud" && currentQ.type !== "openended" && currentQ.type !== "rating" && currentQ.type !== "poll" && (
+          {currentQ.type !== "typeanswer" && currentQ.type !== "sorting" && currentQ.type !== "wordcloud" && currentQ.type !== "openended" && currentQ.type !== "rating" && currentQ.type !== "poll" && currentQ.type !== "ranking" && (
           <div className="mb-6">
             <AnswerDistribution
               answers={answers}

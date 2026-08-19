@@ -37,6 +37,8 @@ export default function PlayPage() {
   const [myRating, setMyRating] = useState(0);
   const [openDraft, setOpenDraft] = useState("");
   const [openSent, setOpenSent] = useState(0);
+  const [rankOrder, setRankOrder] = useState<number[] | null>(null);
+  const [rankSent, setRankSent] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -182,7 +184,18 @@ export default function PlayPage() {
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
-  useEffect(() => { setWordSent(0); setWordDraft(""); setMyRating(0); setOpenSent(0); setOpenDraft(""); }, [state?.currentQuestionIndex]);
+  useEffect(() => {
+    setWordSent(0); setWordDraft(""); setMyRating(0); setOpenSent(0); setOpenDraft(""); setRankSent(false);
+    if (currentQ?.type === "ranking") {
+      const n = (currentQ.options || []).filter((o: string) => o && o.trim()).length;
+      setRankOrder(Array.from({ length: n }, (_, i) => i));
+    } else { setRankOrder(null); }
+  }, [state?.currentQuestionIndex]);
+  const sendRank = async () => {
+    if (!rankOrder || !playerId || !state) return;
+    await setPlayerResponse(gameId, state.currentQuestionIndex, playerId, JSON.stringify(rankOrder));
+    setRankSent(true);
+  };
   const sendOpen = async () => {
     const txt = openDraft.trim();
     if (!txt || !playerId || !state) return;
@@ -273,7 +286,20 @@ export default function PlayPage() {
               )}
             </div>
           )}
-          {currentQ?.type === "openended" ? (
+          {currentQ?.type === "ranking" ? (
+            <div className="flex flex-col gap-2 flex-1 justify-center">
+              <p className="text-center text-white/70 text-sm">Order them — top = best</p>
+              {(rankOrder || []).map((optIdx, pos) => (
+                <div key={optIdx} className="flex items-center gap-2 bg-white text-gray-900 rounded-xl p-3 font-bold">
+                  <span className="w-7 h-7 bg-kahoot-purple text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">{pos + 1}</span>
+                  <span className="flex-1" dir="auto">{((currentQ.options || []).filter((o: string) => o && o.trim()))[optIdx]}</span>
+                  <button type="button" disabled={pos === 0 || rankSent} onClick={() => setRankOrder((o) => { if (!o) return o; const n = [...o]; const tmp = n[pos - 1]; n[pos - 1] = n[pos]; n[pos] = tmp; return n; })} className="text-xl px-1 disabled:opacity-30">⬆️</button>
+                  <button type="button" disabled={pos === (rankOrder || []).length - 1 || rankSent} onClick={() => setRankOrder((o) => { if (!o) return o; const n = [...o]; const tmp = n[pos + 1]; n[pos + 1] = n[pos]; n[pos] = tmp; return n; })} className="text-xl px-1 disabled:opacity-30">⬇️</button>
+                </div>
+              ))}
+              <button type="button" onClick={sendRank} disabled={rankSent} className="bg-green-500 text-white font-black text-lg rounded-2xl py-3 mt-2 disabled:opacity-40">{rankSent ? "Ranking submitted ✓" : "Submit ranking"}</button>
+            </div>
+          ) : currentQ?.type === "openended" ? (
             <div className="flex flex-col gap-3 flex-1 justify-center">
               <textarea value={openDraft} onChange={(e) => setOpenDraft(e.target.value)} maxLength={140} rows={3} placeholder="Type your answer…" className="px-4 py-3 rounded-2xl text-gray-900 text-lg resize-none" dir="auto" />
               <button type="button" onClick={sendOpen} disabled={!openDraft.trim() || openSent >= 3} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{openSent >= 3 ? "Max reached" : "Send answer" + (openSent > 0 ? " (" + openSent + "/3)" : "")}</button>

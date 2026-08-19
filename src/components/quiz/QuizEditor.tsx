@@ -62,9 +62,10 @@ interface SortableQuestionProps {
   index: number;
   onChange: (q: Question) => void;
   onDelete: () => void;
+  kind?: string;
 }
 
-function SortableQuestion({ question, index, onChange, onDelete, startExpanded }: SortableQuestionProps) {
+function SortableQuestion({ question, index, onChange, onDelete, startExpanded, kind }: SortableQuestionProps) {
   const [expanded, setExpanded] = useState(!!startExpanded);
   const [adv, setAdv] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: question.id });
@@ -104,6 +105,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
@@ -174,13 +176,23 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
           </>)}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Question type</label>
-            <select
+{kind === "poll" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {([["poll", "📊", "Multiple Choice"], ["wordcloud", "☁️", "Word Cloud"], ["openended", "💬", "Open Ended"], ["rating", "⭐", "Scales"], ["ranking", "🔢", "Ranking"]] as string[][]).map((it) => (
+                  <button key={it[0]} type="button" onClick={() => { const v = it[0] as any; if (v === "poll" || v === "ranking") onChange({ ...question, type: v, correctAnswer: 0 }); else onChange({ ...question, type: v }); }} className={"p-3 rounded-xl border-2 text-center transition-colors " + ((question.type || "multiple") === it[0] ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
+                    <div className="text-2xl">{it[1]}</div>
+                    <div className="text-xs font-bold text-gray-700 mt-1">{it[2]}</div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <select
               value={question.type || "multiple"}
               onChange={(e) => {
                 const t = e.target.value as Question["type"];
                 if (t === "truefalse") onChange({ ...question, type: t, options: ["True", "False"], correctAnswer: 0 });
                 else if (t === "typeanswer") onChange({ ...question, type: t, correctText: question.correctText || "" });
-                else if (t === "sorting" || t === "poll") onChange({ ...question, type: t, correctAnswer: 0 });
+                else if (t === "sorting" || t === "poll" || t === "ranking") onChange({ ...question, type: t, correctAnswer: 0 });
                 else if (t === "wordcloud" || t === "openended" || t === "rating") onChange({ ...question, type: t });
                 else onChange({ ...question, type: t, options: question.options.length === 4 ? question.options : ["", "", "", ""] });
               }}
@@ -194,6 +206,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
               <option value="wordcloud">☁️ Word cloud (survey)</option>
               <option value="openended">💬 Open-ended (survey)</option>
               <option value="rating">⭐ Rating 1–5 (survey)</option>
+              <option value="ranking">🔢 Ranking (survey)</option>
             </select>
           </div>
           {adv && (!question.type || question.type === "multiple") && (
@@ -233,8 +246,8 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
           <div className="grid grid-cols-2 gap-3">
             {question.options.map((opt, i) => (
               <div key={i} className="flex gap-2 items-start">
-                {question.type === "sorting" || question.type === "poll" ? (
-                  <span className="mt-7 w-6 h-6 rounded-full bg-kahoot-purple text-white text-xs flex items-center justify-center flex-shrink-0">{question.type === "sorting" ? i + 1 : "•"}</span>
+                {question.type === "sorting" || question.type === "poll" || question.type === "ranking" ? (
+                  <span className="mt-7 w-6 h-6 rounded-full bg-kahoot-purple text-white text-xs flex items-center justify-center flex-shrink-0">{question.type === "sorting" || question.type === "ranking" ? i + 1 : "•"}</span>
                 ) : (
                 <button
                   type="button"
@@ -337,9 +350,10 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded }
 interface QuizEditorProps {
   questions: Question[];
   onChange: (questions: Question[]) => void;
+  kind?: string;
 }
 
-export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
+export default function QuizEditor({ questions, onChange, kind }: QuizEditorProps) {
   const initialIds = useRef<Set<string>>(new Set(questions.map((q) => q.id)));
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -487,6 +501,7 @@ export default function QuizEditor({ questions, onChange }: QuizEditorProps) {
                 onChange(next);
               }}
               onDelete={() => onChange(questions.filter((_, idx) => idx !== i))}
+              kind={kind}
             />
           ))}
         </SortableContext>
