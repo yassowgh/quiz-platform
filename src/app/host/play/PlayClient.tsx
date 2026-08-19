@@ -203,6 +203,11 @@ export default function HostPlayPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6" style={quiz?.branding?.primaryColor ? { background: quiz.branding.primaryColor } : undefined}>
       <ReactionOverlay gameId={gameId} />
+      <div className="fixed top-20 left-4 z-40 flex gap-3 bg-black/40 backdrop-blur rounded-full px-4 py-2 text-sm font-bold text-white">
+        <span title="Attendees">👥 {players.length}</span>
+        <span title="Likes">❤️ {(state as any)?.reactions ? Object.values((state as any).reactions).filter((r: any) => r && r.e === "❤️").length : 0}</span>
+        <span title="Reactions">✨ {(state as any)?.reactions ? Object.keys((state as any).reactions).length : 0}</span>
+      </div>
       {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-10 mx-auto mb-3" />}
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
