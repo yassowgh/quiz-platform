@@ -82,6 +82,19 @@ export default function LobbyPage() {
     setCreating(false);
   };
 
+  const pollAutoRef = useRef(false);
+  useEffect(() => {
+    if (!pollAutoRef.current && quiz && (quiz as any).kind === "poll" && user && !gameId && !creating) {
+      pollAutoRef.current = true;
+      startGame();
+    }
+  }, [quiz, user, gameId, creating]);
+  useEffect(() => {
+    if ((quiz as any)?.kind === "poll" && gameId && quiz) {
+      router.push("/host/play?gameId=" + gameId + "&quizId=" + quiz.id);
+    }
+  }, [gameId, quiz, router]);
+
   const handleStart = () => {
     if (!gameId) return;
     router.push(`/host/play?gameId=${gameId}&quizId=${quiz?.id}`);

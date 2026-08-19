@@ -37,6 +37,7 @@ export default function HostPlayPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [muted, setMuted] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  const pollStartedRef = useRef(false);
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz);
@@ -192,6 +193,15 @@ export default function HostPlayPage() {
     }
   }, [answeredCount, players.length, state?.status, gameId]);
 
+  // Polls: go live immediately (skip the host lobby / Start button)
+  useEffect(() => {
+    if (!pollStartedRef.current && state?.status === "lobby" && (quiz as any)?.kind === "poll") {
+      pollStartedRef.current = true;
+      startQuestion(gameId, 0);
+      setTimerKey((k) => k + 1);
+    }
+  }, [state?.status, quiz, gameId]);
+
   // Battle Royale: eliminate players who missed the question when it's revealed
   useEffect(() => {
     if ((state as any)?.mode === "battle" && state?.status === "answer_reveal") {
@@ -204,6 +214,15 @@ export default function HostPlayPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6" style={quiz?.branding?.primaryColor ? { background: quiz.branding.primaryColor } : undefined}>
       <ReactionOverlay gameId={gameId} />
+      {(quiz as any)?.kind === "poll" && (state.status === "question" || state.status === "answer_reveal") && (
+        <div className="fixed top-4 right-4 z-40 bg-white rounded-2xl p-3 shadow-lg flex items-center gap-3">
+          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + encodeURIComponent("https://quizups.com/join?gameId=" + gameId)} alt="Join QR" className="w-20 h-20" />
+          <div className="text-gray-800 pr-1">
+            <div className="text-xs text-gray-500 font-semibold">Join at quizups.com</div>
+            <div className="font-black text-2xl tracking-widest text-gray-900">{state.pin}</div>
+          </div>
+        </div>
+      )}
       <div className="fixed top-20 left-4 z-40 flex gap-3 bg-black/40 backdrop-blur rounded-full px-4 py-2 text-sm font-bold text-white">
         <span title="Attendees">👥 {players.length}</span>
         <span title="Likes">❤️ {(state as any)?.reactions ? Object.values((state as any).reactions).filter((r: any) => r && r.e === "❤️").length : 0}</span>
