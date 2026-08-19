@@ -18,6 +18,7 @@ import Podium from "@/components/game/Podium";
 import WordCloud from "@/components/game/WordCloud";
 import RatingResult from "@/components/game/RatingResult";
 import ResponseWall from "@/components/game/ResponseWall";
+import PollResult from "@/components/game/PollResult";
 import Confetti from "@/components/game/Confetti";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -250,7 +251,11 @@ export default function HostPlayPage() {
             onExpire={handleReveal}
             className="mb-4"
           />
-          {currentQ.type === "openended" ? (
+          {currentQ.type === "poll" ? (
+            <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
+              <PollResult options={currentQ.options} answers={answers} />
+            </div>
+          ) : currentQ.type === "openended" ? (
             <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[300px] flex items-start justify-center overflow-auto">
               <ResponseWall responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
@@ -306,7 +311,12 @@ export default function HostPlayPage() {
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
           )}
-          {currentQ.type !== "typeanswer" && currentQ.type !== "sorting" && currentQ.type !== "wordcloud" && currentQ.type !== "openended" && currentQ.type !== "rating" && (
+          {currentQ.type === "poll" && (
+            <div className="bg-white rounded-2xl p-6 sm:p-8 mb-6">
+              <PollResult options={currentQ.options} answers={answers} />
+            </div>
+          )}
+          {currentQ.type !== "typeanswer" && currentQ.type !== "sorting" && currentQ.type !== "wordcloud" && currentQ.type !== "openended" && currentQ.type !== "rating" && currentQ.type !== "poll" && (
           <div className="mb-6">
             <AnswerDistribution
               answers={answers}
