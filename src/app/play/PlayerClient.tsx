@@ -35,6 +35,8 @@ export default function PlayPage() {
   const [wordDraft, setWordDraft] = useState("");
   const [wordSent, setWordSent] = useState(0);
   const [myRating, setMyRating] = useState(0);
+  const [openDraft, setOpenDraft] = useState("");
+  const [openSent, setOpenSent] = useState(0);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   // Reset answer when a new question starts
@@ -180,7 +182,14 @@ export default function PlayPage() {
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
-  useEffect(() => { setWordSent(0); setWordDraft(""); setMyRating(0); }, [state?.currentQuestionIndex]);
+  useEffect(() => { setWordSent(0); setWordDraft(""); setMyRating(0); setOpenSent(0); setOpenDraft(""); }, [state?.currentQuestionIndex]);
+  const sendOpen = async () => {
+    const txt = openDraft.trim();
+    if (!txt || !playerId || !state) return;
+    await submitResponse(gameId, state.currentQuestionIndex, playerId, txt);
+    setOpenSent((n) => n + 1);
+    setOpenDraft("");
+  };
   const rateStar = async (s: number) => {
     setMyRating(s);
     if (playerId && state) await setPlayerResponse(gameId, state.currentQuestionIndex, playerId, String(s));
@@ -264,7 +273,13 @@ export default function PlayPage() {
               )}
             </div>
           )}
-          {currentQ?.type === "rating" ? (
+          {currentQ?.type === "openended" ? (
+            <div className="flex flex-col gap-3 flex-1 justify-center">
+              <textarea value={openDraft} onChange={(e) => setOpenDraft(e.target.value)} maxLength={140} rows={3} placeholder="Type your answer…" className="px-4 py-3 rounded-2xl text-gray-900 text-lg resize-none" dir="auto" />
+              <button type="button" onClick={sendOpen} disabled={!openDraft.trim() || openSent >= 3} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{openSent >= 3 ? "Max reached" : "Send answer" + (openSent > 0 ? " (" + openSent + "/3)" : "")}</button>
+              <p className="text-center text-white/60 text-sm">Send up to 3 answers from your phone.</p>
+            </div>
+          ) : currentQ?.type === "rating" ? (
             <div className="flex flex-col gap-4 flex-1 justify-center items-center">
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((s) => (
