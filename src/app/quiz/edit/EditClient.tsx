@@ -102,7 +102,7 @@ export default function EditQuizPage() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-black">Edit Quiz</h1>
+        <h1 className="text-3xl font-black">{quiz.kind === "poll" ? "Edit Poll" : "Edit Quiz"}</h1>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => save(false)} loading={saving}>Save Draft</Button>
           <Button onClick={() => save(true)} loading={saving}>Publish</Button>
@@ -111,7 +111,11 @@ export default function EditQuizPage() {
       <div className="flex flex-col gap-4 mb-8">
         <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} placeholder="Name your quiz…" />
         <Input label="Description" value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
+        {quiz.kind === "poll" && (
+          <p className="text-sm bg-kahoot-purple/10 text-kahoot-purple rounded-xl p-3 font-semibold">📊 This is a poll / survey. Scroll down and use each question&apos;s type menu to add a Poll, ☁️ Word cloud, ⭐ Rating, or 💬 Open-ended slide — then Host it like a normal game.</p>
+        )}
 
+        {quiz.kind !== "poll" && (<>
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
           <input type="checkbox" checked={!!quiz.examMode} onChange={(ev) => setQuiz({ ...quiz, examMode: ev.target.checked })} className="mt-1 w-5 h-5" />
           <span>
@@ -124,9 +128,10 @@ export default function EditQuizPage() {
           <input type="checkbox" checked={!!quiz.adaptive} onChange={(ev) => setQuiz({ ...quiz, adaptive: ev.target.checked })} className="mt-1 w-5 h-5" />
           <span>
             <span className="font-bold text-gray-700">📊 Adaptive difficulty</span>
-            <span className="block text-sm text-gray-500">In assignments, questions are ordered easy → hard using each question\u2019s Difficulty (set under a question\u2019s Advanced options).</span>
+            <span className="block text-sm text-gray-500">In assignments, questions are ordered easy → hard using each question’s Difficulty (set under a question’s Advanced options).</span>
           </span>
         </label>
+        </>)}
         <details className="border-2 border-gray-200 rounded-xl p-4">
           <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
           <div className="flex flex-col gap-3 mt-4">
