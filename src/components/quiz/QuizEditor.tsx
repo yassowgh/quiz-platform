@@ -105,7 +105,6 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
-            )}
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
@@ -208,6 +207,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               <option value="rating">⭐ Rating 1–5 (survey)</option>
               <option value="ranking">🔢 Ranking (survey)</option>
             </select>
+            )}
           </div>
           {adv && (!question.type || question.type === "multiple") && (
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
