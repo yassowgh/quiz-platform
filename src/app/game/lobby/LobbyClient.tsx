@@ -113,7 +113,7 @@ export default function LobbyPage() {
             <p className="text-gray-500">{quiz?.questions.length ?? 0} questions</p>
           </div>
           <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Game options</p>
-          {quiz?.kind !== "poll" && (
+          {quiz?.kind !== "poll" && (<>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
             <button type="button" onClick={() => setMode("classic")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "classic" ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
               <span className="font-bold text-gray-800 block">🏁 Classic</span>
@@ -144,7 +144,7 @@ export default function LobbyPage() {
               </span>
             </label>
           </div>
-          )}
+          </>)}
           <Button onClick={startGame} loading={creating} size="lg" className="w-full">
             Create Game Room
           </Button>
