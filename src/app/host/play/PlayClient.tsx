@@ -176,7 +176,7 @@ export default function HostPlayPage() {
 
   // 3-2-1 countdown when a new question starts
   useEffect(() => {
-    if (state?.status !== "question") { setCountdown(null); return; }
+    if (state?.status !== "question" || ((quiz as any)?.kind === "poll" && !(quiz as any)?.pollTimer)) { setCountdown(null); return; }
     setCountdown(3);
     const id = setInterval(() => {
       setCountdown((c) => {
@@ -189,14 +189,14 @@ export default function HostPlayPage() {
 
   // Auto-reveal once every player has answered
   useEffect(() => {
-    if (state?.status === "question" && players.length > 0 && answeredCount >= players.length) {
+    if (state?.status === "question" && players.length > 0 && answeredCount >= players.length && !((quiz as any)?.kind === "poll" && !(quiz as any)?.pollTimer)) {
       revealAnswer(gameId);
     }
   }, [answeredCount, players.length, state?.status, gameId]);
 
   // Polls: go live immediately (skip the host lobby / Start button)
   useEffect(() => {
-    if (!pollStartedRef.current && state?.status === "lobby" && (quiz as any)?.kind === "poll") {
+    if (!pollStartedRef.current && state?.status === "lobby" && (quiz as any)?.kind === "poll" && !(quiz as any)?.pollWaitLobby) {
       pollStartedRef.current = true;
       startQuestion(gameId, 0);
       setTimerKey((k) => k + 1);
@@ -264,6 +264,7 @@ export default function HostPlayPage() {
               )
             )}
           </Card>
+          {!((quiz as any)?.kind === "poll" && !(quiz as any)?.pollTimer) ? (
           <Timer
             key={timerKey}
             durationSeconds={currentQ.timeLimit}
@@ -271,6 +272,9 @@ export default function HostPlayPage() {
             onExpire={handleReveal}
             className="mb-4"
           />
+          ) : (
+          <Button onClick={nextQuestion} size="lg" className="w-full mb-4">Next slide →</Button>
+          )}
           {currentQ.type === "ranking" ? (
             <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
               <RankingResult options={currentQ.options} responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />

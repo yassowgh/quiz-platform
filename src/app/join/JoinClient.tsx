@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { joinGame } from "@/lib/realtimeDb";
 import { useGame } from "@/hooks/useGame";
@@ -18,6 +18,22 @@ export default function JoinClient() {
   const [error, setError] = useState("");
 
   useEffect(() => { setNickname(randomNickname()); }, []);
+
+  const autoJoinedRef = useRef(false);
+  useEffect(() => {
+    const q = (state as any)?._quiz;
+    if (autoJoinedRef.current || !q || q.kind !== "poll" || q.requireName || !nickname.trim() || !gameId) return;
+    autoJoinedRef.current = true;
+    (async () => {
+      try {
+        const playerId = sessionStorage.getItem("playerId") || nanoid();
+        sessionStorage.setItem("playerId", playerId);
+        sessionStorage.setItem("nickname", nickname.trim());
+        await joinGame(gameId, playerId, nickname.trim(), state?.teamMode ? (team.trim() || "Team " + nickname.trim()) : undefined);
+        router.push("/play?gameId=" + gameId);
+      } catch (e) { setError("Failed to join. Try again."); }
+    })();
+  }, [state, nickname, gameId]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();

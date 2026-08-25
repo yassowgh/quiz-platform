@@ -114,6 +114,14 @@ export default function EditQuizPage() {
         {quiz.kind === "poll" && (
           <p className="text-sm bg-kahoot-purple/10 text-kahoot-purple rounded-xl p-3 font-semibold">📊 This is a poll / survey. Scroll down and use each question&apos;s type menu to add a Poll, ☁️ Word cloud, ⭐ Rating, or 💬 Open-ended slide — then Host it like a normal game.</p>
         )}
+        {quiz.kind === "poll" && (
+          <div className="flex flex-col gap-2 mb-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Poll settings</p>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollWaitLobby} onChange={(ev) => setQuiz({ ...quiz, pollWaitLobby: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">⏳ Wait for attendees before starting</span><span className="text-gray-500 text-sm">Off = go live instantly. On = show a join screen (QR) first, then you press Start.</span></span></label>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.requireName} onChange={(ev) => setQuiz({ ...quiz, requireName: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">🙋 Ask participants for a name</span><span className="text-gray-500 text-sm">Off = anonymous (auto nickname, no prompt).</span></span></label>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollTimer} onChange={(ev) => setQuiz({ ...quiz, pollTimer: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">⏱️ Use a countdown timer</span><span className="text-gray-500 text-sm">Off = open time (you advance each slide with a Next button).</span></span></label>
+          </div>
+        )}
 
         {quiz.kind !== "poll" && (<>
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">

@@ -84,13 +84,13 @@ export default function LobbyPage() {
 
   const pollAutoRef = useRef(false);
   useEffect(() => {
-    if (!pollAutoRef.current && quiz && (quiz as any).kind === "poll" && user && !gameId && !creating) {
+    if (!pollAutoRef.current && quiz && (quiz as any).kind === "poll" && !(quiz as any).pollWaitLobby && user && !gameId && !creating) {
       pollAutoRef.current = true;
       startGame();
     }
   }, [quiz, user, gameId, creating]);
   useEffect(() => {
-    if ((quiz as any)?.kind === "poll" && gameId && quiz) {
+    if ((quiz as any)?.kind === "poll" && !(quiz as any)?.pollWaitLobby && gameId && quiz) {
       router.push("/host/play?gameId=" + gameId + "&quizId=" + quiz.id);
     }
   }, [gameId, quiz, router]);
@@ -128,7 +128,6 @@ export default function LobbyPage() {
               <span className="text-gray-500 text-xs">Miss a question, you're out. Last one standing wins!</span>
             </button>
           </div>
-          )}
           <div className="flex flex-col gap-3 mb-6">
             <label className="flex items-start gap-3 p-3 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-kahoot-purple/40 transition-colors">
               <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -145,6 +144,7 @@ export default function LobbyPage() {
               </span>
             </label>
           </div>
+          )}
           <Button onClick={startGame} loading={creating} size="lg" className="w-full">
             Create Game Room
           </Button>

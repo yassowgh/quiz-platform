@@ -41,6 +41,9 @@ export interface Quiz {
   allowAssignment?: boolean;
   examMode?: boolean;
   kind?: "quiz" | "poll";
+  pollWaitLobby?: boolean;
+  requireName?: boolean;
+  pollTimer?: boolean;
   adaptive?: boolean;
   videoMode?: boolean;
   videoType?: "youtube" | "url";
