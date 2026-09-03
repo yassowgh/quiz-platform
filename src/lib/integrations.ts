@@ -145,8 +145,14 @@ export async function sendAssignmentInvite(params: {
   for (const to of params.toEmails) {
     const t = to.trim();
     if (!t) continue;
-    await rawSend({ ...base, to_email: t });
-    sent++;
+    try {
+      const r = await fetch(AI_WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "email", to: t, subject: subject, html: message }),
+      });
+      if (r.ok) sent++;
+    } catch (e) {}
   }
   return sent;
 }

@@ -11,6 +11,7 @@ const NAV = [
   { id: "users", label: "Users", icon: "👤" },
   { id: "admins", label: "Admins", icon: "🛡️" },
   { id: "content", label: "Content", icon: "✏️" },
+  { id: "logs", label: "Logs", icon: "📋" },
 ];
 
 export default function QuPsControlPage() {
@@ -25,6 +26,8 @@ export default function QuPsControlPage() {
   const [home, setHome] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -42,6 +45,13 @@ export default function QuPsControlPage() {
       setReady(true);
     })();
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (tab !== "logs") return;
+    setLogsLoading(true);
+    fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "logs", limit: 100 }) })
+      .then((r) => r.json()).then((d) => setLogs(d.logs || [])).catch(() => setLogs([])).finally(() => setLogsLoading(false));
+  }, [tab]);
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 3500); };
   const toggleDisabled = async (u: any) => { setBusy(true); try { await setUserDisabled(u.uid, !u.disabled); u.disabled = !u.disabled; setUsers([...users]); flash("Updated " + (u.email || "")); } catch (e: any) { flash("Error: " + (e && e.message ? e.message : e)); } setBusy(false); };
@@ -126,6 +136,25 @@ export default function QuPsControlPage() {
               <label className="block text-sm font-bold mb-1 text-gray-700">Headline line 2</label>
               <input value={home.heroLine2 || ""} onChange={(e) => setHome({ ...home, heroLine2: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-gray-200 mb-5" />
               <Button onClick={saveContent} disabled={busy}>Save content</Button>
+            </div>
+          )}
+
+          {tab === "logs" && (
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 text-sm text-gray-500 flex items-center justify-between"><span>Recent AI + email events (successes & failures)</span><span>{logsLoading ? "Loading…" : logs.length + " shown"}</span></div>
+              <div className="divide-y divide-gray-100 max-h-[70vh] overflow-auto">
+                {logs.map((l, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 text-sm">
+                    <span className={"mt-1 w-2 h-2 rounded-full shrink-0 " + (l.ok ? "bg-green-500" : "bg-red-500")} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-800">{l.type}{l.provider ? " · " + l.provider : ""} — {l.ok ? "OK" : "FAILED"}</div>
+                      <div className="text-gray-400 truncate">{l.topic || l.to || ""}{l.detail ? " · " + l.detail : ""}</div>
+                    </div>
+                    <span className="text-gray-300 text-xs shrink-0">{(l.at || "").replace("T", " ").slice(0, 19)}</span>
+                  </div>
+                ))}
+                {!logsLoading && !logs.length && <p className="p-6 text-gray-400">No logs yet.</p>}
+              </div>
             </div>
           )}
         </div>
