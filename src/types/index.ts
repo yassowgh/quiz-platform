@@ -99,3 +99,36 @@ export const ANSWER_COLORS = [
   { bg: "bg-purple-600", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "★", hex: "#7c3aed" },
   { bg: "bg-pink-600", text: "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]", shape: "⬟", hex: "#db2777" },
 ];
+
+export type Lifecycle = "lead" | "nonpaying" | "paying" | "churned";
+
+export interface UserRecord {
+  uid: string;
+  email?: string;
+  displayName?: string;
+  createdAt?: number;
+  disabled?: boolean;
+  lifecycle?: Lifecycle;
+  tags?: string[];
+  crmNotes?: string;
+  hubspotSynced?: boolean;
+}
+
+export interface Feedback {
+  id: string;
+  ftype: "complaint" | "recommendation" | "question" | "other" | string;
+  message: string;
+  email?: string;
+  status?: "new" | "seen" | "resolved";
+  createdAt: number;
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  audience?: Lifecycle | "all";
+  createdAt?: number;
+  updatedAt?: number;
+}

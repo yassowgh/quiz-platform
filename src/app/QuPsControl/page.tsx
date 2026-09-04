@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 
 const OWNER_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
@@ -12,6 +12,9 @@ const NAV = [
   { id: "admins", label: "Admins", icon: "🛡️" },
   { id: "content", label: "Content", icon: "✏️" },
   { id: "logs", label: "Logs", icon: "📋" },
+  { id: "crm", label: "CRM", icon: "📇" },
+  { id: "campaigns", label: "Campaigns", icon: "✉️" },
+  { id: "feedback", label: "Feedback", icon: "🗣️" },
 ];
 
 export default function QuPsControlPage() {
@@ -28,6 +31,10 @@ export default function QuPsControlPage() {
   const [busy, setBusy] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [features, setFeatures] = useState<any>({});
+  const [feedback, setFeedback] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [editCamp, setEditCamp] = useState<any>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -52,6 +59,69 @@ export default function QuPsControlPage() {
     fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "logs", limit: 100 }) })
       .then((r) => r.json()).then((d) => setLogs(d.logs || [])).catch(() => setLogs([])).finally(() => setLogsLoading(false));
   }, [tab]);
+
+  useEffect(() => { getFeatures().then((f) => setFeatures(f || {})).catch(() => {}); }, []);
+  useEffect(() => {
+    if (tab === "feedback") listFeedback().then(setFeedback).catch(() => {});
+    if (tab === "campaigns") listCampaigns().then(setCampaigns).catch(() => {});
+  }, [tab]);
+
+  const WORKER_URL = "https://polished-shadow-f08c.yassow.workers.dev/";
+  const crmOn = !!features.crmEnabled;
+  async function toggleCrm() {
+    const v = !crmOn;
+    setFeatures((f: any) => ({ ...f, crmEnabled: v }));
+    try { await saveFeatures({ crmEnabled: v }); flash(v ? "CRM enabled" : "CRM disabled"); } catch (e) {}
+  }
+  async function setLifecycle(u: any, lifecycle: string) {
+    setUsers((prev) => prev.map((x) => ((x.uid || x.id) === (u.uid || u.id) ? { ...x, lifecycle } : x)));
+    try { await updateUserCrm(u.uid || u.id, { lifecycle }); } catch (e) { flash("Error saving stage"); }
+  }
+  async function syncHubspot(u: any) {
+    setBusy(true);
+    try {
+      const stage = u.lifecycle === "paying" ? "customer" : "lead";
+      const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "hubspot", email: u.email, props: { lifecyclestage: stage, firstname: u.displayName || "" } }) });
+      const d = await r.json();
+      if (d.ok) { flash("Synced to HubSpot"); await updateUserCrm(u.uid || u.id, { hubspotSynced: true }); setUsers((prev) => prev.map((x) => ((x.uid || x.id) === (u.uid || u.id) ? { ...x, hubspotSynced: true } : x))); }
+      else flash("HubSpot: " + (d.error || d.detail || "failed"));
+    } catch (e) { flash("HubSpot sync error"); }
+    setBusy(false);
+  }
+  async function sendCampaign(c: any) {
+    const audience = c.audience || "all";
+    const targets = users.filter((u) => u.email && (audience === "all" || u.lifecycle === audience));
+    if (!targets.length) { flash("No recipients in that audience"); return; }
+    if (!confirm("Send \"" + (c.subject || "") + "\" to " + targets.length + " people?")) return;
+    setBusy(true);
+    let sent = 0;
+    for (const u of targets) {
+      try {
+        const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: u.email, subject: c.subject, html: c.body }) });
+        if (r.ok) sent++;
+      } catch (e) {}
+    }
+    flash("Sent " + sent + "/" + targets.length);
+    setBusy(false);
+  }
+  async function saveCamp() {
+    if (!editCamp) return;
+    setBusy(true);
+    try {
+      await saveCampaign(editCamp.id || null, { name: editCamp.name || "Untitled", subject: editCamp.subject || "", body: editCamp.body || "", audience: editCamp.audience || "all" });
+      flash("Campaign saved");
+      const list = await listCampaigns(); setCampaigns(list); setEditCamp(null);
+    } catch (e) { flash("Error saving campaign"); }
+    setBusy(false);
+  }
+  async function removeCamp(id: string) {
+    if (!confirm("Delete this campaign?")) return;
+    try { await deleteCampaign(id); setCampaigns((prev) => prev.filter((c) => c.id !== id)); } catch (e) {}
+  }
+  async function setFbStatus(f: any, status: string) {
+    setFeedback((prev) => prev.map((x) => (x.id === f.id ? { ...x, status } : x)));
+    try { await updateFeedback(f.id, { status }); } catch (e) {}
+  }
 
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 3500); };
   const toggleDisabled = async (u: any) => { setBusy(true); try { await setUserDisabled(u.uid, !u.disabled); u.disabled = !u.disabled; setUsers([...users]); flash("Updated " + (u.email || "")); } catch (e: any) { flash("Error: " + (e && e.message ? e.message : e)); } setBusy(false); };
@@ -154,6 +224,116 @@ export default function QuPsControlPage() {
                   </div>
                 ))}
                 {!logsLoading && !logs.length && <p className="p-6 text-gray-400">No logs yet.</p>}
+              </div>
+            </div>
+          )}
+
+          {tab === "crm" && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-800">Customer CRM</div>
+                  <div className="text-sm text-gray-400">Track each user's lifecycle stage and sync contacts to HubSpot.</div>
+                </div>
+                <button onClick={toggleCrm} className={"px-4 py-2 rounded-full text-sm font-semibold " + (crmOn ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500")}>{crmOn ? "● On" : "○ Off"}</button>
+              </div>
+              {!crmOn ? (
+                <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400">CRM is off. Turn it on to manage lifecycle stages and campaigns.</div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 text-sm text-gray-500">{users.length} users</div>
+                  <div className="divide-y divide-gray-100 max-h-[70vh] overflow-auto">
+                    {users.map((u) => (
+                      <div key={u.uid || u.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
+                        <div className="flex-1 min-w-[180px]">
+                          <div className="font-semibold text-gray-800">{u.displayName || "—"}</div>
+                          <div className="text-gray-400 break-all">{u.email}</div>
+                        </div>
+                        <select value={u.lifecycle || "lead"} onChange={(e) => setLifecycle(u, e.target.value)} className="rounded-lg border border-gray-300 p-1.5 text-sm">
+                          <option value="lead">Lead</option>
+                          <option value="nonpaying">Non-paying</option>
+                          <option value="paying">Paying</option>
+                          <option value="churned">Churned</option>
+                        </select>
+                        <button onClick={() => syncHubspot(u)} disabled={busy} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100">{u.hubspotSynced ? "✓ HubSpot" : "→ HubSpot"}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "campaigns" && (
+            <div className="space-y-4">
+              {!crmOn ? (
+                <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400">Enable the CRM (in the CRM tab) to send campaigns.</div>
+              ) : editCamp ? (
+                <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
+                  <input value={editCamp.name || ""} onChange={(e) => setEditCamp({ ...editCamp, name: e.target.value })} placeholder="Campaign name" className="w-full px-3 py-2 rounded-xl border border-gray-200" />
+                  <input value={editCamp.subject || ""} onChange={(e) => setEditCamp({ ...editCamp, subject: e.target.value })} placeholder="Email subject" className="w-full px-3 py-2 rounded-xl border border-gray-200" />
+                  <textarea value={editCamp.body || ""} onChange={(e) => setEditCamp({ ...editCamp, body: e.target.value })} placeholder="Email body (HTML allowed)" rows={8} className="w-full px-3 py-2 rounded-xl border border-gray-200 font-mono text-sm" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Audience:</span>
+                    <select value={editCamp.audience || "all"} onChange={(e) => setEditCamp({ ...editCamp, audience: e.target.value })} className="rounded-lg border border-gray-300 p-1.5 text-sm">
+                      <option value="all">All users</option>
+                      <option value="lead">Leads</option>
+                      <option value="nonpaying">Non-paying</option>
+                      <option value="paying">Paying</option>
+                      <option value="churned">Churned</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={saveCamp} disabled={busy}>Save</Button>
+                    <button onClick={() => sendCampaign(editCamp)} disabled={busy} className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Send now</button>
+                    <button onClick={() => setEditCamp(null)} className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-semibold text-sm">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <span className="text-sm text-gray-500">{campaigns.length} campaigns</span>
+                    <Button onClick={() => setEditCamp({ audience: "all" })}>+ New campaign</Button>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {campaigns.map((c) => (
+                      <div key={c.id} className="flex items-center gap-3 p-3 text-sm">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-800">{c.name || c.subject}</div>
+                          <div className="text-gray-400 truncate">{c.subject} · {c.audience || "all"}</div>
+                        </div>
+                        <button onClick={() => sendCampaign(c)} disabled={busy} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">Send</button>
+                        <button onClick={() => setEditCamp(c)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">Edit</button>
+                        <button onClick={() => removeCamp(c.id)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-600">Delete</button>
+                      </div>
+                    ))}
+                    {!campaigns.length && <p className="p-6 text-gray-400">No campaigns yet.</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "feedback" && (
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 text-sm text-gray-500">{feedback.length} submissions</div>
+              <div className="divide-y divide-gray-100 max-h-[70vh] overflow-auto">
+                {feedback.map((f) => (
+                  <div key={f.id} className="p-3 text-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{f.ftype}</span>
+                      <span className="text-gray-400 text-xs">{f.email || "anonymous"}</span>
+                      <span className="text-gray-300 text-xs ml-auto">{new Date(f.createdAt || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="text-gray-800 whitespace-pre-wrap">{f.message}</div>
+                    <div className="mt-2 flex gap-2">
+                      {["new", "seen", "resolved"].map((st) => (
+                        <button key={st} onClick={() => setFbStatus(f, st)} className={"text-xs px-2 py-1 rounded-lg " + ((f.status || "new") === st ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500")}>{st}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {!feedback.length && <p className="p-6 text-gray-400">No feedback yet.</p>}
               </div>
             </div>
           )}

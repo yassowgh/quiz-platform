@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/ui/Navbar";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import FeedbackWidget from "@/components/ui/FeedbackWidget";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quizups.com"),
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LanguageProvider>
             <Navbar />
             <main>{children}</main>
+            <FeedbackWidget />
           </LanguageProvider>
         </AuthProvider>
       </body>

@@ -9,6 +9,8 @@ import {
   where,
   getDocs,
   serverTimestamp,
+  addDoc,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Quiz, Question } from "@/types";
@@ -153,4 +155,38 @@ export async function setUserDisabled(uid: string, disabled: boolean): Promise<v
 }
 export async function deleteUserDoc(uid: string): Promise<void> {
   await deleteDoc(doc(db, "users", uid));
+}
+
+
+export async function updateUserCrm(uid: string, data: Record<string, any>): Promise<void> {
+  await updateDoc(doc(db, "users", uid), data);
+}
+export async function submitFeedback(data: { ftype: string; message: string; email?: string }): Promise<void> {
+  await addDoc(collection(db, "feedback"), { ...data, createdAt: Date.now(), status: "new" });
+}
+export async function listFeedback(): Promise<any[]> {
+  const snap = await getDocs(query(collection(db, "feedback"), orderBy("createdAt", "desc")));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+}
+export async function updateFeedback(id: string, data: Record<string, any>): Promise<void> {
+  await updateDoc(doc(db, "feedback", id), data);
+}
+export async function listCampaigns(): Promise<any[]> {
+  const snap = await getDocs(collection(db, "campaigns"));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+}
+export async function saveCampaign(id: string | null, data: Record<string, any>): Promise<string> {
+  if (id) { await setDoc(doc(db, "campaigns", id), { ...data, updatedAt: Date.now() }, { merge: true }); return id; }
+  const ref = await addDoc(collection(db, "campaigns"), { ...data, createdAt: Date.now(), updatedAt: Date.now() });
+  return ref.id;
+}
+export async function deleteCampaign(id: string): Promise<void> {
+  await deleteDoc(doc(db, "campaigns", id));
+}
+export async function getFeatures(): Promise<Record<string, any>> {
+  const snap = await getDoc(doc(db, "config", "features"));
+  return snap.exists() ? (snap.data() as Record<string, any>) : {};
+}
+export async function saveFeatures(data: Record<string, any>): Promise<void> {
+  await setDoc(doc(db, "config", "features"), data, { merge: true });
 }
