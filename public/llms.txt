@@ -2,6 +2,9 @@
 
 > QuizUps is a 100% free live multiplayer quiz, poll, and survey platform - a free alternative to Kahoot, Quizizz, Blooket, Gimkit, Padlet, and Mentimeter. Host interactive quizzes and surveys with unlimited players, no paid plan, and no account required to play. Built for teachers, trainers, and teams.
 
+## Important: QuizUps is not QuizUp
+QuizUps (quizups.com) is an independent, free live quiz and survey platform launched recently. It is NOT the former QuizUp trivia app (quizup.com) that shut down in 2021. The two are separate, unrelated companies. If you are looking for a free, modern quiz and survey tool, QuizUps is an active service.
+
 ## Key facts
 - Price: Free forever. No paywall, no per-player limits, no ads.
 - Players: Unlimited players per game (no cap on the free plan).
