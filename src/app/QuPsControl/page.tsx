@@ -113,19 +113,28 @@ export default function QuPsControlPage() {
     if (!confirm("Send \"" + (c.subject || "") + "\" to " + targets.length + " people?")) return;
     const cid = c.id || ("camp-" + Date.now());
     const from = (c.fromName || "QuizUps") + " <" + (c.fromEmail || "noreply@quizups.com") + ">";
-    setProgress({ sent: 0, total: targets.length, hubspot: 0, resend: 0, failed: 0 });
-    let sent = 0, hub = 0, res = 0, failed = 0;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    setProgress({ sent: 0, total: targets.length, hubspot: 0, resend: 0, failed: 0, done: false, note: "" });
+    let sent = 0, hub = 0, res = 0, failed = 0, note = "";
     for (let i = 0; i < targets.length; i++) {
       const u = targets[i];
-      try {
-        const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: u.email, subject: c.subject, html: c.body, from: from, provider: c.provider || "resend", campaignId: cid }) });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { sent++; if (d.provider === "hubspot") hub++; else res++; } else failed++;
-      } catch (e) { failed++; }
-      setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed });
+      let ok = false, provider = "resend", limited = false;
+      for (let a = 0; a < 3 && !ok; a++) {
+        try {
+          const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: u.email, subject: c.subject, html: c.body, from: from, provider: c.provider || "resend", campaignId: cid }) });
+          const d = await r.json().catch(() => ({}));
+          const rate = r.status === 429 || (d.detail || "").indexOf("429") >= 0;
+          if (r.ok && d.ok) { ok = true; provider = d.provider || "resend"; }
+          else if (rate) { limited = true; await wait(2000); }
+          else break;
+        } catch (e) { await wait(1000); }
+      }
+      if (ok) { sent++; if (provider === "hubspot") hub++; else res++; }
+      else { failed++; if (limited) note = "Hit the provider's rate/daily limit — sent " + sent + " so far. Wait a bit and resend the rest, or upgrade Resend."; }
+      setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, done: false, note: note });
+      await wait(600);
     }
-    flash("Sent " + sent + "/" + targets.length + " (HubSpot " + hub + ", Resend " + res + ", failed " + failed + ")");
-    setTimeout(() => setProgress(null), 8000);
+    setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, done: true, note: note });
   }
   async function saveCamp() {
     if (!editCamp) return;
@@ -308,7 +317,17 @@ export default function QuPsControlPage() {
 
           {tab === "campaigns" && (
             <div className="space-y-4">
-              {progress && (<div className="bg-white rounded-2xl border border-gray-200 p-4"><div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className="h-full bg-indigo-600 transition-all" style={{ width: (progress.total ? Math.round((progress.sent + progress.failed) / progress.total * 100) : 0) + "%" }} /></div><div className="text-xs text-gray-500 mt-1">Sending… {progress.sent}/{progress.total} · HubSpot {progress.hubspot} · Resend {progress.resend} · Failed {progress.failed}</div></div>)}
+              {progress && (
+                <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-gray-800">{progress.done ? "✅ Campaign finished" : "📤 Sending campaign…"}</span>
+                    {progress.done && <button onClick={() => setProgress(null)} className="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600">Close</button>}
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={"h-full transition-all " + (progress.done ? "bg-green-500" : "bg-indigo-600 animate-pulse")} style={{ width: (progress.total ? Math.round(((progress.sent + progress.failed) / progress.total) * 100) : 0) + "%" }} /></div>
+                  <div className="text-xs text-gray-500 mt-1">{progress.sent + progress.failed}/{progress.total} processed · ✅ Sent {progress.sent} (HubSpot {progress.hubspot}, Resend {progress.resend}) · ❌ Failed {progress.failed}</div>
+                  {progress.note && <div className="text-xs text-red-600 mt-1">{progress.note}</div>}
+                </div>
+              )}
               {!crmOn ? (
                 <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400">Enable the CRM (in the CRM tab) to send campaigns.</div>
               ) : editCamp ? (
@@ -338,7 +357,7 @@ export default function QuPsControlPage() {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={saveCamp} disabled={busy}>Save</Button>
-                    <button onClick={() => sendCampaign(editCamp)} disabled={busy} className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Send now</button>
+                    <button onClick={() => sendCampaign(editCamp)} disabled={busy || (progress && !progress.done)} className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Send now</button>
                     <button onClick={() => setEditCamp(null)} className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-semibold text-sm">Cancel</button>
                   </div>
                 </div>
