@@ -16,8 +16,12 @@ import { db } from "./firebase";
 import type { Quiz, Question } from "@/types";
 import { nanoid } from "./utils";
 
-export async function createUserProfile(uid: string, email: string, displayName: string) {
-  await setDoc(doc(db, "users", uid), { uid, email, displayName, createdAt: Date.now() }, { merge: true });
+export async function createUserProfile(uid: string, email: string, displayName: string, consent?: { marketing?: boolean; analytics?: boolean }) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  const data: any = { uid, email, displayName, marketingConsent: consent?.marketing ?? true, analyticsConsent: consent?.analytics ?? true, consentAt: Date.now() };
+  if (!snap.exists()) { data.createdAt = Date.now(); data.lifecycle = "nonpaying"; }
+  await setDoc(ref, data, { merge: true });
 }
 
 export async function getQuiz(id: string): Promise<Quiz | null> {

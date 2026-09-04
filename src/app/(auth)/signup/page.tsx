@@ -18,9 +18,11 @@ export default function SignupPage() {
   const [notice, setNotice] = useState("");
   const [emailInUse, setEmailInUse] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [agree, setAgree] = useState(false);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agree) { setError("Please accept the marketing & analytics consent below to sign up."); return; }
     setLoading(true); setError(""); setNotice(""); setEmailInUse(false);
     try {
       await signupWithEmail(email, password, name);
@@ -32,6 +34,7 @@ export default function SignupPage() {
   };
 
   const handleGoogle = async () => {
+    if (!agree) { setError("Please accept the marketing & analytics consent below to continue."); return; }
     setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
@@ -68,10 +71,14 @@ export default function SignupPage() {
               <button type="button" onClick={handleReset} className="text-kahoot-purple font-bold hover:underline">Reset password</button>
             </div>
           )}
-          <Button type="submit" loading={loading} className="w-full">Sign up</Button>
+          <label className="flex items-start gap-2 text-xs text-gray-300">
+            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} required className="mt-0.5" />
+            <span>I agree to receive marketing emails from QuizUps and accept analytics tracking. <span className="text-gray-400">(Required)</span></span>
+          </label>
+          <Button type="submit" loading={loading} disabled={!agree} className="w-full">Sign up</Button>
         </form>
         <div className="relative my-4 text-center text-gray-400">— or —</div>
-        <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading}>
+        <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading || !agree}>
           Continue with Google
         </Button>
         <p className="mt-4 text-center text-gray-500">

@@ -165,6 +165,36 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* What's new (latest features) */}
+      <div className="max-w-5xl mx-auto mt-16">
+        <h2 className="text-3xl font-black text-center mb-2">✨ What&apos;s new in QuizUps</h2>
+        <p className="text-center text-white/70 mb-8">The latest additions — all free.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            ["📊", "Live polls & surveys", "Word clouds, scales, ranking and open-ended walls — Mentimeter-style, live with a QR code."],
+            ["🪙", "Gold Quest", "A Blooket-style treasure race where answers earn (and steal) gold."],
+            ["⚔️", "Battle Royale", "Last player standing — wrong answers eliminate you."],
+            ["🎵", "Sounds & podium", "Music per question, answer sound effects and a celebration podium."],
+            ["🛟", "Always-on AI", "Questions generate reliably via Gemini → Groq → OpenRouter fallbacks."],
+            ["💬", "Feedback built in", "Tell us what you think from the widget on any page."],
+          ].map(([icon, title, desc]) => (
+            <div key={title} className="bg-white/10 rounded-2xl p-5 text-center">
+              <div className="text-4xl mb-2">{icon}</div>
+              <h3 className="font-bold text-lg mb-1">{title}</h3>
+              <p className="text-white/70 text-sm">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {Array.isArray((home as any).blocks) && (home as any).blocks.length > 0 && (
+        <div className="max-w-3xl mx-auto mt-16 space-y-4">
+          {(home as any).blocks.map((b: any, idx: number) => (
+            <div key={b.id || idx} className="bg-white/10 rounded-2xl p-6 text-white/90 [&_h2]:text-2xl [&_h2]:font-black [&_h2]:mb-2 [&_a]:text-kahoot-yellow [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5" dangerouslySetInnerHTML={{ __html: b.html || "" }} />
+          ))}
+        </div>
+      )}
+
       {/* Why QuizUps */}
       <section className="max-w-4xl mx-auto mt-20 text-white">
         <h2 className="text-3xl font-black text-center mb-2">Everything you need — nothing locked away</h2>

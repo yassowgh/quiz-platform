@@ -51,13 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithEmail = async (email: string, password: string) => {
     const { user } = await signInWithEmailAndPassword(auth, email, password);
-    await createUserProfile(user.uid, user.email!, user.displayName || "User");
+    await createUserProfile(user.uid, user.email!, user.displayName || "User", { marketing: true, analytics: true });
   };
 
   const signupWithEmail = async (email: string, password: string, name: string) => {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(user, { displayName: name });
-    await createUserProfile(user.uid, email, name);
+    await createUserProfile(user.uid, email, name, { marketing: true, analytics: true });
   };
 
   const loginWithGoogle = async () => {

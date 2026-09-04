@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
+import RichEditor from "@/components/ui/RichEditor";
 
 const OWNER_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
 const NAV = [
@@ -35,6 +36,8 @@ export default function QuPsControlPage() {
   const [feedback, setFeedback] = useState<any[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [editCamp, setEditCamp] = useState<any>(null);
+  const [progress, setProgress] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -88,21 +91,41 @@ export default function QuPsControlPage() {
     } catch (e) { flash("HubSpot sync error"); }
     setBusy(false);
   }
+  function exportUsersCsv() {
+    const rows = [["email", "name", "lifecycle", "createdAt", "hubspotSynced", "marketingConsent"]];
+    users.forEach((u) => rows.push([u.email || "", u.displayName || "", u.lifecycle || "", u.createdAt ? new Date(u.createdAt).toISOString() : "", u.hubspotSynced ? "yes" : "", u.marketingConsent ? "yes" : ""]));
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "quizups-users.csv"; a.click();
+  }
+  async function loadStats(c: any) {
+    setStats({ loading: true, id: c.id });
+    try {
+      const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "stats", campaignId: c.id }) });
+      const d = await r.json();
+      setStats(Object.assign({ id: c.id }, d));
+    } catch (e) { setStats({ id: c.id, error: true }); }
+  }
   async function sendCampaign(c: any) {
     const audience = c.audience || "all";
     const targets = users.filter((u) => u.email && (audience === "all" || u.lifecycle === audience));
     if (!targets.length) { flash("No recipients in that audience"); return; }
     if (!confirm("Send \"" + (c.subject || "") + "\" to " + targets.length + " people?")) return;
-    setBusy(true);
-    let sent = 0;
-    for (const u of targets) {
+    const cid = c.id || ("camp-" + Date.now());
+    const from = (c.fromName || "QuizUps") + " <" + (c.fromEmail || "noreply@quizups.com") + ">";
+    setProgress({ sent: 0, total: targets.length, hubspot: 0, resend: 0, failed: 0 });
+    let sent = 0, hub = 0, res = 0, failed = 0;
+    for (let i = 0; i < targets.length; i++) {
+      const u = targets[i];
       try {
-        const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: u.email, subject: c.subject, html: c.body }) });
-        if (r.ok) sent++;
-      } catch (e) {}
+        const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: u.email, subject: c.subject, html: c.body, from: from, provider: c.provider || "resend", campaignId: cid }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { sent++; if (d.provider === "hubspot") hub++; else res++; } else failed++;
+      } catch (e) { failed++; }
+      setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed });
     }
-    flash("Sent " + sent + "/" + targets.length);
-    setBusy(false);
+    flash("Sent " + sent + "/" + targets.length + " (HubSpot " + hub + ", Resend " + res + ", failed " + failed + ")");
+    setTimeout(() => setProgress(null), 8000);
   }
   async function saveCamp() {
     if (!editCamp) return;
@@ -206,6 +229,25 @@ export default function QuPsControlPage() {
               <label className="block text-sm font-bold mb-1 text-gray-700">Headline line 2</label>
               <input value={home.heroLine2 || ""} onChange={(e) => setHome({ ...home, heroLine2: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-gray-200 mb-5" />
               <Button onClick={saveContent} disabled={busy}>Save content</Button>
+              <div className="mt-6 border-t border-gray-100 pt-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-bold text-gray-700">Homepage content blocks (rich text)</p>
+                  <button onClick={() => setHome({ ...home, blocks: [ ...((home as any).blocks || []), { id: "b" + Date.now(), html: "<h2>New heading</h2><p>Your text…</p>" } ] })} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">+ Add block</button>
+                </div>
+                <div className="space-y-4">
+                  {((home as any).blocks || []).map((b: any, idx: number) => (
+                    <div key={b.id || idx} className="border border-gray-100 rounded-xl p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs text-gray-400">Block {idx + 1}</span>
+                        <button onClick={() => { const bl = [ ...((home as any).blocks || []) ]; bl.splice(idx, 1); setHome({ ...home, blocks: bl }); }} className="text-xs font-bold px-2 py-1 rounded bg-red-50 text-red-600">Remove</button>
+                      </div>
+                      <RichEditor key={b.id || idx} value={b.html || ""} onChange={(html) => { const bl = [ ...((home as any).blocks || []) ]; bl[idx] = { ...bl[idx], html: html }; setHome({ ...home, blocks: bl }); }} />
+                    </div>
+                  ))}
+                  {!((home as any).blocks || []).length && <p className="text-sm text-gray-400">No blocks yet. Click Add block to create rich-text content shown on the homepage.</p>}
+                </div>
+                <div className="mt-4"><Button onClick={saveContent} disabled={busy}>Save content</Button></div>
+              </div>
             </div>
           )}
 
@@ -241,7 +283,7 @@ export default function QuPsControlPage() {
                 <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400">CRM is off. Turn it on to manage lifecycle stages and campaigns.</div>
               ) : (
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                  <div className="p-4 border-b border-gray-100 text-sm text-gray-500">{users.length} users</div>
+                  <div className="p-4 border-b border-gray-100 text-sm text-gray-500 flex items-center justify-between"><span>{users.length} users</span><button onClick={exportUsersCsv} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">⬇ Export CSV</button></div>
                   <div className="divide-y divide-gray-100 max-h-[70vh] overflow-auto">
                     {users.map((u) => (
                       <div key={u.uid || u.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
@@ -266,13 +308,24 @@ export default function QuPsControlPage() {
 
           {tab === "campaigns" && (
             <div className="space-y-4">
+              {progress && (<div className="bg-white rounded-2xl border border-gray-200 p-4"><div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className="h-full bg-indigo-600 transition-all" style={{ width: (progress.total ? Math.round((progress.sent + progress.failed) / progress.total * 100) : 0) + "%" }} /></div><div className="text-xs text-gray-500 mt-1">Sending… {progress.sent}/{progress.total} · HubSpot {progress.hubspot} · Resend {progress.resend} · Failed {progress.failed}</div></div>)}
               {!crmOn ? (
                 <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400">Enable the CRM (in the CRM tab) to send campaigns.</div>
               ) : editCamp ? (
                 <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
                   <input value={editCamp.name || ""} onChange={(e) => setEditCamp({ ...editCamp, name: e.target.value })} placeholder="Campaign name" className="w-full px-3 py-2 rounded-xl border border-gray-200" />
                   <input value={editCamp.subject || ""} onChange={(e) => setEditCamp({ ...editCamp, subject: e.target.value })} placeholder="Email subject" className="w-full px-3 py-2 rounded-xl border border-gray-200" />
-                  <textarea value={editCamp.body || ""} onChange={(e) => setEditCamp({ ...editCamp, body: e.target.value })} placeholder="Email body (HTML allowed)" rows={8} className="w-full px-3 py-2 rounded-xl border border-gray-200 font-mono text-sm" />
+                  <RichEditor key={editCamp.id || "new"} value={editCamp.body || ""} onChange={(html) => setEditCamp({ ...editCamp, body: html })} />
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="text-gray-500">Sender:</span>
+                    <input value={editCamp.fromName || "QuizUps"} onChange={(e) => setEditCamp({ ...editCamp, fromName: e.target.value })} placeholder="Sender name" className="px-3 py-2 rounded-xl border border-gray-200 w-36" />
+                    <input value={editCamp.fromEmail || "noreply@quizups.com"} onChange={(e) => setEditCamp({ ...editCamp, fromEmail: e.target.value })} placeholder="you@quizups.com" className="px-3 py-2 rounded-xl border border-gray-200 flex-1 min-w-[180px]" />
+                    <span className="text-gray-500">via</span>
+                    <select value={editCamp.provider || "resend"} onChange={(e) => setEditCamp({ ...editCamp, provider: e.target.value })} className="rounded-lg border border-gray-300 p-1.5">
+                      <option value="resend">Resend</option>
+                      <option value="hubspot">HubSpot</option>
+                    </select>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">Audience:</span>
                     <select value={editCamp.audience || "all"} onChange={(e) => setEditCamp({ ...editCamp, audience: e.target.value })} className="rounded-lg border border-gray-300 p-1.5 text-sm">
@@ -297,14 +350,20 @@ export default function QuPsControlPage() {
                   </div>
                   <div className="divide-y divide-gray-100">
                     {campaigns.map((c) => (
-                      <div key={c.id} className="flex items-center gap-3 p-3 text-sm">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-800">{c.name || c.subject}</div>
-                          <div className="text-gray-400 truncate">{c.subject} · {c.audience || "all"}</div>
+                      <div key={c.id} className="p-3 text-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-800">{c.name || c.subject}</div>
+                            <div className="text-gray-400 truncate">{c.subject} · {c.audience || "all"} · via {c.provider || "resend"}</div>
+                          </div>
+                          <button onClick={() => sendCampaign(c)} disabled={!!progress} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">Send</button>
+                          <button onClick={() => loadStats(c)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-50 text-green-700">Stats</button>
+                          <button onClick={() => setEditCamp(c)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">Edit</button>
+                          <button onClick={() => removeCamp(c.id)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-600">Delete</button>
                         </div>
-                        <button onClick={() => sendCampaign(c)} disabled={busy} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">Send</button>
-                        <button onClick={() => setEditCamp(c)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">Edit</button>
-                        <button onClick={() => removeCamp(c.id)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-600">Delete</button>
+                        {stats && stats.id === c.id && (
+                          <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-2">{stats.loading ? "Loading…" : stats.error ? "No stats yet" : ("Opens " + (stats.opens || 0) + " (" + (stats.uniqueOpens || 0) + " unique) · Clicks " + (stats.clicks || 0) + " (" + (stats.uniqueClicks || 0) + " unique)")}</div>
+                        )}
                       </div>
                     ))}
                     {!campaigns.length && <p className="p-6 text-gray-400">No campaigns yet.</p>}

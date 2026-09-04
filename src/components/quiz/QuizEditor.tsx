@@ -17,6 +17,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import AiProgress from "@/components/ui/AiProgress";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
 import { generateQuestions, generateFromUrl, uploadImage } from "@/lib/integrations";
@@ -599,6 +600,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
                   </select>
                 </div>
               </div>
+              {aiLoading && <AiProgress />}
               {aiError && <p className="text-red-500 text-sm">{aiError}</p>}
               <div className="flex gap-2 justify-end mt-1">
                 <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
