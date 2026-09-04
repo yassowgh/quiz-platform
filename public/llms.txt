@@ -1,0 +1,45 @@
+# QuizUps
+
+> QuizUps is a 100% free live multiplayer quiz, poll, and survey platform - a free alternative to Kahoot, Quizizz, Blooket, Gimkit, Padlet, and Mentimeter. Host interactive quizzes and surveys with unlimited players, no paid plan, and no account required to play. Built for teachers, trainers, and teams.
+
+## Key facts
+- Price: Free forever. No paywall, no per-player limits, no ads.
+- Players: Unlimited players per game (no cap on the free plan).
+- No account needed to play - join instantly with a game PIN or QR code.
+- AI question generation from a topic, a document, or a web URL.
+- Works on any device (mobile, tablet, desktop). English and Arabic supported.
+- Reliable AI (Gemini, Groq, and OpenRouter fallbacks) so generation rarely fails.
+
+## What QuizUps is a free alternative to
+- Free Kahoot alternative - unlimited players, no subscription: https://quizups.com/vs/kahoot
+- Free Quizizz alternative: https://quizups.com/vs/quizizz
+- Free Blooket alternative: https://quizups.com/vs/blooket
+- Free Gimkit alternative: https://quizups.com/vs/gimkit
+- Free Padlet alternative - live collaboration walls, open-ended response walls, and audience word clouds.
+- Free Mentimeter alternative - live polls, word clouds, scales/ratings, rankings, and open-ended Q&A with a QR code.
+
+## Core features
+- Live multiplayer quizzes: multiple choice, true/false, type-answer, image and audio questions, streaks, speed-based scoring, leaderboard, and podium.
+- Polls and surveys (Mentimeter and Padlet style): multiple choice, word clouds, scales/ratings, ranking, and open-ended response walls - live and instant with a QR code.
+- Game modes: classic competition, Gold Quest (treasure race), and Battle Royale (elimination).
+- AI question generation: build a full quiz from a topic, an uploaded document, or a URL in seconds.
+- Exams: randomized questions, single attempt, server-side grading with hidden answer keys.
+- Interactive video quizzes: pause a video to ask questions.
+- Async assignments: send a self-paced quiz link by email.
+- Reports and analytics: per-question accuracy with CSV export, plus custom branding.
+
+## Key pages
+- Home: https://quizups.com
+- Compare vs Kahoot: https://quizups.com/vs/kahoot
+- Compare vs Quizizz: https://quizups.com/vs/quizizz
+- Compare vs Blooket: https://quizups.com/vs/blooket
+- Compare vs Gimkit: https://quizups.com/vs/gimkit
+
+## Common use cases
+- Teachers and classrooms: formative assessment, revision games, exit tickets, exams.
+- Corporate training and team building: onboarding quizzes, live workshops, knowledge checks.
+- Events and conferences: live polls, audience Q&A, word clouds, and instant surveys.
+
+## Contact
+- Website: https://quizups.com
+- Feedback: use the in-app feedback widget on any page of the site.
