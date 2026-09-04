@@ -114,8 +114,8 @@ export default function QuPsControlPage() {
     const cid = c.id || ("camp-" + Date.now());
     const from = (c.fromName || "QuizUps") + " <" + (c.fromEmail || "noreply@quizups.com") + ">";
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    setProgress({ sent: 0, total: targets.length, hubspot: 0, resend: 0, failed: 0, done: false, note: "" });
-    let sent = 0, hub = 0, res = 0, failed = 0, note = "";
+    setProgress({ sent: 0, total: targets.length, hubspot: 0, resend: 0, failed: 0, skipped: 0, done: false, note: "" });
+    let sent = 0, hub = 0, res = 0, failed = 0, skipped = 0, note = "";
     for (let i = 0; i < targets.length; i++) {
       const u = targets[i];
       let ok = false, provider = "resend", limited = false;
@@ -129,12 +129,12 @@ export default function QuPsControlPage() {
           else break;
         } catch (e) { await wait(1000); }
       }
-      if (ok) { sent++; if (provider === "hubspot") hub++; else res++; }
+      if (ok) { if (provider === "skipped") skipped++; else { sent++; if (provider === "hubspot") hub++; else res++; } }
       else { failed++; if (limited) note = "Hit the provider's rate/daily limit — sent " + sent + " so far. Wait a bit and resend the rest, or upgrade Resend."; }
-      setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, done: false, note: note });
+      setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, skipped: skipped, done: false, note: note });
       await wait(600);
     }
-    setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, done: true, note: note });
+    setProgress({ sent: sent, total: targets.length, hubspot: hub, resend: res, failed: failed, skipped: skipped, done: true, note: note });
   }
   async function saveCamp() {
     if (!editCamp) return;
@@ -323,8 +323,8 @@ export default function QuPsControlPage() {
                     <span className="text-sm font-bold text-gray-800">{progress.done ? "✅ Campaign finished" : "📤 Sending campaign…"}</span>
                     {progress.done && <button onClick={() => setProgress(null)} className="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600">Close</button>}
                   </div>
-                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={"h-full transition-all " + (progress.done ? "bg-green-500" : "bg-indigo-600 animate-pulse")} style={{ width: (progress.total ? Math.round(((progress.sent + progress.failed) / progress.total) * 100) : 0) + "%" }} /></div>
-                  <div className="text-xs text-gray-500 mt-1">{progress.sent + progress.failed}/{progress.total} processed · ✅ Sent {progress.sent} (HubSpot {progress.hubspot}, Resend {progress.resend}) · ❌ Failed {progress.failed}</div>
+                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={"h-full transition-all " + (progress.done ? "bg-green-500" : "bg-indigo-600 animate-pulse")} style={{ width: (progress.total ? Math.round(((progress.sent + progress.failed + (progress.skipped || 0)) / progress.total) * 100) : 0) + "%" }} /></div>
+                  <div className="text-xs text-gray-500 mt-1">{progress.sent + progress.failed + (progress.skipped || 0)}/{progress.total} processed · ✅ Sent {progress.sent} (HubSpot {progress.hubspot}, Resend {progress.resend}) · ⏭ Unsubscribed {progress.skipped || 0} · ❌ Failed {progress.failed}</div>
                   {progress.note && <div className="text-xs text-red-600 mt-1">{progress.note}</div>}
                 </div>
               )}
