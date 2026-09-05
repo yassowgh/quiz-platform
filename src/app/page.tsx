@@ -87,6 +87,57 @@ function Cell({ value, highlight, paid }: { value: boolean | string; highlight?:
   );
 }
 
+const AR: Record<string, string> = {
+  "Pricing & limits": "الأسعار والحدود",
+  "Price for full feature set": "سعر الحصول على كل الميزات",
+  "Free forever": "مجاني للأبد",
+  "Paid subscription": "اشتراك مدفوع",
+  "Players per game": "عدد اللاعبين في كل لعبة",
+  "Unlimited": "غير محدود",
+  "Capped on free plan": "محدود في الخطة المجانية",
+  "Ads": "الإعلانات",
+  "None": "لا يوجد",
+  "Yes on free tier": "نعم في الخطة المجانية",
+  "Account needed to play": "يلزم حساب للعب",
+  "No": "لا",
+  "Question types": "أنواع الأسئلة",
+  "Multiple choice": "اختيار من متعدد",
+  "True / False": "صح / خطأ",
+  "Type-the-answer": "كتابة الإجابة",
+  "Paid plan": "خطة مدفوعة",
+  "Sorting / ordering": "الترتيب والتصنيف",
+  "Polls (no scoring)": "استطلاعات (بدون نقاط)",
+  "Multi-select answers": "إجابات متعددة الاختيار",
+  "Free, partial credit": "مجاني، مع درجات جزئية",
+  "5–6 answer options": "٥–٦ خيارات للإجابة",
+  "Media in questions": "وسائط في الأسئلة",
+  "Images": "الصور",
+  "Upload or link": "رفع أو رابط",
+  "Limited on free": "محدود في المجاني",
+  "Video": "الفيديو",
+  "YouTube or MP4": "يوتيوب أو MP4",
+  "Audio clips": "مقاطع صوتية",
+  "Time limit up to 4 minutes": "مهلة تصل إلى ٤ دقائق",
+  "Hosting & game modes": "الاستضافة وأنماط اللعب",
+  "Live hosted games": "ألعاب مباشرة بمضيف",
+  "Team mode (pooled scores)": "نمط الفرق (نقاط مجمّعة)",
+  "Ghost mode (race past scores)": "نمط الشبح (سباق ضد النتائج السابقة)",
+  "Self-paced assignments": "واجبات ذاتية التوقيت",
+  "QR code to join": "رمز QR للانضمام",
+  "Music & sound effects": "الموسيقى والمؤثرات الصوتية",
+  "Streak bonuses": "مكافآت التتابع",
+  "Podium celebration": "منصة تتويج الفائزين",
+  "Authoring & admin": "الإنشاء والإدارة",
+  "Bulk import (CSV) + template": "استيراد جماعي (CSV) + قالب",
+  "Detailed post-game reports": "تقارير مفصّلة بعد اللعبة",
+  "Free + CSV export": "مجاني + تصدير CSV",
+  "Full reports paid": "التقارير الكاملة مدفوعة",
+  "Custom branding (colours + logo)": "هوية مخصّصة (ألوان + شعار)",
+  "Arabic / right-to-left interface": "واجهة عربية / من اليمين لليسار",
+  "Full RTL + translated UI": "دعم كامل للعربية وواجهة مترجمة",
+  "Partial": "جزئي",
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
@@ -94,6 +145,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const { lang } = useLang();
   const isAr = lang === "ar";
+  const tr = (x: any) => (isAr && typeof x === "string" ? (AR[x] || x) : x);
   const { user } = useAuth();
   const isAdmin = !!user?.email && ["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email);
   const [home, setHome] = useState<Record<string, string>>({});
@@ -232,16 +284,16 @@ export default function HomePage() {
 
       {/* Comparison table */}
       <section className="max-w-4xl mx-auto mt-16 text-white">
-        <h2 className="text-3xl font-black text-center mb-2">QuizUps vs Kahoot</h2>
+        <h2 className="text-3xl font-black text-center mb-2">{isAr ? "QuizUps مقابل Kahoot" : "QuizUps vs Kahoot"}</h2>
         <p className="text-center text-white/70 mb-8">
-          How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan.
+          {isAr ? "مقارنة بيننا في الأمور التي تهم المضيفين فعلاً. العناصر المعلَّمة بـ 💰 تتطلب خطة Kahoot مدفوعة." : "How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan."}
         </p>
 
         <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/10">
           <table className="w-full">
             <thead>
               <tr className="bg-white/10">
-                <th className="text-left p-4 font-bold">Feature</th>
+                <th className="text-left p-4 font-bold">{isAr ? "الميزة" : "Feature"}</th>
                 <th className="p-4 font-black text-kahoot-yellow whitespace-nowrap">⚡ QuizUps</th>
                 <th className="p-4 font-semibold text-white/70">Kahoot</th>
               </tr>
@@ -251,17 +303,17 @@ export default function HomePage() {
                 <Fragment key={section.title}>
                   <tr className="bg-white/[0.07]">
                     <td colSpan={3} className="px-4 py-2 text-xs font-black uppercase tracking-wider text-white/50">
-                      {section.title}
+                      {tr(section.title)}
                     </td>
                   </tr>
                   {section.rows.map((row) => (
                     <tr key={row.feature} className="border-t border-white/10">
-                      <td className="p-4 font-semibold text-sm">{row.feature}</td>
+                      <td className="p-4 font-semibold text-sm">{tr(row.feature)}</td>
                       <td className="p-4 text-center bg-white/5">
-                        <Cell value={row.quizups} highlight />
+                        <Cell value={tr(row.quizups)} highlight />
                       </td>
                       <td className="p-4 text-center">
-                        <Cell value={row.kahoot} paid={row.kahootPaid} />
+                        <Cell value={tr(row.kahoot)} paid={row.kahootPaid} />
                       </td>
                     </tr>
                   ))}
