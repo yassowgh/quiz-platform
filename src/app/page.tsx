@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolvePin, getHomeContent, saveHomeContent } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
+import { useLang } from "@/contexts/LanguageContext";
 import Input from "@/components/ui/Input";
 
 type Row = {
@@ -91,6 +92,8 @@ export default function HomePage() {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { lang } = useLang();
+  const isAr = lang === "ar";
   const { user } = useAuth();
   const isAdmin = !!user?.email && ["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email);
   const [home, setHome] = useState<Record<string, string>>({});
@@ -166,18 +169,25 @@ export default function HomePage() {
       </div>
 
       {/* What's new (latest features) */}
-      <div className="max-w-5xl mx-auto mt-16">
-        <h2 className="text-3xl font-black text-center mb-2 text-white">✨ What&apos;s new in QuizUps</h2>
-        <p className="text-center text-white/80 mb-8">The latest additions — all free.</p>
+      <div className="max-w-5xl mx-auto mt-16" dir={isAr ? "rtl" : "ltr"}>
+        <h2 className="text-3xl font-black text-center mb-2 text-white">{isAr ? "✨ الجديد في QuizUps" : "✨ What's new in QuizUps"}</h2>
+        <p className="text-center text-white/80 mb-8">{isAr ? "أحدث الإضافات — كلها مجانية." : "The latest additions — all free."}</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
+          {(isAr ? [
+            ["📊", "استطلاعات وتصويت مباشر", "سحابة كلمات، مقاييس، ترتيب، وجدران إجابات مفتوحة — بأسلوب Mentimeter، ومباشرة عبر رمز QR."],
+            ["🪙", "Gold Quest — رحلة الذهب", "سباق كنوز بأسلوب Blooket، حيث تربح الإجابات الصحيحة الذهب وتسرقه من الآخرين."],
+            ["⚔️", "Battle Royale — المعركة", "آخر لاعب صامد يفوز — والإجابة الخاطئة تُقصيك من اللعبة."],
+            ["🎵", "أصوات ومنصة تتويج", "موسيقى مع كل سؤال، ومؤثرات صوتية للإجابات، ومنصة احتفال للفائزين."],
+            ["🛟", "ذكاء اصطناعي دائم", "توليد الأسئلة يعمل بموثوقية عبر Gemini ثم Groq ثم OpenRouter."],
+            ["💬", "ملاحظاتك من داخل المنصة", "شاركنا رأيك من زر الملاحظات المتاح في أي صفحة."],
+          ] : [
             ["📊", "Live polls & surveys", "Word clouds, scales, ranking and open-ended walls — Mentimeter-style, live with a QR code."],
             ["🪙", "Gold Quest", "A Blooket-style treasure race where answers earn (and steal) gold."],
             ["⚔️", "Battle Royale", "Last player standing — wrong answers eliminate you."],
             ["🎵", "Sounds & podium", "Music per question, answer sound effects and a celebration podium."],
             ["🛟", "Always-on AI", "Questions generate reliably via Gemini → Groq → OpenRouter fallbacks."],
             ["💬", "Feedback built in", "Tell us what you think from the widget on any page."],
-          ].map(([icon, title, desc]) => (
+          ]).map(([icon, title, desc]) => (
             <div key={title} className="bg-white/10 rounded-2xl p-5 text-center">
               <div className="text-4xl mb-2">{icon}</div>
               <h3 className="font-bold text-lg mb-1 text-white">{title}</h3>
