@@ -7,9 +7,11 @@ import { friendlyAuthError } from "@/lib/authErrors";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLang();
   const { loginWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,29 +55,29 @@ export default function LoginPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
-        <h1 className="text-3xl font-black mb-6 text-center">Log in</h1>
+        <h1 className="text-3xl font-black mb-6 text-center">{t("Log in")}</h1>
         <form onSubmit={handleEmail} className="flex flex-col gap-4">
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input label={t("Email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label={t("Password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {notice && <p className="text-kahoot-green text-sm font-semibold">{notice}</p>}
-          <Button type="submit" loading={loading} className="w-full">Log in</Button>
+          <Button type="submit" loading={loading} className="w-full">{t("Log in")}</Button>
           <button type="button" onClick={() => { setError(""); setNotice(""); setResetMode(true); }} className="text-sm text-kahoot-purple font-semibold hover:underline self-center">
-            Forgot your password?
+            {t("Forgot your password?")}
           </button>
           {resetMode && (
             <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 flex flex-col gap-2">
-              <p className="text-sm text-gray-600">Enter your email above, then send yourself a password reset link.</p>
-              <Button type="button" onClick={handleReset} disabled={loading} className="w-full">Send reset link</Button>
+              <p className="text-sm text-gray-600">{t("Enter your email above, then send yourself a password reset link.")}</p>
+              <Button type="button" onClick={handleReset} disabled={loading} className="w-full">{t("Send reset link")}</Button>
             </div>
           )}
         </form>
-        <div className="relative my-4 text-center text-gray-400">— or —</div>
+        <div className="relative my-4 text-center text-gray-400">{t("— or —")}</div>
         <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading}>
-          Continue with Google
+          {t("Continue with Google")}
         </Button>
         <p className="mt-4 text-center text-gray-500">
-          Don&apos;t have an account? <Link href="/signup" className="text-kahoot-purple font-bold hover:underline">Sign up</Link>
+          {t("Don't have an account?")} <Link href="/signup" className="text-kahoot-purple font-bold hover:underline">{t("Sign up")}</Link>
         </p>
       </Card>
     </div>

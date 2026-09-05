@@ -1,6 +1,26 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // auth (login / signup)
+  "Log in": { en: "Log in", ar: "تسجيل الدخول" },
+  "Sign up": { en: "Sign up", ar: "إنشاء حساب" },
+  "Create account": { en: "Create account", ar: "إنشاء حساب" },
+  "Name": { en: "Name", ar: "الاسم" },
+  "Email": { en: "Email", ar: "البريد الإلكتروني" },
+  "Password": { en: "Password", ar: "كلمة المرور" },
+  "Forgot your password?": { en: "Forgot your password?", ar: "هل نسيت كلمة المرور؟" },
+  "Enter your email above, then send yourself a password reset link.": { en: "Enter your email above, then send yourself a password reset link.", ar: "أدخل بريدك الإلكتروني بالأعلى، ثم أرسل لنفسك رابط إعادة تعيين كلمة المرور." },
+  "Send reset link": { en: "Send reset link", ar: "إرسال رابط إعادة التعيين" },
+  "— or —": { en: "— or —", ar: "— أو —" },
+  "Continue with Google": { en: "Continue with Google", ar: "المتابعة عبر Google" },
+  "Don't have an account?": { en: "Don't have an account?", ar: "ليس لديك حساب؟" },
+  "Have an account?": { en: "Have an account?", ar: "لديك حساب بالفعل؟" },
+  "Log in instead →": { en: "Log in instead →", ar: "سجّل الدخول بدلاً من ذلك →" },
+  "Reset password": { en: "Reset password", ar: "إعادة تعيين كلمة المرور" },
+  "I agree to receive marketing emails from QuizUps and accept analytics tracking.": { en: "I agree to receive marketing emails from QuizUps and accept analytics tracking.", ar: "أوافق على تلقّي رسائل تسويقية من QuizUps وعلى تتبّع التحليلات." },
+  "(Required)": { en: "(Required)", ar: "(مطلوب)" },
+  "Please accept the marketing & analytics consent below to sign up.": { en: "Please accept the marketing & analytics consent below to sign up.", ar: "يرجى الموافقة على إقرار التسويق والتحليلات أدناه للتسجيل." },
+  "Please accept the marketing & analytics consent below to continue.": { en: "Please accept the marketing & analytics consent below to continue.", ar: "يرجى الموافقة على إقرار التسويق والتحليلات أدناه للمتابعة." },
   // homepage: comparison table meta
   "QuizUps vs Kahoot": { en: "QuizUps vs Kahoot", ar: "QuizUps مقابل Kahoot" },
   "How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan.": { en: "How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan.", ar: "مقارنة بيننا في الأمور التي تهم المضيفين فعلاً. العناصر المعلَّمة بـ 💰 تتطلب خطة Kahoot مدفوعة." },

@@ -7,9 +7,11 @@ import { friendlyAuthError, isEmailInUse } from "@/lib/authErrors";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { t } = useLang();
   const { signupWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,7 +24,7 @@ export default function SignupPage() {
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agree) { setError("Please accept the marketing & analytics consent below to sign up."); return; }
+    if (!agree) { setError(t("Please accept the marketing & analytics consent below to sign up.")); return; }
     setLoading(true); setError(""); setNotice(""); setEmailInUse(false);
     try {
       await signupWithEmail(email, password, name);
@@ -34,7 +36,7 @@ export default function SignupPage() {
   };
 
   const handleGoogle = async () => {
-    if (!agree) { setError("Please accept the marketing & analytics consent below to continue."); return; }
+    if (!agree) { setError(t("Please accept the marketing & analytics consent below to continue.")); return; }
     setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
@@ -58,31 +60,31 @@ export default function SignupPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
-        <h1 className="text-3xl font-black mb-6 text-center">Create account</h1>
+        <h1 className="text-3xl font-black mb-6 text-center">{t("Create account")}</h1>
         <form onSubmit={handleEmail} className="flex flex-col gap-4">
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+          <Input label={t("Name")} value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input label={t("Email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label={t("Password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {notice && <p className="text-kahoot-green text-sm font-semibold">{notice}</p>}
           {emailInUse && (
             <div className="flex flex-wrap gap-3 text-sm">
-              <Link href="/login" className="text-kahoot-purple font-bold hover:underline">Log in instead →</Link>
-              <button type="button" onClick={handleReset} className="text-kahoot-purple font-bold hover:underline">Reset password</button>
+              <Link href="/login" className="text-kahoot-purple font-bold hover:underline">{t("Log in instead →")}</Link>
+              <button type="button" onClick={handleReset} className="text-kahoot-purple font-bold hover:underline">{t("Reset password")}</button>
             </div>
           )}
           <label className="flex items-start gap-2 text-xs text-gray-300">
             <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} required className="mt-0.5" />
-            <span>I agree to receive marketing emails from QuizUps and accept analytics tracking. <span className="text-gray-400">(Required)</span></span>
+            <span>{t("I agree to receive marketing emails from QuizUps and accept analytics tracking.")} <span className="text-gray-400">{t("(Required)")}</span></span>
           </label>
-          <Button type="submit" loading={loading} disabled={!agree} className="w-full">Sign up</Button>
+          <Button type="submit" loading={loading} disabled={!agree} className="w-full">{t("Sign up")}</Button>
         </form>
-        <div className="relative my-4 text-center text-gray-400">— or —</div>
+        <div className="relative my-4 text-center text-gray-400">{t("— or —")}</div>
         <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading || !agree}>
-          Continue with Google
+          {t("Continue with Google")}
         </Button>
         <p className="mt-4 text-center text-gray-500">
-          Have an account? <Link href="/login" className="text-kahoot-purple font-bold hover:underline">Log in</Link>
+          {t("Have an account?")} <Link href="/login" className="text-kahoot-purple font-bold hover:underline">{t("Log in")}</Link>
         </p>
       </Card>
     </div>
