@@ -87,65 +87,14 @@ function Cell({ value, highlight, paid }: { value: boolean | string; highlight?:
   );
 }
 
-const AR: Record<string, string> = {
-  "Pricing & limits": "الأسعار والحدود",
-  "Price for full feature set": "سعر الحصول على كل الميزات",
-  "Free forever": "مجاني للأبد",
-  "Paid subscription": "اشتراك مدفوع",
-  "Players per game": "عدد اللاعبين في كل لعبة",
-  "Unlimited": "غير محدود",
-  "Capped on free plan": "محدود في الخطة المجانية",
-  "Ads": "الإعلانات",
-  "None": "لا يوجد",
-  "Yes on free tier": "نعم في الخطة المجانية",
-  "Account needed to play": "يلزم حساب للعب",
-  "No": "لا",
-  "Question types": "أنواع الأسئلة",
-  "Multiple choice": "اختيار من متعدد",
-  "True / False": "صح / خطأ",
-  "Type-the-answer": "كتابة الإجابة",
-  "Paid plan": "خطة مدفوعة",
-  "Sorting / ordering": "الترتيب والتصنيف",
-  "Polls (no scoring)": "استطلاعات (بدون نقاط)",
-  "Multi-select answers": "إجابات متعددة الاختيار",
-  "Free, partial credit": "مجاني، مع درجات جزئية",
-  "5–6 answer options": "٥–٦ خيارات للإجابة",
-  "Media in questions": "وسائط في الأسئلة",
-  "Images": "الصور",
-  "Upload or link": "رفع أو رابط",
-  "Limited on free": "محدود في المجاني",
-  "Video": "الفيديو",
-  "YouTube or MP4": "يوتيوب أو MP4",
-  "Audio clips": "مقاطع صوتية",
-  "Time limit up to 4 minutes": "مهلة تصل إلى ٤ دقائق",
-  "Hosting & game modes": "الاستضافة وأنماط اللعب",
-  "Live hosted games": "ألعاب مباشرة بمضيف",
-  "Team mode (pooled scores)": "نمط الفرق (نقاط مجمّعة)",
-  "Ghost mode (race past scores)": "نمط الشبح (سباق ضد النتائج السابقة)",
-  "Self-paced assignments": "واجبات ذاتية التوقيت",
-  "QR code to join": "رمز QR للانضمام",
-  "Music & sound effects": "الموسيقى والمؤثرات الصوتية",
-  "Streak bonuses": "مكافآت التتابع",
-  "Podium celebration": "منصة تتويج الفائزين",
-  "Authoring & admin": "الإنشاء والإدارة",
-  "Bulk import (CSV) + template": "استيراد جماعي (CSV) + قالب",
-  "Detailed post-game reports": "تقارير مفصّلة بعد اللعبة",
-  "Free + CSV export": "مجاني + تصدير CSV",
-  "Full reports paid": "التقارير الكاملة مدفوعة",
-  "Custom branding (colours + logo)": "هوية مخصّصة (ألوان + شعار)",
-  "Arabic / right-to-left interface": "واجهة عربية / من اليمين لليسار",
-  "Full RTL + translated UI": "دعم كامل للعربية وواجهة مترجمة",
-  "Partial": "جزئي",
-};
-
 export default function HomePage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const isAr = lang === "ar";
-  const tr = (x: any) => (isAr && typeof x === "string" ? (AR[x] || x) : x);
+  const tr = (x: any) => (typeof x === "string" ? t(x) : x);
   const { user } = useAuth();
   const isAdmin = !!user?.email && ["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email);
   const [home, setHome] = useState<Record<string, string>>({});
@@ -222,28 +171,21 @@ export default function HomePage() {
 
       {/* What's new (latest features) */}
       <div className="max-w-5xl mx-auto mt-16" dir={isAr ? "rtl" : "ltr"}>
-        <h2 className="text-3xl font-black text-center mb-2 text-white">{isAr ? "✨ الجديد في QuizUps" : "✨ What's new in QuizUps"}</h2>
-        <p className="text-center text-white/80 mb-8">{isAr ? "أحدث الإضافات — كلها مجانية." : "The latest additions — all free."}</p>
+        <h2 className="text-3xl font-black text-center mb-2 text-white">{t("✨ What's new in QuizUps")}</h2>
+        <p className="text-center text-white/80 mb-8">{t("The latest additions — all free.")}</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(isAr ? [
-            ["📊", "استطلاعات وتصويت مباشر", "سحابة كلمات، مقاييس، ترتيب، وجدران إجابات مفتوحة — بأسلوب Mentimeter، ومباشرة عبر رمز QR."],
-            ["🪙", "Gold Quest — رحلة الذهب", "سباق كنوز بأسلوب Blooket، حيث تربح الإجابات الصحيحة الذهب وتسرقه من الآخرين."],
-            ["⚔️", "Battle Royale — المعركة", "آخر لاعب صامد يفوز — والإجابة الخاطئة تُقصيك من اللعبة."],
-            ["🎵", "أصوات ومنصة تتويج", "موسيقى مع كل سؤال، ومؤثرات صوتية للإجابات، ومنصة احتفال للفائزين."],
-            ["🛟", "ذكاء اصطناعي دائم", "توليد الأسئلة يعمل بموثوقية عبر Gemini ثم Groq ثم OpenRouter."],
-            ["💬", "ملاحظاتك من داخل المنصة", "شاركنا رأيك من زر الملاحظات المتاح في أي صفحة."],
-          ] : [
+          {[
             ["📊", "Live polls & surveys", "Word clouds, scales, ranking and open-ended walls — Mentimeter-style, live with a QR code."],
             ["🪙", "Gold Quest", "A Blooket-style treasure race where answers earn (and steal) gold."],
             ["⚔️", "Battle Royale", "Last player standing — wrong answers eliminate you."],
             ["🎵", "Sounds & podium", "Music per question, answer sound effects and a celebration podium."],
             ["🛟", "Always-on AI", "Questions generate reliably via Gemini → Groq → OpenRouter fallbacks."],
             ["💬", "Feedback built in", "Tell us what you think from the widget on any page."],
-          ]).map(([icon, title, desc]) => (
+          ].map(([icon, title, desc]) => (
             <div key={title} className="bg-white/10 rounded-2xl p-5 text-center">
               <div className="text-4xl mb-2">{icon}</div>
-              <h3 className="font-bold text-lg mb-1 text-white">{title}</h3>
-              <p className="text-white/75 text-sm">{desc}</p>
+              <h3 className="font-bold text-lg mb-1 text-white">{t(title)}</h3>
+              <p className="text-white/75 text-sm">{t(desc)}</p>
             </div>
           ))}
         </div>
@@ -259,41 +201,41 @@ export default function HomePage() {
 
       {/* Why QuizUps */}
       <section className="max-w-4xl mx-auto mt-20 text-white">
-        <h2 className="text-3xl font-black text-center mb-2">Everything you need — nothing locked away</h2>
+        <h2 className="text-3xl font-black text-center mb-2">{t("Everything you need — nothing locked away")}</h2>
         <p className="text-center text-white/70 mb-8 text-lg">
-          QuizUps gives you the features other quiz platforms charge for. No subscriptions, no player limits, no ads.
+          {t("QuizUps gives you the features other quiz platforms charge for. No subscriptions, no player limits, no ads.")}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white/10 rounded-2xl p-5 text-center">
             <div className="text-4xl mb-2">🎯</div>
-            <h3 className="font-bold text-lg mb-1">5 question types</h3>
-            <p className="text-white/70 text-sm">Multiple choice, true/false, type-the-answer, sorting and polls — with multi-select, up to 6 options, images, video and audio.</p>
+            <h3 className="font-bold text-lg mb-1">{t("5 question types")}</h3>
+            <p className="text-white/70 text-sm">{t("Multiple choice, true/false, type-the-answer, sorting and polls — with multi-select, up to 6 options, images, video and audio.")}</p>
           </div>
           <div className="bg-white/10 rounded-2xl p-5 text-center">
             <div className="text-4xl mb-2">📱</div>
-            <h3 className="font-bold text-lg mb-1">Play live or self-paced</h3>
-            <p className="text-white/70 text-sm">Host live with a PIN or QR code, pool scores in team mode, or send a self-paced assignment link. Unlimited players.</p>
+            <h3 className="font-bold text-lg mb-1">{t("Play live or self-paced")}</h3>
+            <p className="text-white/70 text-sm">{t("Host live with a PIN or QR code, pool scores in team mode, or send a self-paced assignment link. Unlimited players.")}</p>
           </div>
           <div className="bg-white/10 rounded-2xl p-5 text-center">
             <div className="text-4xl mb-2">🏆</div>
-            <h3 className="font-bold text-lg mb-1">Reports & branding</h3>
-            <p className="text-white/70 text-sm">Per-question accuracy reports with CSV export, your own colours and logo, and a full Arabic / RTL interface.</p>
+            <h3 className="font-bold text-lg mb-1">{t("Reports & branding")}</h3>
+            <p className="text-white/70 text-sm">{t("Per-question accuracy reports with CSV export, your own colours and logo, and a full Arabic / RTL interface.")}</p>
           </div>
         </div>
       </section>
 
       {/* Comparison table */}
       <section className="max-w-4xl mx-auto mt-16 text-white">
-        <h2 className="text-3xl font-black text-center mb-2">{isAr ? "QuizUps مقابل Kahoot" : "QuizUps vs Kahoot"}</h2>
+        <h2 className="text-3xl font-black text-center mb-2">{t("QuizUps vs Kahoot")}</h2>
         <p className="text-center text-white/70 mb-8">
-          {isAr ? "مقارنة بيننا في الأمور التي تهم المضيفين فعلاً. العناصر المعلَّمة بـ 💰 تتطلب خطة Kahoot مدفوعة." : "How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan."}
+          {t("How we compare on the things hosts actually care about. Items marked 💰 require a paid Kahoot plan.")}
         </p>
 
         <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/10">
           <table className="w-full">
             <thead>
               <tr className="bg-white/10">
-                <th className="text-left p-4 font-bold">{isAr ? "الميزة" : "Feature"}</th>
+                <th className="text-left p-4 font-bold">{t("Feature")}</th>
                 <th className="p-4 font-black text-kahoot-yellow whitespace-nowrap">⚡ QuizUps</th>
                 <th className="p-4 font-semibold text-white/70">Kahoot</th>
               </tr>
