@@ -404,6 +404,7 @@ export default function QuPsControlPage() {
                       <span className="text-gray-300 text-xs ml-auto">{new Date(f.createdAt || 0).toLocaleString()}</span>
                     </div>
                     <div className="text-gray-800 whitespace-pre-wrap">{f.message}</div>
+                    {f.screenshotUrl && <a href={f.screenshotUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block"><img src={f.screenshotUrl} alt="screenshot" className="max-h-44 rounded-lg border border-gray-200" /></a>}
                     <div className="mt-2 flex gap-2">
                       {["new", "seen", "resolved"].map((st) => (
                         <button key={st} onClick={() => setFbStatus(f, st)} className={"text-xs px-2 py-1 rounded-lg " + ((f.status || "new") === st ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500")}>{st}</button>

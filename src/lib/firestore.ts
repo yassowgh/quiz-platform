@@ -165,7 +165,7 @@ export async function deleteUserDoc(uid: string): Promise<void> {
 export async function updateUserCrm(uid: string, data: Record<string, any>): Promise<void> {
   await updateDoc(doc(db, "users", uid), data);
 }
-export async function submitFeedback(data: { ftype: string; message: string; email?: string }): Promise<void> {
+export async function submitFeedback(data: { ftype: string; message: string; email?: string; screenshotUrl?: string }): Promise<void> {
   await addDoc(collection(db, "feedback"), { ...data, createdAt: Date.now(), status: "new" });
 }
 export async function listFeedback(): Promise<any[]> {
