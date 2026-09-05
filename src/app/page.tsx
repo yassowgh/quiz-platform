@@ -167,8 +167,8 @@ export default function HomePage() {
 
       {/* What's new (latest features) */}
       <div className="max-w-5xl mx-auto mt-16">
-        <h2 className="text-3xl font-black text-center mb-2">✨ What&apos;s new in QuizUps</h2>
-        <p className="text-center text-white/70 mb-8">The latest additions — all free.</p>
+        <h2 className="text-3xl font-black text-center mb-2 text-white">✨ What&apos;s new in QuizUps</h2>
+        <p className="text-center text-white/80 mb-8">The latest additions — all free.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             ["📊", "Live polls & surveys", "Word clouds, scales, ranking and open-ended walls — Mentimeter-style, live with a QR code."],
@@ -180,8 +180,8 @@ export default function HomePage() {
           ].map(([icon, title, desc]) => (
             <div key={title} className="bg-white/10 rounded-2xl p-5 text-center">
               <div className="text-4xl mb-2">{icon}</div>
-              <h3 className="font-bold text-lg mb-1">{title}</h3>
-              <p className="text-white/70 text-sm">{desc}</p>
+              <h3 className="font-bold text-lg mb-1 text-white">{title}</h3>
+              <p className="text-white/75 text-sm">{desc}</p>
             </div>
           ))}
         </div>
