@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +12,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function EditQuizPage() {
+  const { t } = useLang();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -39,14 +41,14 @@ export default function EditQuizPage() {
 
   const save = async (publish?: boolean) => {
     if (!quiz) return;
-    if (publish && !quiz.title.trim()) { alert("Please give your quiz a title before publishing."); return; }
+    if (publish && !quiz.title.trim()) { alert(t("Please give your quiz a title before publishing.")); return; }
     let questions = quiz.questions;
     if (publish) {
       questions = quiz.questions.filter(
         (qq) => qq.type === "typeanswer" || qq.type === "wordcloud" || qq.type === "openended" || qq.type === "rating" || (qq.options || []).some((o) => o && o.trim())
       );
       if (!questions.length) {
-        alert("Add at least one answerable question (with options, or a type-answer) before publishing.");
+        alert(t("Add at least one answerable question (with options, or a type-answer) before publishing."));
         return;
       }
     }
@@ -94,7 +96,7 @@ export default function EditQuizPage() {
   if (loadError) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <p className="text-red-500 text-xl font-semibold">{loadError}</p>
-      <button onClick={() => router.push("/dashboard")} className="px-4 py-2 bg-blue-600 text-white rounded font-semibold">Back to Dashboard</button>
+      <button onClick={() => router.push("/dashboard")} className="px-4 py-2 bg-blue-600 text-white rounded font-semibold">{t("Back to Dashboard")}</button>
     </div>
   );
   if (!quiz) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
@@ -104,22 +106,22 @@ export default function EditQuizPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-black">{quiz.kind === "poll" ? "Edit Poll" : "Edit Quiz"}</h1>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => save(false)} loading={saving}>Save Draft</Button>
-          <Button onClick={() => save(true)} loading={saving}>Publish</Button>
+          <Button variant="secondary" onClick={() => save(false)} loading={saving}>{t("Save Draft")}</Button>
+          <Button onClick={() => save(true)} loading={saving}>{t("Publish")}</Button>
         </div>
       </div>
       <div className="flex flex-col gap-4 mb-8">
-        <Input label="Title" value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} placeholder="Name your quiz…" />
-        <Input label="Description" value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
+        <Input label={t("Title")} value={quiz.title} onChange={(e) => setQuiz({ ...quiz, title: e.target.value })} placeholder={t("Name your quiz…")} />
+        <Input label={t("Description")} value={quiz.description} onChange={(e) => setQuiz({ ...quiz, description: e.target.value })} />
         {quiz.kind === "poll" && (
-          <p className="text-sm bg-kahoot-purple/10 text-kahoot-purple rounded-xl p-3 font-semibold">📊 This is a poll / survey. Scroll down and use each question&apos;s type menu to add a Poll, ☁️ Word cloud, ⭐ Rating, or 💬 Open-ended slide — then Host it like a normal game.</p>
+          <p className="text-sm bg-kahoot-purple/10 text-kahoot-purple rounded-xl p-3 font-semibold">{t("📊 This is a poll / survey. Scroll down and use each question's type menu to add a Poll, ☁️ Word cloud, ⭐ Rating, or 💬 Open-ended slide — then Host it like a normal game.")}</p>
         )}
         {quiz.kind === "poll" && (
           <div className="flex flex-col gap-2 mb-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Poll settings</p>
-            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollWaitLobby} onChange={(ev) => setQuiz({ ...quiz, pollWaitLobby: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">⏳ Wait for attendees before starting</span><span className="text-gray-500 text-sm">Off = go live instantly. On = show a join screen (QR) first, then you press Start.</span></span></label>
-            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.requireName} onChange={(ev) => setQuiz({ ...quiz, requireName: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">🙋 Ask participants for a name</span><span className="text-gray-500 text-sm">Off = anonymous (auto nickname, no prompt).</span></span></label>
-            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollTimer} onChange={(ev) => setQuiz({ ...quiz, pollTimer: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">⏱️ Use a countdown timer</span><span className="text-gray-500 text-sm">Off = open time (you advance each slide with a Next button).</span></span></label>
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("Poll settings")}</p>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollWaitLobby} onChange={(ev) => setQuiz({ ...quiz, pollWaitLobby: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">{t("⏳ Wait for attendees before starting")}</span><span className="text-gray-500 text-sm">{t("Off = go live instantly. On = show a join screen (QR) first, then you press Start.")}</span></span></label>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.requireName} onChange={(ev) => setQuiz({ ...quiz, requireName: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">{t("🙋 Ask participants for a name")}</span><span className="text-gray-500 text-sm">{t("Off = anonymous (auto nickname, no prompt).")}</span></span></label>
+            <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-3 cursor-pointer"><input type="checkbox" checked={!!quiz.pollTimer} onChange={(ev) => setQuiz({ ...quiz, pollTimer: ev.target.checked })} className="mt-1 w-5 h-5" /><span><span className="font-bold text-gray-800 block">{t("⏱️ Use a countdown timer")}</span><span className="text-gray-500 text-sm">{t("Off = open time (you advance each slide with a Next button).")}</span></span></label>
           </div>
         )}
 
@@ -127,26 +129,26 @@ export default function EditQuizPage() {
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
           <input type="checkbox" checked={!!quiz.examMode} onChange={(ev) => setQuiz({ ...quiz, examMode: ev.target.checked })} className="mt-1 w-5 h-5" />
           <span>
-            <span className="font-bold text-gray-700">📝 Exam mode</span>
-            <span className="block text-sm text-gray-500">Randomises question &amp; answer order per student, requires sign-in, allows only one attempt, and (once the exam worker is set up) grades on the server so answers stay hidden.</span>
+            <span className="font-bold text-gray-700">{t("📝 Exam mode")}</span>
+            <span className="block text-sm text-gray-500">{t("Randomises question & answer order per student, requires sign-in, allows only one attempt, and (once the exam worker is set up) grades on the server so answers stay hidden.")}</span>
           </span>
         </label>
         <VideoQuizEditor quiz={quiz} onChange={setQuiz} />
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
           <input type="checkbox" checked={!!quiz.adaptive} onChange={(ev) => setQuiz({ ...quiz, adaptive: ev.target.checked })} className="mt-1 w-5 h-5" />
           <span>
-            <span className="font-bold text-gray-700">📊 Adaptive difficulty</span>
-            <span className="block text-sm text-gray-500">In assignments, questions are ordered easy → hard using each question’s Difficulty (set under a question’s Advanced options).</span>
+            <span className="font-bold text-gray-700">{t("📊 Adaptive difficulty")}</span>
+            <span className="block text-sm text-gray-500">{t("In assignments, questions are ordered easy → hard using each question’s Difficulty (set under a question’s Advanced options).")}</span>
           </span>
         </label>
         </>)}
         <details className="border-2 border-gray-200 rounded-xl p-4">
-          <summary className="font-bold text-gray-700 cursor-pointer">🎨 Custom branding (optional)</summary>
+          <summary className="font-bold text-gray-700 cursor-pointer">{t("🎨 Custom branding (optional)")}</summary>
           <div className="flex flex-col gap-3 mt-4">
-            <p className="text-sm text-gray-500">Give this quiz your own look — shown on the host screen and on players&apos; devices.</p>
+            <p className="text-sm text-gray-500">{t("Give this quiz your own look — shown on the host screen and on players' devices.")}</p>
             <div className="flex flex-wrap gap-4 items-end">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Background colour</label>
+                <label className="text-sm font-semibold text-gray-700">{t("Background colour")}</label>
                 <input
                   type="color"
                   value={quiz.branding?.primaryColor || "#1a1a2e"}
@@ -155,7 +157,7 @@ export default function EditQuizPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Accent colour</label>
+                <label className="text-sm font-semibold text-gray-700">{t("Accent colour")}</label>
                 <input
                   type="color"
                   value={quiz.branding?.accentColor || "#46178f"}
@@ -164,11 +166,11 @@ export default function EditQuizPage() {
                 />
               </div>
               {(quiz.branding?.primaryColor || quiz.branding?.accentColor || quiz.branding?.logoUrl) && (
-                <Button variant="ghost" size="sm" onClick={() => setQuiz({ ...quiz, branding: {} })}>Reset branding</Button>
+                <Button variant="ghost" size="sm" onClick={() => setQuiz({ ...quiz, branding: {} })}>{t("Reset branding")}</Button>
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">Logo — upload or paste a URL</label>
+              <label className="text-sm font-semibold text-gray-700">{t("Logo — upload or paste a URL")}</label>
               <div className="flex items-center gap-2 flex-wrap">
                 <input
                   type="file"
@@ -205,7 +207,7 @@ export default function EditQuizPage() {
               </div>
             </div>
             <div className="select-none">
-              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Live preview</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">{t("Live preview")}</p>
               <div
                 className="rounded-xl p-5 text-center pointer-events-none border border-black/10"
                 style={{ background: quiz.branding?.primaryColor || "#1a1a2e" }}
