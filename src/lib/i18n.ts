@@ -1,6 +1,16 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // error reporter
+  "Oops — something went wrong on our side.": { en: "Oops — something went wrong on our side.", ar: "عذرًا — حدث خطأ من جانبنا." },
+  "We're really sorry for the inconvenience. You can report this and our team will look into it.": { en: "We're really sorry for the inconvenience. You can report this and our team will look into it.", ar: "نعتذر بشدة عن الإزعاج. يمكنك الإبلاغ عن المشكلة وسيتحقق فريقنا منها." },
+  "Reload": { en: "Reload", ar: "إعادة التحميل" },
+  "Report a problem": { en: "Report a problem", ar: "الإبلاغ عن مشكلة" },
+  "Thanks — your report was sent.": { en: "Thanks — your report was sent.", ar: "شكرًا — تم إرسال بلاغك." },
+  "Something went wrong": { en: "Something went wrong", ar: "حدث خطأ ما" },
+  "Sorry about that — our team has been automatically notified.": { en: "Sorry about that — our team has been automatically notified.", ar: "نعتذر عن ذلك — تم إخطار فريقنا تلقائيًا." },
+  "Add any details (optional):": { en: "Add any details (optional):", ar: "أضف أي تفاصيل (اختياري):" },
+  "Dismiss": { en: "Dismiss", ar: "تجاهل" },
   // wave4a: feedback widget + AI progress
   "Thank you!": { en: "Thank you!", ar: "شكرًا لك!" },
   "We read every message and use it to improve QuizUps. You'll often see your ideas in our next update.": { en: "We read every message and use it to improve QuizUps. You'll often see your ideas in our next update.", ar: "نقرأ كل رسالة ونستخدمها لتحسين QuizUps، وغالبًا ما ترى أفكارك في تحديثنا القادم." },

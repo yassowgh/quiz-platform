@@ -4,6 +4,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/ui/Navbar";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import FeedbackWidget from "@/components/ui/FeedbackWidget";
+import ErrorBoundary, { GlobalErrorListener } from "@/components/ui/ErrorReporter";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quizups.com"),
@@ -75,8 +76,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <LanguageProvider>
             <Navbar />
-            <main>{children}</main>
+            <ErrorBoundary><main>{children}</main></ErrorBoundary>
             <FeedbackWidget />
+            <GlobalErrorListener />
           </LanguageProvider>
         </AuthProvider>
       </body>

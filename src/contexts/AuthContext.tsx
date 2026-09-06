@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch (e) {}
       }
-      setUser(u);
+      setUser(u); try { if (typeof window !== "undefined") (window as any).__userEmail = u.email || undefined; } catch (e) {};
       setLoading(false);
     });
     return unsub;
