@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz, getExamPublic, saveAssignmentResult, hasExamAttempt, recordExamAttempt } from "@/lib/firestore";
+import { reportProblem } from "@/components/ui/ErrorReporter";
 import { calculatePoints } from "@/lib/scoring";
 import { playSuccess, playFail, toggleSfx, isSfxEnabled } from "@/lib/sfx";
 import { sendAssignmentEmail, gradeExam } from "@/lib/integrations";
@@ -152,7 +153,11 @@ export default function AssignmentClient() {
           score: finalScore,
           correctCount: finalCorrect,
           totalQuestions: quiz.questions.length,
+          answers: answerLog.current,
         });
+        try {
+          fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "feedback", ftype: "assignment submission", message: "Assignment completed\nQuiz: " + quiz.title + "\nBy: " + (name.trim() || "Anonymous") + "\nScore: " + finalScore + " - Correct: " + finalCorrect + "/" + quiz.questions.length + "\nQuizId: " + quizId, email: (ccEmail.trim() || (user && user.email) || "anonymous") }) }).catch(() => {});
+        } catch (e) {}
         try {
           await sendAssignmentEmail({
             toEmail: (quiz as any).creatorEmail || "",
@@ -187,7 +192,7 @@ export default function AssignmentClient() {
       });
       setCopyStatus("sent");
     } catch {
-      setCopyStatus("err");
+      setCopyStatus("err"); try { reportProblem("Assignment copy email failed", "to: " + ccEmail); } catch (e) {}
     }
   };
 
@@ -225,7 +230,7 @@ export default function AssignmentClient() {
             placeholder={t("Your name")}
             className="text-center text-xl font-bold border-b-4 border-kahoot-purple py-2 focus:outline-none w-full mb-4"
           />
-          <Button size="lg" className="w-full" onClick={begin}>{t("Start")}</Button>
+          <Button size="lg" className="w-full" onClick={begin} disabled={!name.trim()}>{t("Start")}</Button>
         </Card>
       </div>
     );

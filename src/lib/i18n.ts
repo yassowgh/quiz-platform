@@ -1,6 +1,11 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // batch fixes
+  "Reset your password": { en: "Reset your password", ar: "إعادة تعيين كلمة المرور" },
+  "Back to login": { en: "Back to login", ar: "العودة لتسجيل الدخول" },
+  "Please tick this box to continue.": { en: "Please tick this box to continue.", ar: "يرجى تحديد هذا المربع للمتابعة." },
+  "Please enter your name to start.": { en: "Please enter your name to start.", ar: "يرجى إدخال اسمك للبدء." },
   // error reporter
   "Oops — something went wrong on our side.": { en: "Oops — something went wrong on our side.", ar: "عذرًا — حدث خطأ من جانبنا." },
   "We're really sorry for the inconvenience. You can report this and our team will look into it.": { en: "We're really sorry for the inconvenience. You can report this and our team will look into it.", ar: "نعتذر بشدة عن الإزعاج. يمكنك الإبلاغ عن المشكلة وسيتحقق فريقنا منها." },

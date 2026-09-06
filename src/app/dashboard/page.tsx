@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { reportProblem } from "@/components/ui/ErrorReporter";
 import { useLang } from "@/contexts/LanguageContext";
 import { listQuizzesByHost, deleteQuiz } from "@/lib/firestore";
 import { nanoid } from "@/lib/utils";
@@ -36,7 +37,7 @@ export default function DashboardPage() {
       await sendAssignmentInvite({ toEmails: list, quizTitle: assignQuiz.title, link: assignLink });
       setAssignStatus("sent");
     } catch {
-      setAssignStatus("err");
+      setAssignStatus("err"); try { reportProblem("Assignment invite email failed", "emails: " + assignEmails); } catch (e) {}
     }
   };
 

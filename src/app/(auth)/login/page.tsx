@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [notice, setNotice] = useState("");
   const [resetMode, setResetMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +59,10 @@ export default function LoginPage() {
         <h1 className="text-3xl font-black mb-6 text-center">{t("Log in")}</h1>
         <form onSubmit={handleEmail} className="flex flex-col gap-4">
           <Input label={t("Email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label={t("Password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <div className="relative">
+            <Input label={t("Password")} type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <button type="button" tabIndex={-1} onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-9 text-lg leading-none">{showPw ? "🙈" : "👁️"}</button>
+          </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {notice && <p className="text-kahoot-green text-sm font-semibold">{notice}</p>}
           <Button type="submit" loading={loading} className="w-full">{t("Log in")}</Button>
@@ -67,8 +71,10 @@ export default function LoginPage() {
           </button>
           {resetMode && (
             <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+              <p className="font-bold text-gray-800">{t("Reset your password")}</p>
               <p className="text-sm text-gray-600">{t("Enter your email above, then send yourself a password reset link.")}</p>
               <Button type="button" onClick={handleReset} disabled={loading} className="w-full">{t("Send reset link")}</Button>
+              <button type="button" onClick={() => setResetMode(false)} className="text-sm text-gray-500 hover:underline self-center">{t("Back to login")}</button>
             </div>
           )}
         </form>

@@ -21,10 +21,12 @@ export default function SignupPage() {
   const [emailInUse, setEmailInUse] = useState(false);
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [consentError, setConsentError] = useState(false);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agree) { setError(t("Please accept the marketing & analytics consent below to sign up.")); return; }
+    if (!agree) { setConsentError(true); setError(t("Please accept the marketing & analytics consent below to sign up.")); return; }
     setLoading(true); setError(""); setNotice(""); setEmailInUse(false);
     try {
       await signupWithEmail(email, password, name);
@@ -36,7 +38,7 @@ export default function SignupPage() {
   };
 
   const handleGoogle = async () => {
-    if (!agree) { setError(t("Please accept the marketing & analytics consent below to continue.")); return; }
+    if (!agree) { setConsentError(true); setError(t("Please accept the marketing & analytics consent below to continue.")); return; }
     setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
@@ -64,7 +66,10 @@ export default function SignupPage() {
         <form onSubmit={handleEmail} className="flex flex-col gap-4">
           <Input label={t("Name")} value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label={t("Email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label={t("Password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+          <div className="relative">
+            <Input label={t("Password")} type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+            <button type="button" tabIndex={-1} onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-9 text-lg leading-none">{showPw ? "🙈" : "👁️"}</button>
+          </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {notice && <p className="text-kahoot-green text-sm font-semibold">{notice}</p>}
           {emailInUse && (
@@ -73,10 +78,11 @@ export default function SignupPage() {
               <button type="button" onClick={handleReset} className="text-kahoot-purple font-bold hover:underline">{t("Reset password")}</button>
             </div>
           )}
-          <label className="flex items-start gap-2 text-xs text-gray-300">
-            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} required className="mt-0.5" />
-            <span>{t("I agree to receive marketing emails from QuizUps and accept analytics tracking.")} <span className="text-gray-400">{t("(Required)")}</span></span>
+          <label className={"flex items-start gap-2 text-xs " + (consentError ? "text-red-400 font-semibold" : "text-gray-300")}>
+            <input type="checkbox" checked={agree} onChange={(e) => { setAgree(e.target.checked); if (e.target.checked) setConsentError(false); }} required className={"mt-0.5 " + (consentError ? "ring-2 ring-red-400 rounded" : "")} />
+            <span>{t("I agree to receive marketing emails from QuizUps and accept analytics tracking.")} <span className={consentError ? "text-red-400" : "text-gray-400"}>{t("(Required)")}</span></span>
           </label>
+          {consentError && <p className="text-red-400 text-xs -mt-1">{t("Please tick this box to continue.")}</p>}
           <Button type="submit" loading={loading} disabled={!agree} className="w-full">{t("Sign up")}</Button>
         </form>
         <div className="relative my-4 text-center text-gray-400">{t("— or —")}</div>

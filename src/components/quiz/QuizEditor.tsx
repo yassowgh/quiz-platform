@@ -607,7 +607,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
               {aiError && <p className="text-red-500 text-sm">{aiError}</p>}
               <div className="flex gap-2 justify-end mt-1">
                 <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>{t("Cancel")}</Button>
-                <Button onClick={runAi} loading={aiLoading} disabled={!aiTopic.trim()}>{t("Generate")}</Button>
+                <Button onClick={runAi} loading={aiLoading} disabled={!aiTopic.trim() && !aiDoc && !aiUrl.trim()}>{t("Generate")}</Button>
               </div>
               <p className="text-xs text-gray-400">{t("AI can make mistakes — review the questions before publishing.")}</p>
             </div>
