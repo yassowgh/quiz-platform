@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import AiProgress from "@/components/ui/AiProgress";
+import { useLang } from "@/contexts/LanguageContext";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
 import { generateQuestions, generateFromUrl, uploadImage } from "@/lib/integrations";
@@ -67,6 +68,7 @@ interface SortableQuestionProps {
 }
 
 function SortableQuestion({ question, index, onChange, onDelete, startExpanded, kind }: SortableQuestionProps) {
+  const { t } = useLang();
   const [expanded, setExpanded] = useState(!!startExpanded);
   const [adv, setAdv] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: question.id });
@@ -89,7 +91,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
             maxLength={150}
             dir="auto"
             onChange={(e) => onChange({ ...question, text: e.target.value })}
-            placeholder="Enter your question..."
+            placeholder={t("Enter your question...")}
           />
           <button
             type="button"
@@ -100,15 +102,15 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
           </button>
           {adv && (<>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Difficulty</label>
+            <label className="text-sm font-semibold text-gray-700">{t("Difficulty")}</label>
             <select value={question.difficulty || "medium"} onChange={(e) => onChange({ ...question, difficulty: e.target.value as any })} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
+              <option value="easy">{t("Easy")}</option>
+              <option value="medium">{t("Medium")}</option>
+              <option value="hard">{t("Hard")}</option>
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Image (optional) — upload or paste a URL</label>
+            <label className="text-sm font-semibold text-gray-700">{t("Image (optional) — upload or paste a URL")}</label>
             <div className="flex items-center gap-2 flex-wrap">
               <input
                 type="file"
@@ -123,24 +125,24 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               {question.imageUrl && (
                 <>
                   <img src={question.imageUrl} alt="" className="h-12 rounded" />
-                  <button type="button" onClick={() => onChange({ ...question, imageUrl: "" })} className="text-red-500 font-bold text-lg" title="Remove image">✕</button>
+                  <button type="button" onClick={() => onChange({ ...question, imageUrl: "" })} className="text-red-500 font-bold text-lg" title={t("Remove image")}>✕</button>
                 </>
               )}
             </div>
             <Input
               value={question.imageUrl && question.imageUrl.startsWith("data:") ? "" : question.imageUrl || ""}
               onChange={(e) => onChange({ ...question, imageUrl: e.target.value })}
-              placeholder="...or paste an image URL"
+              placeholder={t("...or paste an image URL")}
             />
           </div>
           <Input
-            label="Video (optional — YouTube or MP4 link)"
+            label={t("Video (optional — YouTube or MP4 link)")}
             value={question.videoUrl || ""}
             onChange={(e) => onChange({ ...question, videoUrl: e.target.value })}
             placeholder="https://youtube.com/watch?v=..."
           />
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Audio (optional) — upload a clip or paste a URL</label>
+            <label className="text-sm font-semibold text-gray-700">{t("Audio (optional) — upload a clip or paste a URL")}</label>
             <div className="flex items-center gap-2 flex-wrap">
               <input
                 type="file"
@@ -149,7 +151,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                   const file = e.target.files?.[0];
                   if (!file) return;
                   if (file.size > 600 * 1024) {
-                    alert("Audio file is too large (max 600 KB). Please use a shorter clip or paste a URL instead.");
+                    alert(t("Audio file is too large (max 600 KB). Please use a shorter clip or paste a URL instead."));
                     e.target.value = "";
                     return;
                   }
@@ -163,25 +165,25 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               {question.audioUrl && (
                 <>
                   <audio src={question.audioUrl} controls className="h-8" />
-                  <button type="button" onClick={() => onChange({ ...question, audioUrl: "" })} className="text-red-500 font-bold text-lg" title="Remove audio">✕</button>
+                  <button type="button" onClick={() => onChange({ ...question, audioUrl: "" })} className="text-red-500 font-bold text-lg" title={t("Remove audio")}>✕</button>
                 </>
               )}
             </div>
             <Input
               value={question.audioUrl && question.audioUrl.startsWith("data:") ? "" : question.audioUrl || ""}
               onChange={(e) => onChange({ ...question, audioUrl: e.target.value })}
-              placeholder="...or paste an audio URL (.mp3)"
+              placeholder={t("...or paste an audio URL (.mp3)")}
             />
           </div>
           </>)}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Question type</label>
+            <label className="text-sm font-semibold text-gray-700">{t("Question type")}</label>
 {kind === "poll" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {([["poll", "📊", "Multiple Choice"], ["wordcloud", "☁️", "Word Cloud"], ["openended", "💬", "Open Ended"], ["rating", "⭐", "Scales"], ["ranking", "🔢", "Ranking"]] as string[][]).map((it) => (
                   <button key={it[0]} type="button" onClick={() => { const v = it[0] as any; if (v === "poll" || v === "ranking") onChange({ ...question, type: v, correctAnswer: 0 }); else onChange({ ...question, type: v }); }} className={"p-3 rounded-xl border-2 text-center transition-colors " + ((question.type || "multiple") === it[0] ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
                     <div className="text-2xl">{it[1]}</div>
-                    <div className="text-xs font-bold text-gray-700 mt-1">{it[2]}</div>
+                    <div className="text-xs font-bold text-gray-700 mt-1">{t(it[2])}</div>
                   </button>
                 ))}
               </div>
@@ -198,15 +200,15 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               }}
               className="px-3 py-2 border-2 border-gray-200 rounded-xl"
             >
-              <option value="multiple">Multiple choice</option>
-              <option value="truefalse">True / False</option>
-              <option value="typeanswer">Type answer</option>
-              <option value="sorting">Sorting (order matters)</option>
-              <option value="poll">Poll / vote (no points)</option>
-              <option value="wordcloud">☁️ Word cloud (survey)</option>
-              <option value="openended">💬 Open-ended (survey)</option>
-              <option value="rating">⭐ Rating 1–5 (survey)</option>
-              <option value="ranking">🔢 Ranking (survey)</option>
+              <option value="multiple">{t("Multiple choice")}</option>
+              <option value="truefalse">{t("True / False")}</option>
+              <option value="typeanswer">{t("Type answer")}</option>
+              <option value="sorting">{t("Sorting (order matters)")}</option>
+              <option value="poll">{t("Poll / vote (no points)")}</option>
+              <option value="wordcloud">{t("☁️ Word cloud (survey)")}</option>
+              <option value="openended">{t("💬 Open-ended (survey)")}</option>
+              <option value="rating">{t("⭐ Rating 1–5 (survey)")}</option>
+              <option value="ranking">{t("🔢 Ranking (survey)")}</option>
             </select>
             )}
           </div>
@@ -225,7 +227,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                 }}
                 className="w-4 h-4"
               />
-              Allow multiple correct answers (players pick all that apply)
+              {t("Allow multiple correct answers (players pick all that apply)")}
             </label>
           )}
           {question.type === "typeanswer" ? (
@@ -235,7 +237,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               maxLength={75}
               dir="auto"
               onChange={(e) => onChange({ ...question, correctText: e.target.value })}
-              placeholder="e.g. Paris"
+              placeholder={t("e.g. Paris")}
             />
           ) : (question.type === "wordcloud" || question.type === "openended" || question.type === "rating") ? (
             <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">
@@ -266,7 +268,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                     question.multiSelect ? "rounded-md" : "rounded-full",
                     (question.multiSelect ? (question.correctAnswers?.length ? question.correctAnswers : [question.correctAnswer]).includes(i) : question.correctAnswer === i) ? "bg-kahoot-green border-kahoot-green" : "border-gray-300"
                   )}
-                  title="Mark as correct"
+                  title={t("Mark as correct")}
                 />
                 )}
                 <Input
@@ -307,7 +309,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                     });
                   }}
                 >
-                  − Remove last
+                  {t("− Remove last")}
                 </Button>
               )}
             </div>
@@ -315,7 +317,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
           <div className="flex gap-4">
             {adv && (<>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">Time limit</label>
+              <label className="text-sm font-semibold text-gray-700">{t("Time limit")}</label>
               <select
                 value={question.timeLimit}
                 onChange={(e) => onChange({ ...question, timeLimit: Number(e.target.value) })}
@@ -327,7 +329,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">Points</label>
+              <label className="text-sm font-semibold text-gray-700">{t("Points")}</label>
               <select
                 value={question.points}
                 onChange={(e) => onChange({ ...question, points: Number(e.target.value) })}
@@ -340,7 +342,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
             </div>
             </>)}
             <div className="flex-1" />
-            <Button variant="danger" size="sm" onClick={onDelete} className="self-end">Delete</Button>
+            <Button variant="danger" size="sm" onClick={onDelete} className="self-end">{t("Delete")}</Button>
           </div>
         </div>
       )}
@@ -355,6 +357,7 @@ interface QuizEditorProps {
 }
 
 export default function QuizEditor({ questions, onChange, kind }: QuizEditorProps) {
+  const { t } = useLang();
   const initialIds = useRef<Set<string>>(new Set(questions.map((q) => q.id)));
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -385,7 +388,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
   const runAi = async () => {
     setAiLoading(true);
     setAiError("");
-    if (!aiTopic.trim() && !aiDoc && !aiUrl.trim()) { setAiError("Enter a topic, a website URL, or upload a document."); setAiLoading(false); return; }
+    if (!aiTopic.trim() && !aiDoc && !aiUrl.trim()) { setAiError(t("Enter a topic, a website URL, or upload a document.")); setAiLoading(false); return; }
     try {
       const qs = aiUrl.trim() ? await generateFromUrl(aiUrl.trim(), aiCount, aiLang, questions.map((q) => q.text).filter(Boolean)) : await generateQuestions(
         aiTopic.trim(),
@@ -509,15 +512,15 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
       </DndContext>
       <div className="flex flex-wrap gap-2 self-start">
         <Button variant="secondary" onClick={() => onChange([...questions, makeBlankQuestion()])}>
-          + Add Question
+          {t("+ Add Question")}
         </Button>
-        <Button onClick={() => setAiOpen(true)}>✨ Generate with AI</Button>
+        <Button onClick={() => setAiOpen(true)}>{t("✨ Generate with AI")}</Button>
       </div>
 
       <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">
         <p className="font-semibold text-gray-700">📥 Bulk import questions (CSV)</p>
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={downloadTemplate}>⬇️ Download template</Button>
+          <Button variant="ghost" size="sm" onClick={downloadTemplate}>{t("⬇️ Download template")}</Button>
           <input
             type="file"
             accept=".csv,text/csv"
@@ -531,7 +534,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
         </div>
         {importErrors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-            <p className="font-bold mb-1">⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:</p>
+            <p className="font-bold mb-1">{t("⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:")}</p>
             <ul className="list-disc pl-5">
               {importErrors.map((er, i) => (
                 <li key={i}>{er}</li>
@@ -544,28 +547,28 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
       {aiOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !aiLoading && setAiOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-black mb-1">✨ Generate questions with AI</h3>
-            <p className="text-sm text-gray-500 mb-4">Describe a topic, or upload a document (PDF, Word, PowerPoint, text), and QuizUps will draft multiple-choice questions.</p>
+            <h3 className="text-xl font-black mb-1">{t("✨ Generate questions with AI")}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t("Describe a topic, or upload a document (PDF, Word, PowerPoint, text), and QuizUps will draft multiple-choice questions.")}</p>
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Topic</label>
+                <label className="text-sm font-semibold text-gray-700">{t("Topic")}</label>
                 <input
                   value={aiTopic}
                   dir="auto"
                   onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="e.g. World capitals, Photosynthesis, Ottoman history"
+                  placeholder={t("e.g. World capitals, Photosynthesis, Ottoman history")}
                   className="px-3 py-2 border-2 border-gray-200 rounded-xl"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Or generate from a document</label>
+                <label className="text-sm font-semibold text-gray-700">{t("Or generate from a document")}</label>
                 <input
                   type="file"
                   accept=".pdf,.docx,.pptx,.txt"
                   onChange={async (ev) => {
                     const f = ev.target.files?.[0];
                     if (!f) return;
-                    if (f.size > 10 * 1024 * 1024) { setAiError("File too large (max 10MB)."); return; }
+                    if (f.size > 10 * 1024 * 1024) { setAiError(t("File too large (max 10MB).")); return; }
                     setAiDocBusy(true); setAiError("");
                     try {
                       const txt = await extractTextFromFile(f);
@@ -577,25 +580,25 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
                   }}
                   className="text-sm"
                 />
-                {aiDocBusy && <p className="text-xs text-gray-500">Reading document…</p>}
+                {aiDocBusy && <p className="text-xs text-gray-500">{t("Reading document…")}</p>}
                 {aiDocName && !aiDocBusy && <p className="text-xs text-kahoot-green font-semibold">Loaded: {aiDocName} — questions will come from its content.</p>}
-                <p className="text-xs text-gray-400">PDF, Word, PowerPoint or text. Long files are trimmed to keep AI free.</p>
+                <p className="text-xs text-gray-400">{t("PDF, Word, PowerPoint or text. Long files are trimmed to keep AI free.")}</p>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Or generate from a website URL</label>
+                <label className="text-sm font-semibold text-gray-700">{t("Or generate from a website URL")}</label>
                 <input value={aiUrl} onChange={(e) => setAiUrl(e.target.value)} placeholder="https://en.wikipedia.org/wiki/..." className="px-3 py-2 border-2 border-gray-200 rounded-xl" />
               </div>
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-semibold text-gray-700">How many</label>
+                  <label className="text-sm font-semibold text-gray-700">{t("How many")}</label>
                   <select value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
                     {[5, 10, 15, 20].map((n) => (<option key={n} value={n}>{n} questions</option>))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-semibold text-gray-700">Language</label>
+                  <label className="text-sm font-semibold text-gray-700">{t("Language")}</label>
                   <select value={aiLang} onChange={(e) => setAiLang(e.target.value as "en" | "ar")} className="px-3 py-2 border-2 border-gray-200 rounded-xl">
-                    <option value="en">English</option>
+                    <option value="en">{t("English")}</option>
                     <option value="ar">العربية</option>
                   </select>
                 </div>
@@ -603,10 +606,10 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
               {aiLoading && <AiProgress />}
               {aiError && <p className="text-red-500 text-sm">{aiError}</p>}
               <div className="flex gap-2 justify-end mt-1">
-                <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
-                <Button onClick={runAi} loading={aiLoading} disabled={!aiTopic.trim()}>Generate</Button>
+                <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>{t("Cancel")}</Button>
+                <Button onClick={runAi} loading={aiLoading} disabled={!aiTopic.trim()}>{t("Generate")}</Button>
               </div>
-              <p className="text-xs text-gray-400">AI can make mistakes — review the questions before publishing.</p>
+              <p className="text-xs text-gray-400">{t("AI can make mistakes — review the questions before publishing.")}</p>
             </div>
           </div>
         </div>
