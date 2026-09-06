@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
 import { createLiveGame, kickPlayer, lockLobby } from "@/lib/realtimeDb";
@@ -13,6 +14,7 @@ import Card from "@/components/ui/Card";
 export default function LobbyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLang();
   const { user } = useAuth();
   const quizId = searchParams.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -104,7 +106,7 @@ export default function LobbyPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex flex-col items-center justify-center p-6">
-      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title={t("Mute music")}>{muted ? "🔇" : "🔊"}</button>
       {!gameId ? (
         <Card className="w-full max-w-md">
           <div className="text-center mb-6">
@@ -112,49 +114,49 @@ export default function LobbyPage() {
             <h1 className="text-2xl font-black" dir="auto">{quiz?.title || "Loading..."}</h1>
             <p className="text-gray-500">{quiz?.questions.length ?? 0} questions</p>
           </div>
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Game options</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{t("Game options")}</p>
           {quiz?.kind !== "poll" && (<>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
             <button type="button" onClick={() => setMode("classic")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "classic" ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
-              <span className="font-bold text-gray-800 block">🏁 Classic</span>
-              <span className="text-gray-500 text-xs">Fastest correct answers win.</span>
+              <span className="font-bold text-gray-800 block">{t("🏁 Classic")}</span>
+              <span className="text-gray-500 text-xs">{t("Fastest correct answers win.")}</span>
             </button>
             <button type="button" onClick={() => setMode("goldquest")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "goldquest" ? "border-kahoot-yellow bg-kahoot-yellow/10" : "border-gray-200 hover:border-gray-300")}>
-              <span className="font-bold text-gray-800 block">🪙 Gold Quest</span>
-              <span className="text-gray-500 text-xs">Open chests &amp; steal gold. Most gold wins!</span>
+              <span className="font-bold text-gray-800 block">{t("🪙 Gold Quest")}</span>
+              <span className="text-gray-500 text-xs">{t("Open chests & steal gold. Most gold wins!")}</span>
             </button>
             <button type="button" onClick={() => setMode("battle")} className={"p-3 rounded-xl border-2 text-left transition-colors " + (mode === "battle" ? "border-kahoot-red bg-kahoot-red/10" : "border-gray-200 hover:border-gray-300")}>
-              <span className="font-bold text-gray-800 block">⚔️ Battle Royale</span>
-              <span className="text-gray-500 text-xs">Miss a question, you're out. Last one standing wins!</span>
+              <span className="font-bold text-gray-800 block">{t("⚔️ Battle Royale")}</span>
+              <span className="text-gray-500 text-xs">{t("Miss a question, you're out. Last one standing wins!")}</span>
             </button>
           </div>
           <div className="flex flex-col gap-3 mb-6">
             <label className="flex items-start gap-3 p-3 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-kahoot-purple/40 transition-colors">
               <input type="checkbox" checked={teamMode} onChange={(e) => setTeamMode(e.target.checked)} className="w-5 h-5 mt-0.5 flex-shrink-0" />
               <span>
-                <span className="font-bold text-gray-800 block">👥 Team mode</span>
-                <span className="text-gray-500 text-sm">Players join a team; scores are pooled.</span>
+                <span className="font-bold text-gray-800 block">{t("👥 Team mode")}</span>
+                <span className="text-gray-500 text-sm">{t("Players join a team; scores are pooled.")}</span>
               </span>
             </label>
             <label className={"flex items-start gap-3 p-3 rounded-xl border-2 transition-colors " + (pastGames.length ? "border-gray-200 cursor-pointer hover:border-kahoot-purple/40" : "border-gray-100 opacity-60 cursor-not-allowed")}>
               <input type="checkbox" checked={ghostMode} onChange={(e) => setGhostMode(e.target.checked)} disabled={!pastGames.length} className="w-5 h-5 mt-0.5 flex-shrink-0" />
               <span>
-                <span className="font-bold text-gray-800 block">👻 Ghost mode {!pastGames.length && <span className="text-gray-400 text-xs font-normal">(no past games yet)</span>}</span>
-                <span className="text-gray-500 text-sm">Race against the top 5 from your last game.</span>
+                <span className="font-bold text-gray-800 block">👻 Ghost mode {!pastGames.length && <span className="text-gray-400 text-xs font-normal">{t("(no past games yet)")}</span>}</span>
+                <span className="text-gray-500 text-sm">{t("Race against the top 5 from your last game.")}</span>
               </span>
             </label>
           </div>
           </>)}
           <Button onClick={startGame} loading={creating} size="lg" className="w-full">
-            Create Game Room
+            {t("Create Game Room")}
           </Button>
         </Card>
       ) : (
         <div className="w-full max-w-2xl flex flex-col gap-6">
           <Card className="text-center">
-            <p className="text-gray-500 font-semibold mb-1">Game PIN</p>
+            <p className="text-gray-500 font-semibold mb-1">{t("Game PIN")}</p>
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
-            <p className="text-gray-400 mt-2">Players join at quizups.com</p>
+            <p className="text-gray-400 mt-2">{t("Players join at quizups.com")}</p>
             <div className="flex justify-center mt-4">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quiz-platform-e46ba.web.app/join?gameId=${gameId}`)}`}
@@ -164,14 +166,14 @@ export default function LobbyPage() {
                 className="rounded-lg border-4 border-kahoot-purple"
               />
             </div>
-            <p className="text-gray-400 text-sm mt-2">📱 Scan the QR code to join instantly</p>
+            <p className="text-gray-400 text-sm mt-2">{t("📱 Scan the QR code to join instantly")}</p>
           </Card>
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{players.length} Players{state?.teamMode ? " · 👥 Teams" : ""}</h2>
               <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={() => lockLobby(gameId)}>Lock</Button>
-                <Button size="sm" onClick={handleStart} disabled={players.length === 0}>Start!</Button>
+                <Button size="sm" variant="secondary" onClick={() => lockLobby(gameId)}>{t("Lock")}</Button>
+                <Button size="sm" onClick={handleStart} disabled={players.length === 0}>{t("Start!")}</Button>
               </div>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -181,7 +183,7 @@ export default function LobbyPage() {
                   <button
                     onClick={() => kickPlayer(gameId, p.id)}
                     className="ml-1 text-red-400 hover:text-red-600 text-xs"
-                    title="Kick"
+                    title={t("Kick")}
                   >×</button>
                 </div>
               ))}
