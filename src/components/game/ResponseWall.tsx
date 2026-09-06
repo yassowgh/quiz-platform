@@ -1,10 +1,12 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function ResponseWall({ responses }: { responses: Record<string, any> }) {
+  const { t } = useLang();
   const items = Object.values(responses || {})
     .filter((r: any) => r && String(r.text || "").trim())
     .sort((a: any, b: any) => (b.ts || 0) - (a.ts || 0));
-  if (!items.length) return <p className="text-white/50 text-center text-xl">Waiting for responses…</p>;
+  if (!items.length) return <p className="text-white/50 text-center text-xl">{t("Waiting for responses…")}</p>;
   const colors = ["bg-kahoot-red", "bg-kahoot-blue", "bg-kahoot-green", "bg-kahoot-purple", "bg-pink-500", "bg-cyan-600"];
   return (
     <div className="w-full">

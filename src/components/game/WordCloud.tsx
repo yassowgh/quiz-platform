@@ -1,7 +1,9 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import type { ReactNode } from "react";
 
 export default function WordCloud({ responses }: { responses: Record<string, any> }) {
+  const { t } = useLang();
   const counts: Record<string, number> = {};
   Object.values(responses || {}).forEach((r: any) => {
     const w = String((r && r.text) || "").trim();
@@ -14,7 +16,7 @@ export default function WordCloud({ responses }: { responses: Record<string, any
   const max = entries.length ? entries[0][1] : 1;
   const colors = ["#e21b3c", "#1368ce", "#26890c", "#ffa602", "#9c27b0", "#00b8d4", "#ff4fa3"];
   if (!entries.length) {
-    return <p className="text-white/50 text-center text-xl">Waiting for words…</p> as ReactNode;
+    return <p className="text-white/50 text-center text-xl">{t("Waiting for words…")}</p> as ReactNode;
   }
   return (
     <div className="w-full">

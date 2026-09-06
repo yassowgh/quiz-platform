@@ -1,6 +1,8 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function RatingResult({ responses }: { responses: Record<string, any> }) {
+  const { t } = useLang();
   const nums = Object.values(responses || {})
     .map((r: any) => Number((r && r.text) || 0))
     .filter((n) => n >= 1 && n <= 5);
@@ -8,7 +10,7 @@ export default function RatingResult({ responses }: { responses: Record<string, 
   const avg = total ? nums.reduce((a, b) => a + b, 0) / total : 0;
   const dist = [1, 2, 3, 4, 5].map((s) => nums.filter((n) => n === s).length);
   const max = Math.max(1, ...dist);
-  if (!total) return <p className="text-white/50 text-center text-xl">Waiting for ratings…</p>;
+  if (!total) return <p className="text-white/50 text-center text-xl">{t("Waiting for ratings…")}</p>;
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-4">

@@ -1,6 +1,8 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function RankingResult({ options, responses }: { options: string[]; responses: Record<string, any> }) {
+  const { t } = useLang();
   const opts = (options || []).filter((o) => o && o.trim());
   const sums = opts.map(() => 0);
   const cnts = opts.map(() => 0);
@@ -14,7 +16,7 @@ export default function RankingResult({ options, responses }: { options: string[
   });
   const total = Math.max(0, ...cnts);
   const ranked = opts.map((o, i) => ({ o, i, avg: cnts[i] ? sums[i] / cnts[i] : opts.length + 1 })).sort((a, b) => a.avg - b.avg);
-  if (!total) return <p className="text-white/50 text-center text-xl">Waiting for rankings…</p>;
+  if (!total) return <p className="text-white/50 text-center text-xl">{t("Waiting for rankings…")}</p>;
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col gap-2">
       {ranked.map((r, pos) => (

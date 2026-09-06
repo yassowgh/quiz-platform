@@ -1,6 +1,12 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // wave3: game components
+  "Waiting for rankings…": { en: "Waiting for rankings…", ar: "في انتظار الترتيبات…" },
+  "Waiting for ratings…": { en: "Waiting for ratings…", ar: "في انتظار التقييمات…" },
+  "Waiting for responses…": { en: "Waiting for responses…", ar: "في انتظار الردود…" },
+  "Waiting for words…": { en: "Waiting for words…", ar: "في انتظار الكلمات…" },
+  "pts": { en: "pts", ar: "نقطة" },
   "⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:": { en: "⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:", ar: "⚠️ واجهت بعض الصفوف مشكلات — استُوردت بعلامة [FIX ME]. عدّلها أو احذفها." },
   // wave2d: QuizEditor
   "Difficulty": { en: "Difficulty", ar: "الصعوبة" },

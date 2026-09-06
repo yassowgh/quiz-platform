@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { rankPlayers } from "@/lib/scoring";
 import { ordinal } from "@/lib/utils";
 import type { GamePlayer } from "@/types";
@@ -12,13 +13,14 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ players, currentPlayerId, limit = 10, metric = "score" }: LeaderboardProps) {
+  const { t } = useLang();
   const arr = Object.values(players || {});
   const all: any[] = metric === "gold"
     ? [...arr].sort((a: any, b: any) => (b.gold || 0) - (a.gold || 0) || a.joinedAt - b.joinedAt)
     : rankPlayers(arr as any);
   all.sort((a: any, b: any) => (a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0));
   const val = (p: any) => (metric === "gold" ? (p.gold || 0) : p.score);
-  const unit = metric === "gold" ? "🪙" : "pts";
+  const unit = metric === "gold" ? "🪙" : t("pts");
   const ranked = all.slice(0, limit);
   const medals = ["🥇", "🥈", "🥉"];
   const myIndex = currentPlayerId ? all.findIndex((p) => p.id === currentPlayerId) : -1;
