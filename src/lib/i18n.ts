@@ -1,6 +1,10 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // batch2
+  "🔗 Copy join link": { en: "🔗 Copy join link", ar: "🔗 نسخ رابط الانضمام" },
+  "✓ Link copied": { en: "✓ Link copied", ar: "✓ تم نسخ الرابط" },
+  "⚠️ Some rows were skipped due to invalid data. Only valid rows were added — fix the rest in your file and re-import.": { en: "⚠️ Some rows were skipped due to invalid data. Only valid rows were added — fix the rest in your file and re-import.", ar: "⚠️ تم تجاهل بعض الصفوف بسبب بيانات غير صالحة. أُضيفت الصفوف الصحيحة فقط — صحّح الباقي في ملفك وأعد الاستيراد." },
   // batch fixes
   "Reset your password": { en: "Reset your password", ar: "إعادة تعيين كلمة المرور" },
   "Back to login": { en: "Back to login", ar: "العودة لتسجيل الدخول" },

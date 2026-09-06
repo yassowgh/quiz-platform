@@ -480,7 +480,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
           timeLimit: [5, 10, 20, 30, 60].includes(Number(tl)) ? Number(tl) : 20,
           points: [0, 500, 1000, 2000].includes(Number(pts)) ? Number(pts) : 1000,
         };
-        if (problem) errors.push("Row " + rowNo + ": " + problem);
+        if (problem) { errors.push("Row " + rowNo + ": " + problem); return; }
         imported.push(q);
       });
       setImportErrors(errors);
@@ -534,7 +534,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
         </div>
         {importErrors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-            <p className="font-bold mb-1">{t("⚠️ Some rows had problems — they were imported marked with [FIX ME]. Edit or delete them:")}</p>
+            <p className="font-bold mb-1">{t("⚠️ Some rows were skipped due to invalid data. Only valid rows were added — fix the rest in your file and re-import.")}</p>
             <ul className="list-disc pl-5">
               {importErrors.map((er, i) => (
                 <li key={i}>{er}</li>

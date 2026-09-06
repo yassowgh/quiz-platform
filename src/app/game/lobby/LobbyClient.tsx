@@ -15,7 +15,7 @@ export default function LobbyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLang();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const quizId = searchParams.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
@@ -27,6 +27,7 @@ export default function LobbyPage() {
   const [pastGames, setPastGames] = useState<any[]>([]);
   const { state } = useGame(gameId);
   const [muted, setMuted] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Lobby waiting music
@@ -46,9 +47,11 @@ export default function LobbyPage() {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
+  useEffect(() => { if (!authLoading && !user) router.replace("/login"); }, [authLoading, user, router]);
+
   useEffect(() => {
     if (!quizId) return;
-    getQuiz(quizId).then(setQuiz);
+    getQuiz(quizId).then(setQuiz).catch(() => {});
   }, [quizId]);
 
   useEffect(() => {
@@ -157,9 +160,10 @@ export default function LobbyPage() {
             <p className="text-gray-500 font-semibold mb-1">{t("Game PIN")}</p>
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
             <p className="text-gray-400 mt-2">{t("Players join at quizups.com")}</p>
+            {gameId && <button type="button" onClick={() => { try { navigator.clipboard.writeText("https://quizups.com/join?gameId=" + gameId); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); } catch (e) {} }} className="mt-2 text-sm font-bold px-4 py-2 rounded-lg bg-kahoot-purple/10 text-kahoot-purple hover:bg-kahoot-purple/20">{linkCopied ? t("✓ Link copied") : t("🔗 Copy join link")}</button>}
             <div className="flex justify-center mt-4">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quiz-platform-e46ba.web.app/join?gameId=${gameId}`)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quizups.com/join?gameId=${gameId}`)}`}
                 alt="Scan to join"
                 width={180}
                 height={180}

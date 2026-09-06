@@ -5,6 +5,7 @@ import Navbar from "@/components/ui/Navbar";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import FeedbackWidget from "@/components/ui/FeedbackWidget";
 import ErrorBoundary, { GlobalErrorListener } from "@/components/ui/ErrorReporter";
+import RouteTracker from "@/components/ui/RouteTracker";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quizups.com"),
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: "(function(){if(typeof Node==='function'&&Node.prototype){var r=Node.prototype.removeChild;Node.prototype.removeChild=function(c){if(c&&c.parentNode!==this){return c;}return r.apply(this,arguments);};var i=Node.prototype.insertBefore;Node.prototype.insertBefore=function(n,ref){if(ref&&ref.parentNode!==this){return n;}return i.apply(this,arguments);};}})();" }} />
         {/* Google Tag Manager */}
         <script dangerouslySetInnerHTML={{ __html: "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TR5PLD6K');" }} />
         <script
@@ -79,6 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ErrorBoundary><main>{children}</main></ErrorBoundary>
             <FeedbackWidget />
             <GlobalErrorListener />
+            <RouteTracker />
           </LanguageProvider>
         </AuthProvider>
       </body>

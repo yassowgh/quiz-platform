@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +12,7 @@ import { useLang } from "@/contexts/LanguageContext";
 export default function SignupPage() {
   const router = useRouter();
   const { t } = useLang();
-  const { signupWithEmail, loginWithGoogle, resetPassword } = useAuth();
+  const { user, signupWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +23,7 @@ export default function SignupPage() {
   const [agree, setAgree] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [consentError, setConsentError] = useState(false);
+  useEffect(() => { if (user) router.replace("/dashboard"); }, [user, router]);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +39,7 @@ export default function SignupPage() {
   };
 
   const handleGoogle = async () => {
-    if (!agree) { setConsentError(true); setError(t("Please accept the marketing & analytics consent below to continue.")); return; }
-    setLoading(true); setError(""); setNotice("");
+        setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
       router.push("/dashboard");
@@ -83,10 +83,10 @@ export default function SignupPage() {
             <span>{t("I agree to receive marketing emails from QuizUps and accept analytics tracking.")} <span className={consentError ? "text-red-400" : "text-gray-400"}>{t("(Required)")}</span></span>
           </label>
           {consentError && <p className="text-red-400 text-xs -mt-1">{t("Please tick this box to continue.")}</p>}
-          <Button type="submit" loading={loading} disabled={!agree} className="w-full">{t("Sign up")}</Button>
+          <Button type="submit" loading={loading} className="w-full">{t("Sign up")}</Button>
         </form>
         <div className="relative my-4 text-center text-gray-400">{t("— or —")}</div>
-        <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading || !agree}>
+        <Button variant="secondary" onClick={handleGoogle} className="w-full" disabled={loading}>
           {t("Continue with Google")}
         </Button>
         <p className="mt-4 text-center text-gray-500">
