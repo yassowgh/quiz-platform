@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
 export default function ReportsClient() {
+  const { t } = useLang();
   const { user, loading } = useAuth();
   const params = useSearchParams();
   const quizId = params.get("quizId") || "";
@@ -66,8 +68,8 @@ export default function ReportsClient() {
     URL.revokeObjectURL(a.href);
   };
 
-  if (loading || fetching) return <div className="p-10 text-center text-gray-500 font-bold">Loading report...</div>;
-  if (!user) return <div className="p-10 text-center text-gray-500 font-bold">Please log in to view reports.</div>;
+  if (loading || fetching) return <div className="p-10 text-center text-gray-500 font-bold">{t("Loading report...")}</div>;
+  if (!user) return <div className="p-10 text-center text-gray-500 font-bold">{t("Please log in to view reports.")}</div>;
 
   const hasData = games.length > 0 || assignments.length > 0;
 
@@ -76,15 +78,15 @@ export default function ReportsClient() {
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <h1 className="text-3xl font-black">📈 {quizId ? "Quiz Analytics" : "All Reports"}</h1>
         <div className="flex gap-2">
-          <Link href="/dashboard"><Button variant="secondary" size="sm">← Dashboard</Button></Link>
-          <Link href="/"><Button variant="ghost" size="sm">🏠 Home</Button></Link>
+          <Link href="/dashboard"><Button variant="secondary" size="sm">{t("← Dashboard")}</Button></Link>
+          <Link href="/"><Button variant="ghost" size="sm">{t("🏠 Home")}</Button></Link>
         </div>
       </div>
 
       {!hasData && (
         <Card className="text-center py-12">
-          <p className="text-gray-400 text-lg mb-2">No data yet for this view.</p>
-          <p className="text-gray-400 text-sm">Host a live game or share an assignment link to start collecting analytics. Reports stay here even if you later delete the quiz.</p>
+          <p className="text-gray-400 text-lg mb-2">{t("No data yet for this view.")}</p>
+          <p className="text-gray-400 text-sm">{t("Host a live game or share an assignment link to start collecting analytics. Reports stay here even if you later delete the quiz.")}</p>
         </Card>
       )}
 
@@ -94,15 +96,15 @@ export default function ReportsClient() {
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Card className="text-center">
               <p className="text-3xl font-black text-kahoot-purple">{overall.played}</p>
-              <p className="text-gray-500 font-semibold text-sm">Games played</p>
+              <p className="text-gray-500 font-semibold text-sm">{t("Games played")}</p>
             </Card>
             <Card className="text-center">
               <p className="text-3xl font-black text-kahoot-purple">{overall.players}</p>
-              <p className="text-gray-500 font-semibold text-sm">Total players</p>
+              <p className="text-gray-500 font-semibold text-sm">{t("Total players")}</p>
             </Card>
             <Card className="text-center">
               <p className="text-3xl font-black text-kahoot-purple">{overall.avgAccuracy}%</p>
-              <p className="text-gray-500 font-semibold text-sm">Avg accuracy</p>
+              <p className="text-gray-500 font-semibold text-sm">{t("Avg accuracy")}</p>
             </Card>
           </div>
 
@@ -126,11 +128,11 @@ export default function ReportsClient() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <Card className="text-center">
                   <p className="text-3xl font-black text-kahoot-purple">{selected.players?.length || 0}</p>
-                  <p className="text-gray-500 font-semibold text-sm">Players</p>
+                  <p className="text-gray-500 font-semibold text-sm">{t("Players")}</p>
                 </Card>
                 <Card className="text-center">
                   <p className="text-3xl font-black text-kahoot-purple">{selected.totalQuestions || 0}</p>
-                  <p className="text-gray-500 font-semibold text-sm">Questions</p>
+                  <p className="text-gray-500 font-semibold text-sm">{t("Questions")}</p>
                 </Card>
                 <Card className="text-center">
                   <p className="text-3xl font-black text-kahoot-purple">
@@ -147,11 +149,11 @@ export default function ReportsClient() {
               </div>
 
               <div className="flex justify-end mb-4">
-                <Button variant="secondary" size="sm" onClick={exportCsv}>⬇️ Export CSV</Button>
+                <Button variant="secondary" size="sm" onClick={exportCsv}>{t("⬇️ Export CSV")}</Button>
               </div>
 
               <Card className="mb-6">
-                <h2 className="text-xl font-bold mb-4">Question breakdown</h2>
+                <h2 className="text-xl font-bold mb-4">{t("Question breakdown")}</h2>
                 {selected.questionReport?.length ? (
                   <div className="flex flex-col gap-3">
                     {selected.questionReport.map((qr: any) => (
@@ -175,16 +177,16 @@ export default function ReportsClient() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400">This game was played before detailed reports were added. Newer games show a full breakdown.</p>
+                  <p className="text-gray-400">{t("This game was played before detailed reports were added. Newer games show a full breakdown.")}</p>
                 )}
               </Card>
 
               <Card className="mb-6">
-                <h2 className="text-xl font-bold mb-4">Final standings</h2>
+                <h2 className="text-xl font-bold mb-4">{t("Final standings")}</h2>
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b-2 border-gray-200 text-gray-500 text-sm">
-                      <th className="py-2">#</th><th>Player</th><th className="text-right">Correct</th><th className="text-right">Score</th>
+                      <th className="py-2">#</th><th>{t("Player")}</th><th className="text-right">{t("Correct")}</th><th className="text-right">{t("Score")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -212,7 +214,7 @@ export default function ReportsClient() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b-2 border-gray-200 text-gray-500 text-sm">
-                  <th className="py-2">Name</th><th>When</th><th className="text-right">Correct</th><th className="text-right">Score</th>
+                  <th className="py-2">{t("Name")}</th><th>{t("When")}</th><th className="text-right">Correct</th><th className="text-right">Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -227,7 +229,7 @@ export default function ReportsClient() {
               </tbody>
             </table>
           ) : (
-            <p className="text-gray-400">No one has completed the self-paced assignment yet. Share the Assign link from your dashboard.</p>
+            <p className="text-gray-400">{t("No one has completed the self-paced assignment yet. Share the Assign link from your dashboard.")}</p>
           )}
         </Card>
       )}

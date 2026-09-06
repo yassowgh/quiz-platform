@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getQuiz, saveAssignmentResult } from "@/lib/firestore";
@@ -27,6 +28,7 @@ function ensureYT(): Promise<any> {
 }
 
 export default function VideoQuizClient() {
+  const { t } = useLang();
   const params = useSearchParams();
   const quizId = params.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -136,25 +138,25 @@ export default function VideoQuizClient() {
   if (error) return <div className="p-10 text-center text-red-400 font-semibold">{error}</div>;
   if (unavailable) return (
     <div className={wrap + " flex items-center justify-center p-6 text-center"}>
-      <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">Activity unavailable</h1><p className="text-white/70">This activity is no longer available — the video was removed or made private.</p></div>
+      <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">{t("Activity unavailable")}</h1><p className="text-white/70">{t("This activity is no longer available — the video was removed or made private.")}</p></div>
     </div>
   );
-  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">Loading…</div>;
+  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">{t("Loading…")}</div>;
 
   if (!started) return (
     <div className={wrap + " flex items-center justify-center p-6"}>
       <div className="flex flex-col items-center text-center w-full max-w-sm">
         <h1 className="text-3xl font-black mb-2">{quiz.title}</h1>
-        <p className="text-white/70 mb-6">🎬 Interactive video — it will pause to ask you questions.</p>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="px-4 py-3 rounded-xl text-gray-900 w-full mb-3 text-center" />
-        <Button size="lg" className="w-full" onClick={begin}>Start</Button>
+        <p className="text-white/70 mb-6">{t("🎬 Interactive video — it will pause to ask you questions.")}</p>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("Your name")} className="px-4 py-3 rounded-xl text-gray-900 w-full mb-3 text-center" />
+        <Button size="lg" className="w-full" onClick={begin}>{t("Start")}</Button>
       </div>
     </div>
   );
 
   if (done) return (
     <div className={wrap + " flex items-center justify-center p-6 text-center"}>
-      <div><h1 className="text-4xl font-black mb-2">Done! 🎉</h1><p className="text-2xl font-bold">{score.toLocaleString()} pts</p><p className="text-white/70">{correct} / {totalQ} correct</p></div>
+      <div><h1 className="text-4xl font-black mb-2">{t("Done! 🎉")}</h1><p className="text-2xl font-bold">{score.toLocaleString()} pts</p><p className="text-white/70">{correct} / {totalQ} correct</p></div>
     </div>
   );
 
@@ -164,8 +166,8 @@ export default function VideoQuizClient() {
         <div className="flex items-center justify-between mb-2 gap-2">
           <span className="font-bold truncate">{quiz.title}</span>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setSound(toggleSfx())} className="text-2xl leading-none" title="Sound">{sound ? "\uD83D\uDD0A" : "\uD83D\uDD07"}</button>
-            <span className="text-sm text-white/70">Speed</span>
+            <button type="button" onClick={() => setSound(toggleSfx())} className="text-2xl leading-none" title={t("Sound")}>{sound ? "\uD83D\uDD0A" : "\uD83D\uDD07"}</button>
+            <span className="text-sm text-white/70">{t("Speed")}</span>
             {[1, 1.5, 2].map((r) => (
               <button key={r} type="button" onClick={() => setSpeed(r)} className={"px-2 py-1 rounded-lg text-sm font-bold " + (rate === r ? "bg-white text-gray-900" : "bg-white/20 text-white")}>{r}x</button>
             ))}
@@ -198,7 +200,7 @@ export default function VideoQuizClient() {
                 })}
               </div>
               {!revealed ? (
-                <Button className="w-full mt-4" disabled={picked === null} onClick={submitAnswer}>Submit</Button>
+                <Button className="w-full mt-4" disabled={picked === null} onClick={submitAnswer}>{t("Submit")}</Button>
               ) : (
                 <Button className="w-full mt-4" onClick={nextQ}>
                   {quiz.videoBlockUntilCorrect && picked !== Number((activeSeg.questions[qIdx] as any).correctAnswer ?? 0) ? "Try again" : (qIdx + 1 < activeSeg.questions.length ? "Next question" : "Resume video")}

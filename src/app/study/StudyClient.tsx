@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getQuiz } from "@/lib/firestore";
@@ -7,6 +8,7 @@ import Button from "@/components/ui/Button";
 import MathText from "@/components/ui/MathText";
 
 export default function StudyClient() {
+  const { t } = useLang();
   const params = useSearchParams();
   const quizId = params.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -16,13 +18,13 @@ export default function StudyClient() {
   const [flip, setFlip] = useState(false);
 
   useEffect(() => {
-    if (!quizId) { setError("No quiz specified."); return; }
+    if (!quizId) { setError(t("No quiz specified.")); return; }
     getQuiz(quizId).then((q) => {
-      if (!q) { setError("Quiz not found or not shared."); return; }
+      if (!q) { setError(t("Quiz not found or not shared.")); return; }
       const playable = ((q.questions || []) as any[]).filter((qq) => qq.text && qq.text.trim());
       setQuiz({ ...q, questions: playable } as Quiz);
       setOrder(playable.map((_, idx) => idx));
-    }).catch(() => setError("Could not load this quiz."));
+    }).catch(() => setError(t("Could not load this quiz.")));
   }, [quizId]);
 
   const cards: any[] = (quiz?.questions || []) as any[];
@@ -30,8 +32,8 @@ export default function StudyClient() {
   const answerOf = (q: any) => (q.type === "typeanswer" ? (q.correctText || "") : ((q.options || [])[Number(q.correctAnswer ?? 0)] || ""));
 
   if (error) return <div className="p-10 text-center text-red-400 font-semibold">{error}</div>;
-  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">Loading…</div>;
-  if (!cards.length) return <div className="p-10 text-center text-gray-500 font-bold">No questions to study yet.</div>;
+  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">{t("Loading…")}</div>;
+  if (!cards.length) return <div className="p-10 text-center text-gray-500 font-bold">{t("No questions to study yet.")}</div>;
   const q: any = cards[order[i]] || cards[0];
 
   return (
@@ -48,9 +50,9 @@ export default function StudyClient() {
           </div>
         </button>
         <div className="flex gap-2 mt-4">
-          <Button variant="secondary" className="flex-1" disabled={i === 0} onClick={() => { setI(i - 1); setFlip(false); }}>← Prev</Button>
+          <Button variant="secondary" className="flex-1" disabled={i === 0} onClick={() => { setI(i - 1); setFlip(false); }}>{t("← Prev")}</Button>
           <Button variant="secondary" onClick={shuffle}>🔀</Button>
-          <Button className="flex-1" disabled={i >= cards.length - 1} onClick={() => { setI(i + 1); setFlip(false); }}>Next →</Button>
+          <Button className="flex-1" disabled={i >= cards.length - 1} onClick={() => { setI(i + 1); setFlip(false); }}>{t("Next →")}</Button>
         </div>
       </div>
     </div>

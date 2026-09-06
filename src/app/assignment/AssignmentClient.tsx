@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +33,7 @@ function shuffleForExam(questions: any[]): any[] {
 }
 
 export default function AssignmentClient() {
+  const { t } = useLang();
   const params = useSearchParams();
   const quizId = params.get("quizId") || "";
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -57,20 +59,20 @@ export default function AssignmentClient() {
   const answerLog = useRef<any[]>([]);
 
   useEffect(() => {
-    if (!quizId) { setError("No quiz specified."); return; }
+    if (!quizId) { setError(t("No quiz specified.")); return; }
     getExamPublic(quizId).catch(() => null).then((ep: any) => ep || getQuiz(quizId))
       .then((q) => {
-        if (!q) { setError("Quiz not found or not shared."); return; }
+        if (!q) { setError(t("Quiz not found or not shared.")); return; }
         const playable = {
           ...q,
           questions: (q.questions || []).filter(
             (qq: any) => qq.type === "typeanswer" || (qq.options || []).some((o: string) => o && o.trim())
           ),
         };
-        if (!playable.questions.length) setError("This quiz has no playable questions yet.");
+        if (!playable.questions.length) setError(t("This quiz has no playable questions yet."));
         else { const rank = (v: any) => ({ easy: 0, medium: 1, hard: 2 } as any)[v?.difficulty || "medium"] ?? 1; const qs = (q as any).examMode ? shuffleForExam(playable.questions) : ((q as any).adaptive ? playable.questions.slice().sort((a: any, b: any) => rank(a) - rank(b)) : playable.questions); setQuiz({ ...playable, questions: qs }); }
       })
-      .catch(() => setError("Could not load this quiz. The host may not have shared it."));
+      .catch(() => setError(t("Could not load this quiz. The host may not have shared it.")));
   }, [quizId]);
 
   useEffect(() => {
@@ -190,19 +192,19 @@ export default function AssignmentClient() {
   };
 
   if (error) return <div className="p-10 text-center text-red-500 font-semibold">{error}</div>;
-  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">Loading quiz...</div>;
+  if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">{t("Loading quiz...")}</div>;
   if ((quiz as any).examMode && examBlocked === "attempted") return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
-      <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">Already completed</h1><p className="text-white/70">You have already taken this exam. Only one attempt is allowed.</p></div>
+      <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">{t("Already completed")}</h1><p className="text-white/70">{t("You have already taken this exam. Only one attempt is allowed.")}</p></div>
     </div>
   );
   if ((quiz as any).examMode && !user) return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
       <div className="max-w-sm">
-        <h1 className="text-3xl font-black mb-2">Exam sign-in</h1>
-        <p className="text-white/70 mb-6">This is an exam. Sign in so your result can be recorded &mdash; only one attempt is allowed.</p>
-        <button onClick={() => loginWithGoogle().catch(() => {})} className="bg-white text-gray-900 font-bold px-6 py-3 rounded-xl w-full mb-3">Continue with Google</button>
-        <a href="/login" className="text-white/60 underline text-sm">or sign in with email</a>
+        <h1 className="text-3xl font-black mb-2">{t("Exam sign-in")}</h1>
+        <p className="text-white/70 mb-6">{t("This is an exam. Sign in so your result can be recorded — only one attempt is allowed.")}</p>
+        <button onClick={() => loginWithGoogle().catch(() => {})} className="bg-white text-gray-900 font-bold px-6 py-3 rounded-xl w-full mb-3">{t("Continue with Google")}</button>
+        <a href="/login" className="text-white/60 underline text-sm">{t("or sign in with email")}</a>
       </div>
     </div>
   );
@@ -213,17 +215,17 @@ export default function AssignmentClient() {
         <Card className="w-full max-w-md text-center">
           <h1 className="text-3xl font-black mb-1" dir="auto">{quiz.title}</h1>
           <p className="text-gray-500 mb-1">{quiz.questions.length} questions</p>
-          <p className="text-gray-400 text-sm mb-6">📝 Self-paced assignment — play any time, no host needed.</p>
+          <p className="text-gray-400 text-sm mb-6">{t("📝 Self-paced assignment — play any time, no host needed.")}</p>
           <input
             type="text"
             dir="auto"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
-            placeholder="Your name"
+            placeholder={t("Your name")}
             className="text-center text-xl font-bold border-b-4 border-kahoot-purple py-2 focus:outline-none w-full mb-4"
           />
-          <Button size="lg" className="w-full" onClick={begin}>Start</Button>
+          <Button size="lg" className="w-full" onClick={begin}>{t("Start")}</Button>
         </Card>
       </div>
     );
@@ -235,7 +237,7 @@ export default function AssignmentClient() {
       <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white">
         <Confetti />
         <div className="flex flex-col items-center text-center w-full max-w-sm">
-          <h1 className="text-4xl font-black mb-4">🎉 All done!</h1>
+          <h1 className="text-4xl font-black mb-4">{t("🎉 All done!")}</h1>
           <p className="text-3xl font-black mb-1">{score.toLocaleString()} pts</p>
           <p className="text-white/70 mb-6">{correctCount}/{quiz.questions.length} correct ({pct}%)</p>
           <div className="bg-white/10 rounded-2xl p-4 mb-6 w-full text-sm">
@@ -243,7 +245,7 @@ export default function AssignmentClient() {
               📤 Your results have been sent to the quiz creator{quiz.creatorEmail ? ": " : "."}
               {quiz.creatorEmail && <span className="font-bold">{quiz.creatorEmail}</span>}
             </p>
-            <p className="text-white/60 mb-1">Want a copy sent to your email too?</p>
+            <p className="text-white/60 mb-1">{t("Want a copy sent to your email too?")}</p>
             <div className="flex gap-2">
               <input
                 type="email"
@@ -257,9 +259,9 @@ export default function AssignmentClient() {
                 {copyStatus === "sent" ? "✓ Sent" : "Send"}
               </Button>
             </div>
-            {copyStatus === "err" && <p className="text-red-300 text-xs mt-1">Could not send. Check the email and try again.</p>}
+            {copyStatus === "err" && <p className="text-red-300 text-xs mt-1">{t("Could not send. Check the email and try again.")}</p>}
           </div>
-          <a href="/"><Button size="lg">Back to QuizUps</Button></a>
+          <a href="/"><Button size="lg">{t("Back to QuizUps")}</Button></a>
         </div>
       </div>
     );
@@ -271,14 +273,14 @@ export default function AssignmentClient() {
         <div className="flex justify-between items-center mb-4">
           <span className="text-white/70 font-semibold">Q {idx + 1}/{quiz.questions.length}</span>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setSound(toggleSfx())} className="text-2xl leading-none" title="Sound effects on/off" aria-label="Toggle sound">{sound ? "\uD83D\uDD0A" : "\uD83D\uDD07"}</button>
+            <button type="button" onClick={() => setSound(toggleSfx())} className="text-2xl leading-none" title={t("Sound effects on/off")} aria-label={t("Toggle sound")}>{sound ? "\uD83D\uDD0A" : "\uD83D\uDD07"}</button>
             <span className="font-bold">{score.toLocaleString()} pts</span>
           </div>
         </div>
 
         <Card className="mb-4 text-center text-gray-900">
           <h2 className="text-xl font-black" dir="auto"><MathText text={q.text} /></h2>
-          {q.multiSelect && <p className="text-sm text-gray-500 mt-1">☑️ Select all that apply</p>}
+          {q.multiSelect && <p className="text-sm text-gray-500 mt-1">{t("☑️ Select all that apply")}</p>}
           {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-52 mx-auto rounded-xl mt-3" />}
           {q.audioUrl && <audio src={q.audioUrl} controls className="mx-auto mt-3" />}
         </Card>
@@ -291,7 +293,7 @@ export default function AssignmentClient() {
               value={typed}
               disabled={revealed}
               onChange={(e) => setTyped(e.target.value)}
-              placeholder="Type your answer..."
+              placeholder={t("Type your answer...")}
               className="text-center text-xl font-bold rounded-xl py-3 px-3 text-gray-900"
             />
           </div>
@@ -325,7 +327,7 @@ export default function AssignmentClient() {
         {revealed && !sealed && (
           <div className="text-center mt-4">
             {q.type === "poll" ? (
-              <p className="text-2xl font-black">🗳️ Vote recorded!</p>
+              <p className="text-2xl font-black">{t("🗳️ Vote recorded!")}</p>
             ) : (
               <>
                 <p className="text-3xl font-black">{lastCorrect ? "✓ Correct!" : "✗ Wrong!"}</p>
