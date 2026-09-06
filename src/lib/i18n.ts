@@ -1,6 +1,31 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // wave4a: feedback widget + AI progress
+  "Thank you!": { en: "Thank you!", ar: "شكرًا لك!" },
+  "We read every message and use it to improve QuizUps. You'll often see your ideas in our next update.": { en: "We read every message and use it to improve QuizUps. You'll often see your ideas in our next update.", ar: "نقرأ كل رسالة ونستخدمها لتحسين QuizUps، وغالبًا ما ترى أفكارك في تحديثنا القادم." },
+  "Send feedback": { en: "Send feedback", ar: "أرسل ملاحظاتك" },
+  "We take every comment seriously — we ship updates and improvements regularly based on what you tell us.": { en: "We take every comment seriously — we ship updates and improvements regularly based on what you tell us.", ar: "نأخذ كل تعليق على محمل الجد — ونصدر تحديثات وتحسينات بانتظام بناءً على ملاحظاتكم." },
+  "💡 Recommendation": { en: "💡 Recommendation", ar: "💡 اقتراح" },
+  "⚠️ Complaint": { en: "⚠️ Complaint", ar: "⚠️ شكوى" },
+  "❓ Question": { en: "❓ Question", ar: "❓ سؤال" },
+  "💬 Other": { en: "💬 Other", ar: "💬 أخرى" },
+  "Attach a screenshot (optional)": { en: "Attach a screenshot (optional)", ar: "أرفق لقطة شاشة (اختياري)" },
+  "💬 Feedback": { en: "💬 Feedback", ar: "💬 ملاحظات" },
+  "Sending…": { en: "Sending…", ar: "جارٍ الإرسال…" },
+  "Send": { en: "Send", ar: "إرسال" },
+  "Tell us what's on your mind…": { en: "Tell us what's on your mind…", ar: "أخبرنا بما يدور في ذهنك…" },
+  "Your email (required)": { en: "Your email (required)", ar: "بريدك الإلكتروني (مطلوب)" },
+  "Please write a message.": { en: "Please write a message.", ar: "يرجى كتابة رسالة." },
+  "Please enter a valid email so we can follow up.": { en: "Please enter a valid email so we can follow up.", ar: "يرجى إدخال بريد إلكتروني صحيح حتى نتمكن من المتابعة." },
+  "Something went wrong. Please try again.": { en: "Something went wrong. Please try again.", ar: "حدث خطأ ما. يرجى المحاولة مرة أخرى." },
+  "s left": { en: "s left", ar: " ث متبقية" },
+  "Trying Gemini → Groq → OpenRouter for reliability.": { en: "Trying Gemini → Groq → OpenRouter for reliability.", ar: "نجرّب Gemini ثم Groq ثم OpenRouter لضمان الموثوقية." },
+  "Contacting the AI…": { en: "Contacting the AI…", ar: "جارٍ الاتصال بالذكاء الاصطناعي…" },
+  "Crafting your questions…": { en: "Crafting your questions…", ar: "جارٍ صياغة أسئلتك…" },
+  "Checking facts & options…": { en: "Checking facts & options…", ar: "جارٍ التحقق من الحقائق والخيارات…" },
+  "Removing duplicates…": { en: "Removing duplicates…", ar: "جارٍ إزالة التكرارات…" },
+  "Almost there…": { en: "Almost there…", ar: "أوشكنا على الانتهاء…" },
   // wave3: game components
   "Waiting for rankings…": { en: "Waiting for rankings…", ar: "في انتظار الترتيبات…" },
   "Waiting for ratings…": { en: "Waiting for ratings…", ar: "في انتظار التقييمات…" },

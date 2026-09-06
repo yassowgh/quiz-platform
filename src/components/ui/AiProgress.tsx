@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useLang } from "@/contexts/LanguageContext";
 
 const MSGS = ["Contacting the AI…", "Crafting your questions…", "Checking facts & options…", "Removing duplicates…", "Almost there…"];
 
 export default function AiProgress({ eta = 18 }: { eta?: number }) {
+  const { t } = useLang();
   const [pct, setPct] = useState(5);
   const [msg, setMsg] = useState(0);
   useEffect(() => {
@@ -19,11 +21,11 @@ export default function AiProgress({ eta = 18 }: { eta?: number }) {
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3">
       <div className="flex items-center justify-between text-sm font-semibold text-indigo-700 mb-1">
-        <span>{MSGS[msg]}</span>
-        <span className="text-indigo-400 text-xs">~{remain}s left</span>
+        <span>{t(MSGS[msg])}</span>
+        <span className="text-indigo-400 text-xs">~{remain}{t("s left")}</span>
       </div>
       <div className="h-2 rounded-full bg-indigo-100 overflow-hidden"><div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: pct + "%" }} /></div>
-      <div className="text-xs text-indigo-400 mt-1">Trying Gemini → Groq → OpenRouter for reliability.</div>
+      <div className="text-xs text-indigo-400 mt-1">{t("Trying Gemini → Groq → OpenRouter for reliability.")}</div>
     </div>
   );
 }
