@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { listGamesByHost, listAssignmentResults } from "@/lib/firestore";
+import { listGamesByHost, listAssignmentResults, listAssignmentResultsByHost } from "@/lib/firestore";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
@@ -23,7 +23,7 @@ export default function ReportsClient() {
     setFetching(true);
     Promise.all([
       listGamesByHost(user.uid),
-      quizId ? listAssignmentResults(quizId) : Promise.resolve([]),
+      quizId ? listAssignmentResults(quizId) : listAssignmentResultsByHost(user.uid),
     ])
       .then(([gs, asg]) => {
         let list = gs as any[];

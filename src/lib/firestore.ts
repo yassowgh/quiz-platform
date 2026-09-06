@@ -194,3 +194,10 @@ export async function getFeatures(): Promise<Record<string, any>> {
 export async function saveFeatures(data: Record<string, any>): Promise<void> {
   await setDoc(doc(db, "config", "features"), data, { merge: true });
 }
+
+
+export async function listAssignmentResultsByHost(hostId: string): Promise<any[]> {
+  const q = query(collection(db, "assignments"), where("hostId", "==", hostId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data()).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+}
