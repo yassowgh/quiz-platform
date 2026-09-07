@@ -3,6 +3,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { uploadImage } from "@/lib/integrations";
 import { getQuiz, updateQuiz, saveExamPublic } from "@/lib/firestore";
 import { sealExam } from "@/lib/integrations";
 import VideoQuizEditor from "@/components/quiz/VideoQuizEditor";
@@ -197,7 +198,15 @@ export default function EditQuizPage() {
                         const c = canvas.getContext("2d");
                         if (!c) return;
                         c.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        setQuiz({ ...quiz, branding: { ...quiz.branding, logoUrl: canvas.toDataURL("image/png") } });
+                        canvas.toBlob(async (blob) => {
+                          if (!blob) return;
+                          try {
+                            const url = await uploadImage(blob);
+                            setQuiz((prev: any) => ({ ...prev, branding: { ...prev.branding, logoUrl: url } }));
+                          } catch (e) {
+                            setQuiz((prev: any) => ({ ...prev, branding: { ...prev.branding, logoUrl: canvas.toDataURL("image/png") } }));
+                          }
+                        }, "image/png");
                       };
                       img.src = String(reader.result || "");
                     };

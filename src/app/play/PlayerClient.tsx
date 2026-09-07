@@ -240,6 +240,7 @@ export default function PlayPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col" style={(state as any)?._quiz?.branding?.primaryColor ? { background: (state as any)._quiz.branding.primaryColor } : undefined}>
+      {(state as any)?._quiz?.branding?.logoUrl && <img src={(state as any)._quiz.branding.logoUrl} alt="" className="h-10 mx-auto mt-3 mb-1 object-contain" />}
       <ReactionBar gameId={gameId} />
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
