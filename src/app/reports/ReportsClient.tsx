@@ -207,7 +207,7 @@ export default function ReportsClient() {
       )}
 
       {/* Assignment completions (self-paced) */}
-      {quizId && (
+      {assignments.length > 0 && (
         <Card>
           <h2 className="text-xl font-bold mb-4">📝 Assignment completions ({assignments.length})</h2>
           {assignments.length ? (

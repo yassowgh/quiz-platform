@@ -155,7 +155,7 @@ export default function AssignmentClient() {
           totalQuestions: quiz.questions.length,
           answers: answerLog.current,
         });
-        try {
+        if ((quiz as any).notifyOnSubmission === true) try {
           fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "feedback", ftype: "assignment submission", message: "Assignment completed\nQuiz: " + quiz.title + "\nBy: " + (name.trim() || "Anonymous") + "\nScore: " + finalScore + " - Correct: " + finalCorrect + "/" + quiz.questions.length + "\nQuizId: " + quizId, email: (ccEmail.trim() || (user && user.email) || "anonymous") }) }).catch(() => {});
         } catch (e) {}
         try {

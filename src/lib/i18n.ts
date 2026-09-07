@@ -1,6 +1,9 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // batch3
+  "📧 Email me when someone completes this": { en: "📧 Email me when someone completes this", ar: "📧 أرسل لي بريدًا عند إكمال أي شخص" },
+  "Off by default. Turn on to get an email each time someone finishes this quiz or poll.": { en: "Off by default. Turn on to get an email each time someone finishes this quiz or poll.", ar: "معطّل افتراضيًا. فعّله لتلقّي بريد في كل مرة يُكمل فيها شخص هذا الاختبار أو الاستطلاع." },
   // batch2
   "🔗 Copy join link": { en: "🔗 Copy join link", ar: "🔗 نسخ رابط الانضمام" },
   "✓ Link copied": { en: "✓ Link copied", ar: "✓ تم نسخ الرابط" },

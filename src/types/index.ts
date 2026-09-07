@@ -44,6 +44,7 @@ export interface Quiz {
   pollWaitLobby?: boolean;
   requireName?: boolean;
   pollTimer?: boolean;
+  notifyOnSubmission?: boolean;
   adaptive?: boolean;
   videoMode?: boolean;
   videoType?: "youtube" | "url";

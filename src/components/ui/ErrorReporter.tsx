@@ -64,8 +64,8 @@ export function GlobalErrorListener() {
   const { t } = useLang();
   const [toast, setToast] = useState<null | { msg: string }>(null);
   useEffect(() => {
-    function onErr(e: ErrorEvent) { throttledReport("Uncaught error", (e.error && (e.error.stack || e.error.message)) || e.message); setToast({ msg: e.message || "error" }); }
-    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; throttledReport("Unhandled promise rejection", (r && (r.stack || r.message)) || String(r)); setToast({ msg: (r && r.message) || String(r) }); }
+    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
+    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && r.message.indexOf("insufficient permissions") >= 0) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };
