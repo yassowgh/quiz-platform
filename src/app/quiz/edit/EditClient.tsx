@@ -139,6 +139,7 @@ export default function EditQuizPage() {
             <span className="font-bold text-gray-700">{t("📧 Email me when someone completes this")}</span>
             <span className="block text-sm text-gray-500">{t("Off by default. Turn on to get an email each time someone finishes this quiz or poll.")}</span>
           </span>
+        </label>
         <VideoQuizEditor quiz={quiz} onChange={setQuiz} />
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
           <input type="checkbox" checked={!!quiz.adaptive} onChange={(ev) => setQuiz({ ...quiz, adaptive: ev.target.checked })} className="mt-1 w-5 h-5" />

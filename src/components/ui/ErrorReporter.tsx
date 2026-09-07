@@ -64,8 +64,8 @@ export function GlobalErrorListener() {
   const { t } = useLang();
   const [toast, setToast] = useState<null | { msg: string }>(null);
   useEffect(() => {
-    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
-    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && r.message.indexOf("insufficient permissions") >= 0) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
+    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; if (e.filename && e.filename.indexOf("/_next/") < 0) return; if ((e.error.stack || "").indexOf("global code") >= 0) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
+    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0)) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };
