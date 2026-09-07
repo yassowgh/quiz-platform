@@ -199,12 +199,14 @@ export default function AssignmentClient() {
   if (error) return <div className="p-10 text-center text-red-500 font-semibold">{error}</div>;
   if (!quiz) return <div className="p-10 text-center text-gray-500 font-bold">{t("Loading quiz...")}</div>;
   if ((quiz as any).examMode && examBlocked === "attempted") return (
-    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+    <div className="relative min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+      {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="absolute top-2 left-1/2 -translate-x-1/2 h-9 object-contain z-30" />}
       <div className="max-w-sm"><h1 className="text-3xl font-black mb-2">{t("Already completed")}</h1><p className="text-white/70">{t("You have already taken this exam. Only one attempt is allowed.")}</p></div>
     </div>
   );
   if ((quiz as any).examMode && !user) return (
-    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+    <div className="relative min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white text-center">
+      {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="absolute top-2 left-1/2 -translate-x-1/2 h-9 object-contain z-30" />}
       <div className="max-w-sm">
         <h1 className="text-3xl font-black mb-2">{t("Exam sign-in")}</h1>
         <p className="text-white/70 mb-6">{t("This is an exam. Sign in so your result can be recorded — only one attempt is allowed.")}</p>
@@ -216,7 +218,8 @@ export default function AssignmentClient() {
 
   if (!started) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
+      <div className="relative min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
+      {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="absolute top-2 left-1/2 -translate-x-1/2 h-9 object-contain z-30" />}
         <Card className="w-full max-w-md text-center">
           <h1 className="text-3xl font-black mb-1" dir="auto">{quiz.title}</h1>
           <p className="text-gray-500 mb-1">{quiz.questions.length} questions</p>
@@ -239,7 +242,8 @@ export default function AssignmentClient() {
   if (done) {
     const pct = quiz.questions.length ? Math.round((correctCount / quiz.questions.length) * 100) : 0;
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white">
+      <div className="relative min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6 text-white">
+      {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="absolute top-2 left-1/2 -translate-x-1/2 h-9 object-contain z-30" />}
         <Confetti />
         <div className="flex flex-col items-center text-center w-full max-w-sm">
           <h1 className="text-4xl font-black mb-4">{t("🎉 All done!")}</h1>
@@ -273,7 +277,8 @@ export default function AssignmentClient() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern p-6 text-white">
+    <div className="relative min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern p-6 text-white">
+      {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="absolute top-2 left-1/2 -translate-x-1/2 h-9 object-contain z-30" />}
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <span className="text-white/70 font-semibold">Q {idx + 1}/{quiz.questions.length}</span>
