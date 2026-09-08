@@ -35,6 +35,7 @@ export default function PlayPage() {
   const [wordDraft, setWordDraft] = useState("");
   const [wordSent, setWordSent] = useState(0);
   const [myRating, setMyRating] = useState(0);
+  const [myScale, setMyScale] = useState<number | null>(null);
   const [openDraft, setOpenDraft] = useState("");
   const [openSent, setOpenSent] = useState(0);
   const [rankOrder, setRankOrder] = useState<number[] | null>(null);
@@ -186,7 +187,7 @@ export default function PlayPage() {
   const isBattle = (state as any)?.mode === "battle";
   const isPoll = (state as any)?._quiz?.kind === "poll";
   useEffect(() => {
-    setWordSent(0); setWordDraft(""); setMyRating(0); setOpenSent(0); setOpenDraft(""); setRankSent(false);
+    setWordSent(0); setWordDraft(""); setMyRating(0); setMyScale(null); setOpenSent(0); setOpenDraft(""); setRankSent(false);
     if (currentQ?.type === "ranking") {
       const n = (currentQ.options || []).filter((o: string) => o && o.trim()).length;
       setRankOrder(Array.from({ length: n }, (_, i) => i));
@@ -207,6 +208,9 @@ export default function PlayPage() {
   const rateStar = async (s: number) => {
     setMyRating(s);
     if (playerId && state) await setPlayerResponse(gameId, state.currentQuestionIndex, playerId, String(s));
+  };
+  const commitScale = (v: number) => {
+    if (playerId && state) setPlayerResponse(gameId, state.currentQuestionIndex, playerId, String(v));
   };
   const sendWord = async () => {
     const w = wordDraft.trim();
@@ -315,6 +319,13 @@ export default function PlayPage() {
                 ))}
               </div>
               <p className="text-white/70 font-semibold">{myRating ? "You rated " + myRating + "/5 — tap to change" : "Tap a star to rate"}</p>
+            </div>
+          ) : currentQ?.type === "scale" ? (
+            <div className="flex flex-col gap-6 flex-1 justify-center items-center px-4">
+              <div className="text-6xl font-black text-kahoot-yellow">{myScale ?? Math.round(((currentQ.scaleMin ?? 0) + (currentQ.scaleMax ?? 10)) / 2)}</div>
+              <input type="range" min={currentQ.scaleMin ?? 0} max={currentQ.scaleMax ?? 10} value={myScale ?? Math.round(((currentQ.scaleMin ?? 0) + (currentQ.scaleMax ?? 10)) / 2)} onChange={(e) => setMyScale(Number(e.target.value))} onMouseUp={(e) => commitScale(Number((e.target as HTMLInputElement).value))} onTouchEnd={(e) => commitScale(Number((e.target as HTMLInputElement).value))} onKeyUp={(e) => commitScale(Number((e.target as HTMLInputElement).value))} className="w-full max-w-sm h-3" />
+              <div className="flex justify-between w-full max-w-sm text-white/70 text-sm"><span dir="auto">{currentQ.scaleMinLabel || (currentQ.scaleMin ?? 0)}</span><span dir="auto">{currentQ.scaleMaxLabel || (currentQ.scaleMax ?? 10)}</span></div>
+              <p className="text-white/70 font-semibold">{myScale != null ? "You picked " + myScale : "Drag to choose"}</p>
             </div>
           ) : currentQ?.type === "wordcloud" ? (
             <div className="flex flex-col gap-3 flex-1 justify-center">

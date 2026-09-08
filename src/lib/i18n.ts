@@ -1,6 +1,17 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // scale poll type
+  "Scale": { en: "Scale", ar: "مقياس" },
+  "Star rating": { en: "Star rating", ar: "تقييم بالنجوم" },
+  "Min": { en: "Min", ar: "الأدنى" },
+  "Max": { en: "Max", ar: "الأعلى" },
+  "Low label (optional)": { en: "Low label (optional)", ar: "وصف الحد الأدنى (اختياري)" },
+  "High label (optional)": { en: "High label (optional)", ar: "وصف الحد الأعلى (اختياري)" },
+  "avg": { en: "avg", ar: "متوسط" },
+  "responses": { en: "responses", ar: "استجابة" },
+  "Waiting for responses…": { en: "Waiting for responses…", ar: "في انتظار الاستجابات…" },
+  "🎚️ Scale: participants pick a number on a slider; the host shows the live average. Set the range below.": { en: "🎚️ Scale: participants pick a number on a slider; the host shows the live average. Set the range below.", ar: "🎚️ مقياس: يختار المشاركون رقمًا على شريط تمرير، ويعرض المضيف المتوسط مباشرة. حدد النطاق أدناه." },
   // poll thank-you + join (batch: video/poll fixes)
   "Joining…": { en: "Joining…", ar: "جارٍ الانضمام…" },
   "Taking you to the poll.": { en: "Taking you to the poll.", ar: "جارٍ نقلك إلى الاستطلاع." },

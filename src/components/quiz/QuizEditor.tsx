@@ -67,6 +67,46 @@ interface SortableQuestionProps {
   kind?: string;
 }
 
+function PollPreview({ question }: { question: any }) {
+  const type = question.type || "poll";
+  const opts = (question.options || []).filter((o: string) => o && o.trim());
+  const lo = question.scaleMin ?? 0, hi = question.scaleMax ?? 10;
+  const barColors = ["bg-kahoot-red", "bg-kahoot-blue", "bg-kahoot-yellow", "bg-kahoot-green", "bg-kahoot-purple", "bg-pink-500"];
+  return (
+    <div className="mt-2 rounded-xl border-2 border-dashed border-kahoot-purple/30 bg-kahoot-dark p-4">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">👀 What participants see</p>
+      <p className="text-white font-bold text-center mb-3" dir="auto">{question.text || "Your question…"}</p>
+      {type === "poll" || type === "multiple" ? (
+        <div className="grid grid-cols-1 gap-2">
+          {(opts.length ? opts : ["Option 1", "Option 2"]).map((o: string, i: number) => (
+            <div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold " + barColors[i % 6]} dir="auto">{o}</div>
+          ))}
+        </div>
+      ) : type === "rating" ? (
+        <div className="flex justify-center gap-1 text-4xl">{[1, 2, 3, 4, 5].map((s) => (<span key={s} className="opacity-40">⭐</span>))}</div>
+      ) : type === "scale" ? (
+        <div className="px-2">
+          <div className="text-center text-3xl font-black text-kahoot-yellow mb-1">{Math.round((lo + hi) / 2)}</div>
+          <input type="range" min={lo} max={hi} defaultValue={Math.round((lo + hi) / 2)} className="w-full" readOnly />
+          <div className="flex justify-between text-white/60 text-xs mt-1"><span dir="auto">{question.scaleMinLabel || lo}</span><span dir="auto">{question.scaleMaxLabel || hi}</span></div>
+        </div>
+      ) : type === "wordcloud" ? (
+        <div className="rounded-lg bg-white/10 text-white/50 text-sm py-3 px-3 text-center">Type a word…</div>
+      ) : type === "openended" ? (
+        <div className="rounded-lg bg-white/10 text-white/50 text-sm py-6 px-3">Type your answer…</div>
+      ) : type === "ranking" ? (
+        <div className="flex flex-col gap-2">
+          {(opts.length ? opts : ["First", "Second", "Third"]).map((o: string, i: number) => (<div key={i} className="flex items-center gap-2 bg-white/10 rounded-lg py-2 px-3 text-white text-sm"><span className="opacity-60">≡</span><span dir="auto">{o}</span></div>))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          {(opts.length ? opts : ["Answer 1", "Answer 2", "Answer 3", "Answer 4"]).map((o: string, i: number) => (<div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold " + barColors[i % 6]} dir="auto">{o}</div>))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SortableQuestion({ question, index, onChange, onDelete, startExpanded, kind }: SortableQuestionProps) {
   const { t } = useLang();
   const [expanded, setExpanded] = useState(!!startExpanded);
@@ -180,8 +220,8 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
             <label className="text-sm font-semibold text-gray-700">{t("Question type")}</label>
 {kind === "poll" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {([["poll", "📊", "Multiple Choice"], ["wordcloud", "☁️", "Word Cloud"], ["openended", "💬", "Open Ended"], ["rating", "⭐", "Scales"], ["ranking", "🔢", "Ranking"]] as string[][]).map((it) => (
-                  <button key={it[0]} type="button" onClick={() => { const v = it[0] as any; if (v === "poll" || v === "ranking") onChange({ ...question, type: v, correctAnswer: 0 }); else onChange({ ...question, type: v }); }} className={"p-3 rounded-xl border-2 text-center transition-colors " + ((question.type || "multiple") === it[0] ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
+                {([["poll", "📊", "Multiple Choice"], ["scale", "🎚️", "Scale"], ["rating", "⭐", "Star rating"], ["wordcloud", "☁️", "Word Cloud"], ["openended", "💬", "Open Ended"], ["ranking", "🔢", "Ranking"]] as string[][]).map((it) => (
+                  <button key={it[0]} type="button" onClick={() => { const v = it[0] as any; if (v === "poll" || v === "ranking") onChange({ ...question, type: v, correctAnswer: 0 }); else if (v === "scale") onChange({ ...question, type: v, scaleMin: question.scaleMin ?? 0, scaleMax: question.scaleMax ?? 10 }); else onChange({ ...question, type: v }); }} className={"p-3 rounded-xl border-2 text-center transition-colors " + ((question.type || "multiple") === it[0] ? "border-kahoot-purple bg-kahoot-purple/10" : "border-gray-200 hover:border-gray-300")}>
                     <div className="text-2xl">{it[1]}</div>
                     <div className="text-xs font-bold text-gray-700 mt-1">{t(it[2])}</div>
                   </button>
@@ -239,6 +279,18 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               onChange={(e) => onChange({ ...question, correctText: e.target.value })}
               placeholder={t("e.g. Paris")}
             />
+          ) : question.type === "scale" ? (
+            <div className="flex flex-col gap-3 bg-gray-50 rounded-xl p-3">
+              <p className="text-sm text-gray-600">{t("🎚️ Scale: participants pick a number on a slider; the host shows the live average. Set the range below.")}</p>
+              <div className="flex gap-3 flex-wrap items-end">
+                <div className="flex flex-col gap-1"><label className="text-xs font-semibold text-gray-600">{t("Min")}</label><input type="number" value={question.scaleMin ?? 0} onChange={(e) => onChange({ ...question, scaleMin: Number(e.target.value) })} className="w-24 px-2 py-1 border-2 border-gray-200 rounded-lg" /></div>
+                <div className="flex flex-col gap-1"><label className="text-xs font-semibold text-gray-600">{t("Max")}</label><input type="number" value={question.scaleMax ?? 10} onChange={(e) => onChange({ ...question, scaleMax: Number(e.target.value) })} className="w-24 px-2 py-1 border-2 border-gray-200 rounded-lg" /></div>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                <input value={question.scaleMinLabel || ""} onChange={(e) => onChange({ ...question, scaleMinLabel: e.target.value })} placeholder={t("Low label (optional)")} className="flex-1 min-w-[130px] px-2 py-1 border-2 border-gray-200 rounded-lg text-sm" />
+                <input value={question.scaleMaxLabel || ""} onChange={(e) => onChange({ ...question, scaleMaxLabel: e.target.value })} placeholder={t("High label (optional)")} className="flex-1 min-w-[130px] px-2 py-1 border-2 border-gray-200 rounded-lg text-sm" />
+              </div>
+            </div>
           ) : (question.type === "wordcloud" || question.type === "openended" || question.type === "rating") ? (
             <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">
               {question.type === "wordcloud" && "☁️ Word cloud: participants type words from their phones; the host screen shows a live cloud (bigger = more mentions). No options needed."}
@@ -314,6 +366,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               )}
             </div>
           )}
+          {kind === "poll" && <PollPreview question={question} />}
           <div className="flex gap-4">
             {adv && (<>
             <div className="flex flex-col gap-1">

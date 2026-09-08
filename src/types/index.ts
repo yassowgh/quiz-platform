@@ -13,7 +13,7 @@ export interface Question {
   options: string[];
   correctAnswer: number;
   correctText?: string;
-  type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll" | "wordcloud" | "openended" | "rating" | "ranking";
+  type?: "multiple" | "truefalse" | "typeanswer" | "sorting" | "poll" | "wordcloud" | "openended" | "rating" | "ranking" | "scale";
   videoUrl?: string;
   audioUrl?: string;
   correctAnswers?: number[];
@@ -21,6 +21,10 @@ export interface Question {
   timeLimit: number; // seconds
   points: number;
   difficulty?: "easy" | "medium" | "hard";
+  scaleMin?: number;
+  scaleMax?: number;
+  scaleMinLabel?: string;
+  scaleMaxLabel?: string;
 }
 
 export interface VideoSegment {

@@ -19,6 +19,7 @@ import WordCloud from "@/components/game/WordCloud";
 import RatingResult from "@/components/game/RatingResult";
 import ResponseWall from "@/components/game/ResponseWall";
 import PollResult from "@/components/game/PollResult";
+import ScaleResult from "@/components/game/ScaleResult";
 import RankingResult from "@/components/game/RankingResult";
 import Confetti from "@/components/game/Confetti";
 import Button from "@/components/ui/Button";
@@ -292,6 +293,10 @@ export default function HostPlayPage() {
             <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[240px] flex items-center justify-center">
               <RatingResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
+          ) : currentQ.type === "scale" ? (
+            <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[240px] flex items-center justify-center">
+              <ScaleResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} min={currentQ.scaleMin ?? 0} max={currentQ.scaleMax ?? 10} minLabel={currentQ.scaleMinLabel} maxLabel={currentQ.scaleMaxLabel} />
+            </div>
           ) : currentQ.type === "wordcloud" ? (
             <div className="bg-white/5 rounded-2xl p-6 mb-4 min-h-[280px] flex items-center justify-center">
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
@@ -323,7 +328,7 @@ export default function HostPlayPage() {
         <div className="max-w-3xl mx-auto">
           <Card className="mb-4 text-center text-gray-900">
             <h2 className="text-2xl font-black mb-1" dir="auto"><MathText text={currentQ.text} /></h2>
-            <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.multiSelect && currentQ.correctAnswers?.length ? currentQ.correctAnswers.map((ci) => currentQ.options[ci]).join(", ") : currentQ.type === "typeanswer" ? currentQ.correctText : currentQ.type === "sorting" ? currentQ.options.filter((o) => o && o.trim()).join(" → ") : currentQ.type === "poll" ? "Poll — every vote counts!" : currentQ.options[Number(currentQ.correctAnswer)]}</p>
+            <p className="text-kahoot-green font-bold text-xl">✓ {currentQ.multiSelect && currentQ.correctAnswers?.length ? currentQ.correctAnswers.map((ci) => currentQ.options[ci]).join(", ") : currentQ.type === "typeanswer" ? currentQ.correctText : currentQ.type === "sorting" ? currentQ.options.filter((o) => o && o.trim()).join(" → ") : (currentQ.type === "poll" || currentQ.type === "scale" || currentQ.type === "rating" || currentQ.type === "wordcloud" || currentQ.type === "openended" || currentQ.type === "ranking") ? "Poll — every vote counts!" : currentQ.options[Number(currentQ.correctAnswer)]}</p>
           </Card>
           {currentQ.type === "openended" && (
             <div className="bg-white/5 rounded-2xl p-6 mb-6 min-h-[220px] flex items-start justify-center overflow-auto">
@@ -333,6 +338,11 @@ export default function HostPlayPage() {
           {currentQ.type === "rating" && (
             <div className="bg-white/5 rounded-2xl p-6 mb-6 min-h-[220px] flex items-center justify-center">
               <RatingResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
+            </div>
+          )}
+          {currentQ.type === "scale" && (
+            <div className="bg-white/5 rounded-2xl p-6 mb-6 min-h-[220px] flex items-center justify-center">
+              <ScaleResult responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} min={currentQ.scaleMin ?? 0} max={currentQ.scaleMax ?? 10} minLabel={currentQ.scaleMinLabel} maxLabel={currentQ.scaleMaxLabel} />
             </div>
           )}
           {currentQ.type === "wordcloud" && (
