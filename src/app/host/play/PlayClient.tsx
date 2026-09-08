@@ -46,6 +46,7 @@ export default function HostPlayPage() {
 
   const currentQ = quiz && state ? quiz.questions[state.currentQuestionIndex] : null;
   const players = state?.players ? Object.values(state.players) : [];
+  const isPoll = (quiz as any)?.kind === "poll";
   const answers = state && state.currentQuestionIndex >= 0 ? (state.answers?.[state.currentQuestionIndex] || {}) : {};
   const answeredCount = Object.keys(answers).length;
 
@@ -385,12 +386,21 @@ export default function HostPlayPage() {
         </div>
       )}
       {state.status === "podium" && (
+        isPoll ? (
+        <div className="max-w-xl mx-auto text-center">
+          <Confetti />
+          <h2 className="text-4xl font-black mb-4">🎉 {t("thanksForPlaying")}</h2>
+          <p className="text-white/70 mb-8">{players.length} {t("participants")}</p>
+          <Button onClick={handleEnd} size="lg" className="w-full">{t("endGame")}</Button>
+        </div>
+        ) : (
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 {t("finalResults")}</h2>
           <Podium players={state.players || {}} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">{t("endGame")}</Button>
         </div>
+        )
       )}
     </div>
   );

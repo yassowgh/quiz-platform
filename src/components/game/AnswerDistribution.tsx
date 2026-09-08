@@ -11,7 +11,7 @@ interface AnswerDistributionProps {
 
 export default function AnswerDistribution({ answers, totalPlayers, correctAnswer, options }: AnswerDistributionProps) {
   const counts = [0, 0, 0, 0];
-  Object.values(answers).forEach((a) => { if (a.answerIndex >= 0) counts[a.answerIndex]++; });
+  Object.values(answers || {}).forEach((a) => { if (a.answerIndex >= 0) counts[a.answerIndex]++; });
   const max = Math.max(...counts, 1);
 
   return (

@@ -10,12 +10,26 @@ function parseTime(s: string): number {
 }
 function fmt(n: number): string { const m = Math.floor(n / 60), r = Math.floor(n % 60); return m + ":" + String(r).padStart(2, "0"); }
 
-export default function VideoQuizEditor({ quiz, onChange }: { quiz: Quiz; onChange: (q: Quiz) => void }) {
+export default function VideoQuizEditor({ quiz, onChange, admin }: { quiz: Quiz; onChange: (q: Quiz) => void; admin?: boolean }) {
   const [busy, setBusy] = useState<number | null>(null);
   const [err, setErr] = useState("");
   const [count, setCount] = useState(5);
   const segs: VideoSegment[] = (quiz.videoSegments || []) as VideoSegment[];
   const setSegs = (s: VideoSegment[]) => onChange({ ...quiz, videoSegments: s.slice().sort((a, b) => a.time - b.time) });
+
+  if (!admin) {
+    return (
+      <div className="border-2 border-gray-200 rounded-xl p-4 opacity-60 select-none">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🎬</span>
+          <span>
+            <span className="font-bold text-gray-700">Interactive video quiz</span>
+            <span className="block text-sm text-gray-500">🚧 In testing — we're upgrading how videos are processed. This feature will be back on soon.</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const gen = async (idx: number) => {
     if (!quiz.videoUrl) { setErr("Add the video link first."); return; }

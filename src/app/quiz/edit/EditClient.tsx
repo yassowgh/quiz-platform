@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImage } from "@/lib/integrations";
-import { getQuiz, updateQuiz, saveExamPublic } from "@/lib/firestore";
+import { getQuiz, updateQuiz, saveExamPublic, getAdmins } from "@/lib/firestore";
 import { sealExam } from "@/lib/integrations";
 import VideoQuizEditor from "@/components/quiz/VideoQuizEditor";
 import type { Quiz } from "@/types";
@@ -20,6 +20,14 @@ export default function EditQuizPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const OWNERS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
+    if (!user) { setIsAdmin(false); return; }
+    if (OWNERS.includes(user.email || "")) { setIsAdmin(true); return; }
+    getAdmins().then((list) => setIsAdmin(list.includes(user.email || ""))).catch(() => setIsAdmin(false));
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -141,7 +149,7 @@ export default function EditQuizPage() {
             <span className="block text-sm text-gray-500">{t("Off by default. Turn on to get an email each time someone finishes this quiz or poll.")}</span>
           </span>
         </label>
-        <VideoQuizEditor quiz={quiz} onChange={setQuiz} />
+        <VideoQuizEditor quiz={quiz} onChange={setQuiz} admin={isAdmin} />
         <label className="flex items-start gap-3 border-2 border-gray-200 rounded-xl p-4 cursor-pointer">
           <input type="checkbox" checked={!!quiz.adaptive} onChange={(ev) => setQuiz({ ...quiz, adaptive: ev.target.checked })} className="mt-1 w-5 h-5" />
           <span>

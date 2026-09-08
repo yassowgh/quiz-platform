@@ -1,6 +1,12 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // poll thank-you + join (batch: video/poll fixes)
+  "Joining…": { en: "Joining…", ar: "جارٍ الانضمام…" },
+  "Taking you to the poll.": { en: "Taking you to the poll.", ar: "جارٍ نقلك إلى الاستطلاع." },
+  "Your response has been recorded.": { en: "Your response has been recorded.", ar: "تم تسجيل إجابتك." },
+  "Done": { en: "Done", ar: "تم" },
+  "participants": { en: "participants", ar: "مشارك" },
   // batch3
   "📧 Email me when someone completes this": { en: "📧 Email me when someone completes this", ar: "📧 أرسل لي بريدًا عند إكمال أي شخص" },
   "Off by default. Turn on to get an email each time someone finishes this quiz or poll.": { en: "Off by default. Turn on to get an email each time someone finishes this quiz or poll.", ar: "معطّل افتراضيًا. فعّله لتلقّي بريد في كل مرة يُكمل فيها شخص هذا الاختبار أو الاستطلاع." },

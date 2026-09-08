@@ -55,9 +55,21 @@ export default function JoinClient() {
     }
   };
 
+  const _q = (state as any)?._quiz;
+  const pollNoName = !!(_q && _q.kind === "poll" && !_q.requireName);
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
       <Card className="w-full max-w-sm text-center">
+        {pollNoName ? (
+        <div>
+          <div className="text-5xl mb-3">📊</div>
+          <h1 className="text-2xl font-black mb-2">{t("Joining…")}</h1>
+          <p className="text-gray-500">{t("Taking you to the poll.")}</p>
+          {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+        </div>
+        ) : (
+        <>
         <h1 className="text-3xl font-black mb-2">{t("You're in!")}</h1>
         <p className="text-gray-500 mb-6">{t("Choose your nickname")}</p>
         <form onSubmit={handleJoin} className="flex flex-col gap-4">
@@ -93,6 +105,8 @@ export default function JoinClient() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" loading={joining} size="lg" className="w-full">{t("Join Game!")}</Button>
         </form>
+        </>
+        )}
       </Card>
     </div>
   );

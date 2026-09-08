@@ -184,6 +184,7 @@ export default function PlayPage() {
   const myPlayer = state && playerId ? state.players[playerId] : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
+  const isPoll = (state as any)?._quiz?.kind === "poll";
   useEffect(() => {
     setWordSent(0); setWordDraft(""); setMyRating(0); setOpenSent(0); setOpenDraft(""); setRankSent(false);
     if (currentQ?.type === "ranking") {
@@ -435,18 +436,35 @@ export default function PlayPage() {
         </div>
       )}
       {state.status === "leaderboard" && (
+        isPoll ? (
+        <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-4xl font-black mb-3">{t("thanksForPlaying")}</h2>
+          <p className="text-white/70">{t("Your response has been recorded.")}</p>
+        </div>
+        ) : (
         <div className="p-6">
           <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
         </div>
+        )
       )}
       {state.status === "podium" && (
+        isPoll ? (
+        <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-4xl font-black mb-3">{t("thanksForPlaying")}</h2>
+          <p className="text-white/70 mb-6">{t("Your response has been recorded.")}</p>
+          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">{t("Done")}</a>
+        </div>
+        ) : (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🎉 {t("gameOver")}</h2>
           <Podium players={state.players || {}} metric={isGold ? "gold" : "score"} />
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
         </div>
+        )
       )}
       {state.status === "ended" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">

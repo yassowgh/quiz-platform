@@ -156,7 +156,7 @@ export async function getGameByPin(pin: string): Promise<string | null> {
 
 export async function resetPlayerAnswered(gameId: string, players: Record<string, unknown>) {
   const updates: Record<string, boolean> = {};
-  Object.keys(players).forEach((id) => {
+  Object.keys(players || {}).forEach((id) => {
     updates[`games/${gameId}/players/${id}/hasAnswered`] = false;
   });
   await update(ref(rtdb), updates);
