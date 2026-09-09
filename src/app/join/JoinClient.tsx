@@ -18,8 +18,10 @@ export default function JoinClient() {
   const { state } = useGame(gameId);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => { setNickname(randomNickname()); }, []);
+  useEffect(() => { const id = setTimeout(() => setReady(true), 2500); return () => clearTimeout(id); }, []);
 
   const autoJoinedRef = useRef(false);
   useEffect(() => {
@@ -57,11 +59,18 @@ export default function JoinClient() {
 
   const _q = (state as any)?._quiz;
   const pollNoName = !!(_q && _q.kind === "poll" && !_q.requireName);
+  const waiting = !!gameId && !state && !ready;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern flex items-center justify-center p-6">
       <Card className="w-full max-w-sm text-center">
-        {pollNoName ? (
+        {waiting ? (
+        <div>
+          <div className="text-4xl mb-3">⏳</div>
+          <h1 className="text-2xl font-black mb-2">{t("Joining…")}</h1>
+          <p className="text-gray-500">{t("One moment…")}</p>
+        </div>
+        ) : pollNoName ? (
         <div>
           <div className="text-5xl mb-3">📊</div>
           <h1 className="text-2xl font-black mb-2">{t("Joining…")}</h1>

@@ -248,6 +248,7 @@ export default function PlayPage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col" style={(state as any)?._quiz?.branding?.primaryColor ? { background: (state as any)._quiz.branding.primaryColor } : undefined}>
       {(state as any)?._quiz?.branding?.logoUrl && <img src={(state as any)._quiz.branding.logoUrl} alt="" className="h-10 mx-auto mt-3 mb-1 object-contain" />}
       <ReactionBar gameId={gameId} />
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title={t("Mute music")}>{muted ? "🔇" : "🔊"}</button>
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
