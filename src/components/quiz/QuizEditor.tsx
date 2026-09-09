@@ -67,19 +67,34 @@ interface SortableQuestionProps {
   kind?: string;
 }
 
-function PollPreview({ question }: { question: any }) {
+function PollPreview({ question, onChange }: { question: any; onChange: (q: any) => void }) {
   const type = question.type || "poll";
-  const opts = (question.options || []).filter((o: string) => o && o.trim());
   const lo = question.scaleMin ?? 0, hi = question.scaleMax ?? 10;
   const barColors = ["bg-kahoot-red", "bg-kahoot-blue", "bg-kahoot-yellow", "bg-kahoot-green", "bg-kahoot-purple", "bg-pink-500"];
+  const [edit, setEdit] = useState<string | number | null>(null);
+  const opts: string[] = question.options || [];
+  const setOpt = (i: number, v: string) => { const o = opts.slice(); while (o.length <= i) o.push(""); o[i] = v; onChange({ ...question, options: o }); };
+  const showOpts = (type === "poll" || type === "multiple" || type === "ranking") ? (opts.length ? opts : ["", ""]) : opts;
+  const editCls = "rounded-lg py-2 px-3 text-sm font-bold text-gray-900 w-full";
   return (
     <div className="mt-2 rounded-xl border-2 border-dashed border-kahoot-purple/30 bg-kahoot-dark p-4">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">👀 What participants see</p>
-      <p className="text-white font-bold text-center mb-3" dir="auto">{question.text || "Your question…"}</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">👀 What participants see</p>
+        <p className="text-[10px] text-white/30">double-click to edit</p>
+      </div>
+      {edit === "title" ? (
+        <input autoFocus dir="auto" value={question.text || ""} onChange={(e) => onChange({ ...question, text: e.target.value })} onBlur={() => setEdit(null)} onKeyDown={(e) => { if (e.key === "Enter") setEdit(null); }} className="w-full text-center font-bold text-lg rounded-lg px-2 py-1 mb-3 text-gray-900" />
+      ) : (
+        <p className="text-white font-bold text-center mb-3 cursor-text hover:bg-white/5 rounded" dir="auto" onDoubleClick={() => setEdit("title")}>{question.text || "Your question…"}</p>
+      )}
       {type === "poll" || type === "multiple" ? (
         <div className="grid grid-cols-1 gap-2">
-          {(opts.length ? opts : ["Option 1", "Option 2"]).map((o: string, i: number) => (
-            <div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold " + barColors[i % 6]} dir="auto">{o}</div>
+          {showOpts.map((o: string, i: number) => (
+            edit === i ? (
+              <input key={i} autoFocus dir="auto" value={opts[i] ?? ""} onChange={(e) => setOpt(i, e.target.value)} onBlur={() => setEdit(null)} onKeyDown={(e) => { if (e.key === "Enter") setEdit(null); }} className={editCls + " " + barColors[i % 6]} />
+            ) : (
+              <div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold cursor-text " + barColors[i % 6]} dir="auto" onDoubleClick={() => setEdit(i)}>{o || <span className="opacity-60">Option {i + 1}</span>}</div>
+            )
           ))}
         </div>
       ) : type === "rating" ? (
@@ -88,7 +103,10 @@ function PollPreview({ question }: { question: any }) {
         <div className="px-2">
           <div className="text-center text-3xl font-black text-kahoot-yellow mb-1">{Math.round((lo + hi) / 2)}</div>
           <input type="range" min={lo} max={hi} defaultValue={Math.round((lo + hi) / 2)} className="w-full" readOnly />
-          <div className="flex justify-between text-white/60 text-xs mt-1"><span dir="auto">{question.scaleMinLabel || lo}</span><span dir="auto">{question.scaleMaxLabel || hi}</span></div>
+          <div className="flex justify-between text-white/60 text-xs mt-1">
+            {edit === "smin" ? (<input autoFocus dir="auto" value={question.scaleMinLabel || ""} onChange={(e) => onChange({ ...question, scaleMinLabel: e.target.value })} onBlur={() => setEdit(null)} onKeyDown={(e) => { if (e.key === "Enter") setEdit(null); }} className="w-24 text-gray-900 rounded px-1" />) : (<span className="cursor-text hover:bg-white/10 rounded px-1" onDoubleClick={() => setEdit("smin")}>{question.scaleMinLabel || lo}</span>)}
+            {edit === "smax" ? (<input autoFocus dir="auto" value={question.scaleMaxLabel || ""} onChange={(e) => onChange({ ...question, scaleMaxLabel: e.target.value })} onBlur={() => setEdit(null)} onKeyDown={(e) => { if (e.key === "Enter") setEdit(null); }} className="w-24 text-gray-900 rounded px-1 text-right" />) : (<span className="cursor-text hover:bg-white/10 rounded px-1" onDoubleClick={() => setEdit("smax")}>{question.scaleMaxLabel || hi}</span>)}
+          </div>
         </div>
       ) : type === "wordcloud" ? (
         <div className="rounded-lg bg-white/10 text-white/50 text-sm py-3 px-3 text-center">Type a word…</div>
@@ -96,11 +114,17 @@ function PollPreview({ question }: { question: any }) {
         <div className="rounded-lg bg-white/10 text-white/50 text-sm py-6 px-3">Type your answer…</div>
       ) : type === "ranking" ? (
         <div className="flex flex-col gap-2">
-          {(opts.length ? opts : ["First", "Second", "Third"]).map((o: string, i: number) => (<div key={i} className="flex items-center gap-2 bg-white/10 rounded-lg py-2 px-3 text-white text-sm"><span className="opacity-60">≡</span><span dir="auto">{o}</span></div>))}
+          {showOpts.map((o: string, i: number) => (
+            edit === i ? (
+              <input key={i} autoFocus dir="auto" value={opts[i] ?? ""} onChange={(e) => setOpt(i, e.target.value)} onBlur={() => setEdit(null)} onKeyDown={(e) => { if (e.key === "Enter") setEdit(null); }} className="rounded-lg py-2 px-3 text-gray-900 text-sm w-full" />
+            ) : (
+              <div key={i} className="flex items-center gap-2 bg-white/10 rounded-lg py-2 px-3 text-white text-sm cursor-text" onDoubleClick={() => setEdit(i)}><span className="opacity-60">≡</span><span dir="auto">{o || "Item " + (i + 1)}</span></div>
+            )
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {(opts.length ? opts : ["Answer 1", "Answer 2", "Answer 3", "Answer 4"]).map((o: string, i: number) => (<div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold " + barColors[i % 6]} dir="auto">{o}</div>))}
+          {(opts.length ? opts : ["", "", "", ""]).map((o: string, i: number) => (<div key={i} className={"rounded-lg py-2 px-3 text-white text-sm font-bold " + barColors[i % 6]} dir="auto">{o || ("Answer " + (i + 1))}</div>))}
         </div>
       )}
     </div>
@@ -366,7 +390,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
               )}
             </div>
           )}
-          {kind === "poll" && <PollPreview question={question} />}
+          {kind === "poll" && <PollPreview question={question} onChange={onChange} />}
           <div className="flex gap-4">
             {adv && (<>
             <div className="flex flex-col gap-1">
@@ -567,7 +591,7 @@ export default function QuizEditor({ questions, onChange, kind }: QuizEditorProp
         <Button variant="secondary" onClick={() => onChange([...questions, makeBlankQuestion()])}>
           {t("+ Add Question")}
         </Button>
-        <Button onClick={() => setAiOpen(true)}>{t("✨ Generate with AI")}</Button>
+        {kind !== "poll" && <Button onClick={() => setAiOpen(true)}>{t("✨ Generate with AI")}</Button>}
       </div>
 
       <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">

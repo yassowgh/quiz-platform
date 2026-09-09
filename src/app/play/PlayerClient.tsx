@@ -67,7 +67,8 @@ export default function PlayPage() {
 
   // 3-2-1 countdown when a new question starts
   useEffect(() => {
-    if (state?.status !== "question") { setCountdown(null); return; }
+    const _pq = (state as any)?._quiz;
+    if (state?.status !== "question" || (_pq?.kind === "poll" && !_pq?.pollTimer)) { setCountdown(null); return; }
     setCountdown(3);
     const id = setInterval(() => {
       setCountdown((c) => {
@@ -273,7 +274,7 @@ export default function PlayPage() {
             <span className="text-white/70 font-semibold">Q {state.currentQuestionIndex + 1}</span>
             <span className="font-bold">{myPlayer?.score.toLocaleString() ?? 0} pts</span>
           </div>
-          <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={questionShownAt + 3000} onExpire={() => setTimeUp(true)} className="mb-2" />
+          {!(isPoll && !((state as any)?._quiz?.pollTimer)) && <Timer key={timerKey} durationSeconds={currentQ?.timeLimit || 20} startTime={questionShownAt + 3000} onExpire={() => setTimeUp(true)} className="mb-2" />}
           {currentQ && (
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="font-bold text-lg" dir="auto"><MathText text={currentQ.text} /></p>
