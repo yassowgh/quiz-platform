@@ -124,10 +124,18 @@ export async function submitAnswer(
       await update(playerRef, { hasAnswered: true });
     } else {
       const newStreak = isCorrect ? (player.streak || 0) + 1 : 0;
+      let goldEarned = 0;
+      if (isCorrect) {
+        try {
+          const gm = (await get(ref(rtdb, `games/${gameId}/mode`))).val();
+          if (gm === "goldquest") goldEarned = 100 + Math.round(basePoints / 10) + Math.min(newStreak, 10) * 10;
+        } catch (e) {}
+      }
       await update(playerRef, {
         score: (player.score || 0) + points,
         correctCount: (player.correctCount || 0) + (isCorrect ? 1 : 0),
         streak: newStreak,
+        gold: (player.gold || 0) + goldEarned,
         hasAnswered: true,
       });
     }

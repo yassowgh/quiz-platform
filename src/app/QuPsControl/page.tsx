@@ -30,6 +30,8 @@ export default function QuPsControlPage() {
   const [home, setHome] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [selUser, setSelUser] = useState<any>(null);
+  const [selName, setSelName] = useState("");
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [features, setFeatures] = useState<any>({});
@@ -155,6 +157,12 @@ export default function QuPsControlPage() {
     try { await updateFeedback(f.id, { status }); } catch (e) {}
   }
 
+  const saveUserName = async () => {
+    if (!selUser) return; setBusy(true);
+    try { await updateUserCrm(selUser.uid, { displayName: selName }); setUsers(users.map((x) => (x.uid === selUser.uid ? { ...x, displayName: selName } : x))); flash("Saved " + (selName || "")); setSelUser(null); }
+    catch (e: any) { flash("Error: " + (e && e.message ? e.message : e)); }
+    setBusy(false);
+  };
   const flash = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 3500); };
   const toggleDisabled = async (u: any) => { setBusy(true); try { await setUserDisabled(u.uid, !u.disabled); u.disabled = !u.disabled; setUsers([...users]); flash("Updated " + (u.email || "")); } catch (e: any) { flash("Error: " + (e && e.message ? e.message : e)); } setBusy(false); };
   const removeUser = async (u: any) => { if (!confirm("Remove " + (u.email || "this user") + " from the database? Their login is NOT deleted (do that in Firebase Console).")) return; setBusy(true); try { await deleteUserDoc(u.uid); setUsers(users.filter((x) => x.uid !== u.uid)); flash("Removed " + (u.email || "")); } catch (e: any) { flash("Error: " + (e && e.message ? e.message : e)); } setBusy(false); };
@@ -203,8 +211,8 @@ export default function QuPsControlPage() {
                 {users.map((u) => (
                   <div key={u.uid || u.email} className="flex items-center gap-3 p-4">
                     <div className="w-9 h-9 rounded-full bg-kahoot-purple/10 text-kahoot-purple flex items-center justify-center font-black shrink-0">{(u.displayName || u.email || "?").charAt(0).toUpperCase()}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 truncate">{u.displayName || "—"} {u.disabled ? <span className="text-red-500 text-xs">(disabled)</span> : null}</div>
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => { setSelUser(u); setSelName(u.displayName || ""); }} title="Click to view / edit">
+                      <div className="font-bold text-gray-900 truncate hover:underline">{u.displayName || "—"} {u.disabled ? <span className="text-red-500 text-xs">(disabled)</span> : null}</div>
                       <div className="text-gray-400 text-sm truncate">{u.email}</div>
                     </div>
                     <button onClick={() => toggleDisabled(u)} disabled={busy} className="text-sm font-bold px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700">{u.disabled ? "Enable" : "Disable"}</button>
@@ -212,6 +220,26 @@ export default function QuPsControlPage() {
                   </div>
                 ))}
                 {!users.length && <p className="p-6 text-gray-400">No users yet.</p>}
+              </div>
+            </div>
+          )}
+          {tab === "users" && selUser && (
+            <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setSelUser(null)}>
+              <div className="bg-white rounded-2xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+                <h3 className="text-lg font-black mb-3">User details</h3>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Display name</label>
+                <input value={selName} onChange={(e) => setSelName(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 mb-3" />
+                <label className="block text-xs font-bold text-gray-500 mb-1">Email (read-only)</label>
+                <input value={selUser.email || ""} readOnly className="w-full px-3 py-2 rounded-xl border border-gray-100 bg-gray-50 text-gray-500 mb-3" />
+                <div className="text-sm text-gray-500 mb-4 space-y-1">
+                  <div>Stage: <span className="font-semibold text-gray-700">{selUser.lifecycle || "—"}</span></div>
+                  <div>Joined: <span className="font-semibold text-gray-700">{selUser.createdAt ? new Date(selUser.createdAt).toLocaleDateString() : "—"}</span></div>
+                  <div>Status: <span className="font-semibold text-gray-700">{selUser.disabled ? "Disabled" : "Active"}</span></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setSelUser(null)} className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-semibold text-sm">Cancel</button>
+                  <Button onClick={saveUserName} disabled={busy}>Save</Button>
+                </div>
               </div>
             </div>
           )}

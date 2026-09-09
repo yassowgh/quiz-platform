@@ -1,6 +1,17 @@
 export type Lang = "en" | "ar";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string }> = {
+  // account + nav
+  "My Account": { en: "My Account", ar: "حسابي" },
+  "Dashboard": { en: "Dashboard", ar: "لوحة التحكم" },
+  "Display name": { en: "Display name", ar: "الاسم المعروض" },
+  "Save changes": { en: "Save changes", ar: "حفظ التغييرات" },
+  "Back to dashboard": { en: "Back to dashboard", ar: "العودة إلى لوحة التحكم" },
+  "Email": { en: "Email", ar: "البريد الإلكتروني" },
+  "Member since": { en: "Member since", ar: "عضو منذ" },
+  "View and update your account details.": { en: "View and update your account details.", ar: "اعرض بيانات حسابك وحدّثها." },
+  "Your name": { en: "Your name", ar: "اسمك" },
+  "Email and password are managed by your sign-in provider and cannot be changed here.": { en: "Email and password are managed by your sign-in provider and cannot be changed here.", ar: "يُدار البريد وكلمة المرور عبر مزود تسجيل الدخول ولا يمكن تغييرهما هنا." },
   // scale poll type
   "Scale": { en: "Scale", ar: "مقياس" },
   "Star rating": { en: "Star rating", ar: "تقييم بالنجوم" },

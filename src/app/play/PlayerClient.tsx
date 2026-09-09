@@ -228,7 +228,7 @@ export default function PlayPage() {
     const others: any[] = Object.values(state.players || {}).filter((p: any) => p.id !== playerId);
     let outcome: any; let msg = "";
     if (roll < 0.10) { const amt = 50 + Math.floor(Math.random() * 11) * 10; outcome = { type: "lose", amount: amt }; msg = "💀 Lost " + amt + " gold!"; }
-    else if (roll < 0.25 && others.length) { const tgt: any = others[Math.floor(Math.random() * others.length)]; const amt = 50 + Math.floor(Math.random() * 16) * 10; outcome = { type: "steal", amount: amt, targetId: tgt.id }; msg = "🗡️ Stole " + amt + " from " + tgt.nickname + "!"; }
+    else if (roll < 0.25 && others.some((p: any) => (p.gold || 0) > 0)) { const rich = others.filter((p: any) => (p.gold || 0) > 0); const tgt: any = rich[Math.floor(Math.random() * rich.length)]; const amt = Math.min(tgt.gold || 0, 50 + Math.floor(Math.random() * 16) * 10); outcome = { type: "steal", amount: amt, targetId: tgt.id }; msg = "🗡️ Stole " + amt + " from " + tgt.nickname + "!"; }
     else if (roll < 0.80) { const amt = 50 + Math.floor(Math.random() * 26) * 10; outcome = { type: "gain", amount: amt }; msg = "🪙 +" + amt + " gold!"; }
     else { const amt = 300 + Math.floor(Math.random() * 31) * 10; outcome = { type: "gain", amount: amt }; msg = "💰 JACKPOT +" + amt + " gold!"; }
     setChestMsg(msg);

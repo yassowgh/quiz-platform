@@ -19,7 +19,8 @@ export default function Navbar() {
             {["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email) && (
               <Link href="/admin" className="hover:underline font-bold text-kahoot-purple">📊 {t("reports")}</Link>
             )}
-            <Link href="/dashboard" className="hover:underline font-semibold text-gray-700">{user.displayName || user.email}</Link>
+            <Link href="/dashboard" className="hover:underline font-semibold text-gray-700">{t("Dashboard")}</Link>
+            <Link href="/account" className="hover:underline font-semibold text-gray-900">{user.displayName || user.email}</Link>
             <Button variant="ghost" size="sm" onClick={logout}>{t("signOut")}</Button>
           </>
         ) : (
