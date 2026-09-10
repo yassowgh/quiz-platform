@@ -3,12 +3,14 @@ import { nanoid } from "@/lib/utils";
 import type { Question } from "@/types";
 
 export const AI_WORKER_URL = "https://polished-shadow-f08c.yassow.workers.dev/";
+// Legacy EmailJS identifiers. No longer used to send anything - all mail now
+// goes through the Worker (Resend). Kept only so nothing importing them breaks.
 export const EMAILJS_SERVICE_ID = "service_pu433a4";
 export const EMAILJS_TEMPLATE_ID = "template_l62666k";
 export const EMAILJS_PUBLIC_KEY = "tSIOLMDkcK9CCwiiJ";
 
 export const AI_ENABLED = AI_WORKER_URL.length > 0;
-export const EMAIL_ENABLED = EMAILJS_PUBLIC_KEY.length > 0;
+export const EMAIL_ENABLED = AI_WORKER_URL.length > 0;
 
 export async function generateQuestions(
   topic: string,
@@ -59,33 +61,28 @@ export async function generateQuestions(
   return out;
 }
 
-let emailjsPromise: Promise<any> | null = null;
-function loadEmailJs(): Promise<any> {
-  if (typeof window === "undefined") return Promise.reject(new Error("no window"));
-  if ((window as any).emailjs) return Promise.resolve((window as any).emailjs);
-  if (!emailjsPromise) {
-    emailjsPromise = new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-      s.onload = () => {
-        const ejs = (window as any).emailjs;
-        try { ejs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch { /* ignore */ }
-        resolve(ejs);
-      };
-      s.onerror = () => reject(new Error("Failed to load EmailJS"));
-      document.head.appendChild(s);
-    });
-  }
-  return emailjsPromise;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Basic shape check for an address a player typed in. */
+export function isValidEmail(v: string | null | undefined): boolean {
+  const s = String(v || "").trim();
+  return s.length > 0 && s.length <= 254 && EMAIL_RE.test(s);
 }
 
-// Generic send. We include both the new {subject, message} fields AND the older
-// named fields, so it works whether the EmailJS template is the new generic one
-// or the original results template.
-async function rawSend(fields: Record<string, string>): Promise<void> {
-  if (!EMAIL_ENABLED || !fields.to_email) return;
-  const ejs = await loadEmailJs();
-  await ejs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, fields);
+// All outbound mail goes through the Worker (Resend), so it is sent from our
+// own domain, is not capped by a third-party free tier, and - unlike the old
+// browser-side EmailJS path - cannot be blocked by the visitor's ad blocker.
+async function workerSend(to: string, subject: string, html: string): Promise<void> {
+  const r = await fetch(AI_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "email", to: to, subject: subject, html: html, email: to }),
+  });
+  if (!r.ok) {
+    let detail = "";
+    try { detail = (await r.text()).slice(0, 300); } catch { /* ignore */ }
+    throw new Error("email send failed (HTTP " + r.status + ") " + detail);
+  }
 }
 
 export async function sendAssignmentEmail(params: {
@@ -98,26 +95,18 @@ export async function sendAssignmentEmail(params: {
   totalQuestions: number;
 }): Promise<void> {
   if (!params.toEmail) return;
+  if (!isValidEmail(params.toEmail)) throw new Error("invalid recipient address");
   const completed = new Date().toLocaleString();
   const subject = "QuizUps results: " + params.quizTitle;
   const message =
     params.playerName + ' completed your quiz "' + params.quizTitle + '".<br><br>' +
     "Score: " + params.score.toLocaleString() + " points<br>" +
     "Correct answers: " + params.correctCount + " / " + params.totalQuestions + "<br>" +
-    "Completed: " + completed + "<br><br>— Sent by QuizUps";
-  const base: Record<string, string> = {
-    subject,
-    message,
-    quiz_title: params.quizTitle,
-    player_name: params.playerName,
-    score: params.score.toLocaleString(),
-    correct_count: String(params.correctCount),
-    total_questions: String(params.totalQuestions),
-    completed_at: completed,
-  };
-  await rawSend({ ...base, to_email: params.toEmail });
-  if (params.ccEmail && params.ccEmail !== params.toEmail) {
-    await rawSend({ ...base, to_email: params.ccEmail });
+    "Completed: " + completed + "<br><br>- Sent by QuizUps";
+  await workerSend(params.toEmail.trim(), subject, message);
+  const cc = String(params.ccEmail || "").trim();
+  if (cc && cc !== params.toEmail.trim() && isValidEmail(cc)) {
+    await workerSend(cc, subject, message);
   }
 }
 

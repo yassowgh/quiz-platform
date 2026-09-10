@@ -7,7 +7,7 @@ import { getQuiz, getExamPublic, saveAssignmentResult, hasExamAttempt, recordExa
 import { reportProblem } from "@/components/ui/ErrorReporter";
 import { calculatePoints } from "@/lib/scoring";
 import { playSuccess, playFail, toggleSfx, isSfxEnabled } from "@/lib/sfx";
-import { sendAssignmentEmail, gradeExam } from "@/lib/integrations";
+import { sendAssignmentEmail, gradeExam, isValidEmail } from "@/lib/integrations";
 import type { Quiz } from "@/types";
 import { ANSWER_COLORS } from "@/types";
 import Button from "@/components/ui/Button";
@@ -50,7 +50,11 @@ export default function AssignmentClient() {
   const [lastPoints, setLastPoints] = useState(0);
   const [done, setDone] = useState(false);
   const [ccEmail, setCcEmail] = useState("");
-  const [copyStatus, setCopyStatus] = useState<"" | "sending" | "sent" | "err">("");
+  const [copyStatus, setCopyStatus] = useState<"" | "sending" | "sent" | "err" | "invalid" | "limit">("");
+  // Players can send a copy to an address they type in. Cap it so nobody can
+  // use the results screen to fire mail at strangers from our sending domain.
+  const COPY_LIMIT = 3;
+  const [copyCount, setCopyCount] = useState(0);
   const [error, setError] = useState("");
   const [sound, setSound] = useState(true);
   useEffect(() => { setSound(isSfxEnabled()); }, []);
@@ -180,6 +184,8 @@ export default function AssignmentClient() {
 
   const sendCopy = async () => {
     if (!ccEmail.trim() || !quiz) return;
+    if (!isValidEmail(ccEmail)) { setCopyStatus("invalid"); return; }
+    if (copyCount >= COPY_LIMIT) { setCopyStatus("limit"); return; }
     setCopyStatus("sending");
     try {
       await sendAssignmentEmail({
@@ -190,9 +196,11 @@ export default function AssignmentClient() {
         correctCount,
         totalQuestions: quiz.questions.length,
       });
+      setCopyCount((n) => n + 1);
       setCopyStatus("sent");
-    } catch {
-      setCopyStatus("err"); try { reportProblem("Assignment copy email failed", "to: " + ccEmail); } catch (e) {}
+    } catch (err: any) {
+      setCopyStatus("err");
+      try { reportProblem("Assignment copy email failed", "to: " + ccEmail + "\nerror: " + ((err && (err.stack || err.message)) || String(err))); } catch (e) {}
     }
   };
 
@@ -260,15 +268,17 @@ export default function AssignmentClient() {
                 type="email"
                 dir="auto"
                 value={ccEmail}
-                onChange={(e) => { setCcEmail(e.target.value); setCopyStatus(""); }}
+                onChange={(e) => { setCcEmail(e.target.value); if (copyStatus !== "limit") setCopyStatus(""); }}
                 placeholder="you@example.com"
                 className="flex-1 text-center rounded-lg py-2 px-3 text-gray-900 font-semibold"
               />
-              <Button size="sm" onClick={sendCopy} loading={copyStatus === "sending"} disabled={!ccEmail.trim() || copyStatus === "sent"}>
+              <Button size="sm" onClick={sendCopy} loading={copyStatus === "sending"} disabled={!ccEmail.trim() || copyStatus === "sent" || copyCount >= COPY_LIMIT}>
                 {copyStatus === "sent" ? "✓ Sent" : "Send"}
               </Button>
             </div>
             {copyStatus === "err" && <p className="text-red-300 text-xs mt-1">{t("Could not send. Check the email and try again.")}</p>}
+            {copyStatus === "invalid" && <p className="text-red-300 text-xs mt-1">{t("That email address does not look right.")}</p>}
+            {copyStatus === "limit" && <p className="text-red-300 text-xs mt-1">{t("You have reached the limit of copies for this quiz.")}</p>}
           </div>
           <a href="/"><Button size="lg">{t("Back to QuizUps")}</Button></a>
         </div>
