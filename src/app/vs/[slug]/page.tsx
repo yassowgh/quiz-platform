@@ -87,6 +87,71 @@ const THEM: Record<string, Record<string, string>> = {
     branding: "Limited",
     ads: "None",
   },
+  mentimeter: {
+    price: "Free tier capped by questions per presentation",
+    players: "Limits on free plan",
+    ai: "Yes (varies by plan)",
+    video: "No",
+    exam: "No",
+    types: "Strong polling and word-cloud types",
+    assign: "Paid plans",
+    reports: "Export on paid",
+    flashcards: "No",
+    branding: "Paid",
+    ads: "None",
+  },
+  slido: {
+    price: "Free tier capped by polls per event",
+    players: "Limits on free plan",
+    ai: "Limited",
+    video: "No",
+    exam: "No",
+    types: "Polls, Q&A and quizzes",
+    assign: "No",
+    reports: "Export on paid",
+    flashcards: "No",
+    branding: "Paid",
+    ads: "None",
+  },
+  quizlet: {
+    price: "Free tier + paid (Quizlet Plus)",
+    players: "Limits in live mode",
+    ai: "Paid features",
+    video: "No",
+    exam: "Test mode",
+    types: "Study-focused",
+    assign: "Yes",
+    reports: "Paid",
+    flashcards: "Yes - its core strength",
+    branding: "No",
+    ads: "Yes on the free tier",
+  },
+  socrative: {
+    price: "Free tier + paid plans",
+    players: "Room size capped on free",
+    ai: "No",
+    video: "No",
+    exam: "Yes",
+    types: "MC, true/false, short answer",
+    assign: "Yes",
+    reports: "Yes",
+    flashcards: "No",
+    branding: "Paid",
+    ads: "None",
+  },
+  wordwall: {
+    price: "Free tier capped by number of activities",
+    players: "Limited",
+    ai: "Limited",
+    video: "No",
+    exam: "No",
+    types: "Many activity templates",
+    assign: "Yes",
+    reports: "Yes",
+    flashcards: "Template-based",
+    branding: "Paid",
+    ads: "None",
+  },
 };
 
 const DATA: Record<string, Comp> = {
@@ -125,6 +190,51 @@ const DATA: Record<string, Comp> = {
     rows: [],
     verdict:
       "For a free Gimkit alternative that removes the game caps and adds AI + exam features, give QuizUps a try.",
+  },
+  mentimeter: {
+    name: "Mentimeter",
+    blurb: "live polls and word clouds",
+    intro:
+      "Mentimeter is built for audience polling inside a presentation, and it does that well - but the free tier limits how many questions a presentation can hold, and quizzes, exports and branding sit on paid plans. QuizUps covers the same polling ground (polls, word clouds, ratings, ranking and numeric scales) alongside full scored quizzes, and does not meter any of it.",
+    rows: [],
+    verdict:
+      "If you want Mentimeter-style live polling without a per-presentation question limit, and scored quizzes and exams in the same tool, QuizUps is a free alternative worth trying.",
+  },
+  slido: {
+    name: "Slido",
+    blurb: "audience Q&A and polls for meetings",
+    intro:
+      "Slido is aimed at meetings and conferences, where live Q&A is the main event and polls support it. The free tier caps polls per event, and reporting and branding are paid. QuizUps handles the polling and quizzing side without caps, adds word clouds, open responses and scales, and lets the same question set run as a self-paced assignment afterwards.",
+    rows: [],
+    verdict:
+      "For live polls and interactive questions at an event without per-event limits, QuizUps is a free alternative - though if threaded audience Q&A is the core of your session, Slido is purpose-built for it.",
+  },
+  quizlet: {
+    name: "Quizlet",
+    blurb: "flashcards and study sets",
+    intro:
+      "Quizlet is a study tool first: its flashcards and test modes are excellent for solo revision, but live class play is limited and the free tier carries ads. QuizUps approaches it from the other end - a live multiplayer quiz platform that also turns any question set into flashcards and a study mode, with no ads anywhere.",
+    rows: [],
+    verdict:
+      "If you mainly need solo flashcard revision, Quizlet is strong. If you want the same content to also run as a live game or a graded exam, for free and without ads, QuizUps covers more ground.",
+  },
+  socrative: {
+    name: "Socrative",
+    blurb: "classroom quizzing and exit tickets",
+    intro:
+      "Socrative is a long-standing classroom favourite for quick checks and exit tickets, with a simple, no-nonsense interface. Its free tier caps room size, and larger rooms and extras need a paid plan. QuizUps offers the same quick-check workflow with unlimited players, adds AI question generation and interactive video, and keeps exam mode with server-side grading free.",
+    rows: [],
+    verdict:
+      "For a free Socrative alternative without a room-size cap - and with AI generation and video questions included - QuizUps is a direct fit.",
+  },
+  wordwall: {
+    name: "Wordwall",
+    blurb: "printable and interactive activity templates",
+    intro:
+      "Wordwall is template-led: you pick an activity format and your content is poured into it, which is excellent for varied practice. The free tier limits how many activities you can keep. QuizUps is built around live multiplayer play rather than templates, with five game modes over the same question set and no limit on how many quizzes you create.",
+    rows: [],
+    verdict:
+      "If you want unlimited quizzes and live multiplayer play for free, QuizUps fits - though if you specifically want Wordwall printable worksheet formats, that is its own strength.",
   },
 };
 
