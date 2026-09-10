@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { joinGame } from "@/lib/realtimeDb";
 import { useGame } from "@/hooks/useGame";
-import { randomNickname, nanoid } from "@/lib/utils";
+import { randomNickname, nanoid, cleanGameId } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { useLang } from "@/contexts/LanguageContext";
@@ -12,7 +12,7 @@ export default function JoinClient() {
   const router = useRouter();
   const { t } = useLang();
   const searchParams = useSearchParams();
-  const gameId = searchParams.get("gameId") || "";
+  const gameId = cleanGameId(searchParams.get("gameId"));
   const [nickname, setNickname] = useState("");
   const [team, setTeam] = useState("");
   const { state } = useGame(gameId);

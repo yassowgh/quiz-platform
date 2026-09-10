@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { subscribeToGame } from "@/lib/realtimeDb";
+import { isValidGameId } from "@/lib/utils";
 import type { LiveGameState } from "@/types";
 
 export function useGame(gameId: string | null) {
@@ -7,11 +8,19 @@ export function useGame(gameId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!gameId) return;
-    const unsub = subscribeToGame(gameId, (s) => {
-      setState(s);
+    // A malformed id (e.g. a pasted URL) makes Firebase throw on ref(),
+    // which would take down the whole React tree. Never subscribe to one.
+    if (!gameId || !isValidGameId(gameId)) { setLoading(false); return; }
+    let unsub: (() => void) | undefined;
+    try {
+      unsub = subscribeToGame(gameId, (s) => {
+        setState(s);
+        setLoading(false);
+      });
+    } catch {
       setLoading(false);
-    });
+      return;
+    }
     return unsub;
   }, [gameId]);
 

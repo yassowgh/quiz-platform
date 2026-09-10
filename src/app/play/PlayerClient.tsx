@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ReactionBar } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
+import { cleanGameId } from "@/lib/utils";
 import { submitAnswer, applyChest, submitResponse, setPlayerResponse } from "@/lib/realtimeDb";
 import AnswerButton from "@/components/game/AnswerButton";
 import MathText from "@/components/ui/MathText";
@@ -18,7 +19,7 @@ import { useLang } from "@/contexts/LanguageContext";
 export default function PlayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const gameId = searchParams.get("gameId") || "";
+  const gameId = cleanGameId(searchParams.get("gameId"));
   const { state } = useGame(gameId);
   const { t } = useLang();
   const [playerId, setPlayerId] = useState<string | null>(null);

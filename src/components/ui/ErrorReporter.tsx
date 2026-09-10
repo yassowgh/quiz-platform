@@ -5,6 +5,24 @@ import { useLang } from "@/contexts/LanguageContext";
 const WORKER = "https://polished-shadow-f08c.yassow.workers.dev/";
 const seen: Record<string, number> = {};
 
+/**
+ * Errors thrown by the visitor's browser extensions (wallets, ad blockers,
+ * password managers) surface on our pages but are not our bugs. Drop them
+ * so they don't flood the inbox.
+ */
+function isExtensionNoise(text: string): boolean {
+  const s = String(text || "");
+  return (
+    s.indexOf("chrome-extension://") >= 0 ||
+    s.indexOf("moz-extension://") >= 0 ||
+    s.indexOf("safari-web-extension://") >= 0 ||
+    s.indexOf("safari-extension://") >= 0 ||
+    s.indexOf("MetaMask") >= 0 ||
+    s.indexOf("ethereum") >= 0 ||
+    s.indexOf("solana") >= 0
+  );
+}
+
 export function reportProblem(summary: string, detail?: string, note?: string) {
   try {
     const email = (typeof window !== "undefined" && (window as any).__userEmail) || "anonymous";
@@ -24,6 +42,7 @@ export function reportProblem(summary: string, detail?: string, note?: string) {
 function throttledReport(summary: string, detail?: string) {
   try {
     if (Object.keys(seen).length > 25) return; // session cap to avoid floods
+    if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
     const key = (summary + "|" + (detail || "")).slice(0, 140);
     const now = Date.now();
     if (seen[key] && now - seen[key] < 60000) return;
@@ -64,8 +83,8 @@ export function GlobalErrorListener() {
   const { t } = useLang();
   const [toast, setToast] = useState<null | { msg: string }>(null);
   useEffect(() => {
-    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; if (e.filename && e.filename.indexOf("/_next/") < 0) return; if ((e.error.stack || "").indexOf("global code") >= 0) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
-    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0)) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
+    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; if (e.filename && e.filename.indexOf("/_next/") < 0) return; if ((e.error.stack || "").indexOf("global code") >= 0) return; if (isExtensionNoise(e.error.stack || "") || isExtensionNoise(e.message || "")) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
+    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0)) return; if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };

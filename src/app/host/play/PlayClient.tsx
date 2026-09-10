@@ -8,6 +8,7 @@ import { getQuiz } from "@/lib/firestore";
 import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered, applyBattleElimination } from "@/lib/realtimeDb";
 import { saveGameRecord } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
+import { cleanGameId } from "@/lib/utils";
 import { rankPlayers, aggregateTeams } from "@/lib/scoring";
 import { useLang } from "@/contexts/LanguageContext";
 import type { Quiz } from "@/types";
@@ -30,7 +31,7 @@ export default function HostPlayPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const gameId = searchParams.get("gameId") || "";
+  const gameId = cleanGameId(searchParams.get("gameId"));
   const quizId = searchParams.get("quizId") || "";
   const { state } = useGame(gameId);
   const { t } = useLang();
