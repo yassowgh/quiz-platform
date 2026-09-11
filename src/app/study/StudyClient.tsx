@@ -20,7 +20,7 @@ export default function StudyClient() {
   useEffect(() => {
     if (!quizId) { setError(t("No quiz specified.")); return; }
     getQuiz(quizId).then((q) => {
-      if (!q) { setError(t("Quiz not found or not shared.")); return; }
+      if (!q) { setError(t("We cannot find that quiz. The host may have deleted it, or the link may have a typo in it.")); return; }
       const playable = ((q.questions || []) as any[]).filter((qq) => qq.text && qq.text.trim());
       setQuiz({ ...q, questions: playable } as Quiz);
       setOrder(playable.map((_, idx) => idx));

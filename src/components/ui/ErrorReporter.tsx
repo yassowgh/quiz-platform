@@ -39,10 +39,44 @@ export function reportProblem(summary: string, detail?: string, note?: string) {
   } catch (e) { return Promise.resolve(); }
 }
 
+/**
+ * Some rejections arrive with a stack but no message, which produced reports we
+ * could not act on. Pull out whatever identifying detail the reason carries.
+ */
+function describeReason(r: any): string {
+  try {
+    if (r === null || r === undefined) return String(r);
+    if (typeof r === "string") return r;
+    const bits: string[] = [];
+    if (r.name) bits.push("name=" + r.name);
+    if (r.code) bits.push("code=" + r.code);
+    if (r.message) bits.push("message=" + r.message);
+    if (!bits.length) {
+      if (r.constructor && r.constructor.name) bits.push("type=" + r.constructor.name);
+      try { bits.push("raw=" + JSON.stringify(r).slice(0, 300)); } catch (e) { bits.push("raw=" + String(r)); }
+    }
+    return bits.join(" | ") + (r.stack ? "\n" + r.stack : "");
+  } catch (e) {
+    return String(r);
+  }
+}
+
+/** Noise from third-party SDKs that we cannot fix from here. */
+function isSdkNoise(text: string): boolean {
+  const s = String(text || "");
+  return (
+    // Firebase Auth fires this from its popup/redirect resolver on some mobile
+    // browsers even when nothing is wrong. It floods and is not actionable.
+    s.indexOf("INTERNAL ASSERTION FAILED") >= 0 ||
+    s.indexOf("Pending promise was never set") >= 0
+  );
+}
+
 function throttledReport(summary: string, detail?: string) {
   try {
     if (Object.keys(seen).length > 25) return; // session cap to avoid floods
     if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
+    if (isSdkNoise(detail || "")) return;
     const key = (summary + "|" + (detail || "")).slice(0, 140);
     const now = Date.now();
     if (seen[key] && now - seen[key] < 60000) return;
@@ -84,7 +118,7 @@ export function GlobalErrorListener() {
   const [toast, setToast] = useState<null | { msg: string }>(null);
   useEffect(() => {
     function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; if (e.filename && e.filename.indexOf("/_next/") < 0) return; if ((e.error.stack || "").indexOf("global code") >= 0) return; if (isExtensionNoise(e.error.stack || "") || isExtensionNoise(e.message || "")) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
-    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0)) return; if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return; throttledReport("Unhandled promise rejection", r.stack || r.message); setToast({ msg: r.message || String(r) }); }
+    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0)) return; if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return; throttledReport("Unhandled promise rejection", describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : "")); setToast({ msg: r.message || r.name || "Something went wrong" }); }
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };

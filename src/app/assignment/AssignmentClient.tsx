@@ -67,7 +67,7 @@ export default function AssignmentClient() {
     if (!quizId) { setError(t("No quiz specified.")); return; }
     getExamPublic(quizId).catch(() => null).then((ep: any) => ep || getQuiz(quizId))
       .then((q) => {
-        if (!q) { setError(t("Quiz not found or not shared.")); return; }
+        if (!q) { setError(t("We cannot find that quiz. The host may have deleted it, or the link may have a typo in it.")); return; }
         const playable = {
           ...q,
           questions: (q.questions || []).filter(
