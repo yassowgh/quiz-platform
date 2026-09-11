@@ -37,6 +37,34 @@ export async function deleteQuiz(id: string) {
   await deleteDoc(doc(db, "quizzes", id));
 }
 
+export async function setQuizCollaborators(
+  quizId: string,
+  collaborators: { email: string; role: string; invitedAt: number; invitedByName?: string }[],
+  collabEditors: string[],
+  collabHosts: string[]
+) {
+  await updateDoc(doc(db, "quizzes", quizId), { collaborators, collabEditors, collabHosts, updatedAt: Date.now() } as any);
+}
+
+/** Quizzes someone else has invited this address to. Two single-field queries,
+ *  merged, because Firestore cannot OR across two array fields. */
+export async function listQuizzesSharedWith(email: string): Promise<Quiz[]> {
+  const addr = String(email || "").trim().toLowerCase();
+  if (!addr) return [];
+  const run = async (field: string) => {
+    try {
+      const snap = await getDocs(query(collection(db, "quizzes"), where(field, "array-contains", addr)));
+      return snap.docs.map((d) => d.data() as Quiz);
+    } catch {
+      return [] as Quiz[];
+    }
+  };
+  const [editable, hostable] = await Promise.all([run("collabEditors"), run("collabHosts")]);
+  const byId: Record<string, Quiz> = {};
+  for (const q of editable.concat(hostable)) byId[q.id] = q;
+  return Object.values(byId).sort((a, b) => ((b as any).updatedAt ?? 0) - ((a as any).updatedAt ?? 0));
+}
+
 export async function listQuizzesByHost(hostId: string): Promise<Quiz[]> {
   const q = query(collection(db, "quizzes"), where("hostId", "==", hostId));
   const snap = await getDocs(q);

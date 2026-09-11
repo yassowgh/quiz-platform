@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { reportProblem } from "@/components/ui/ErrorReporter";
 import { useLang } from "@/contexts/LanguageContext";
-import { listQuizzesByHost, deleteQuiz } from "@/lib/firestore";
+import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz } from "@/lib/firestore";
+import ShareDialog from "@/components/quiz/ShareDialog";
 import { nanoid } from "@/lib/utils";
 import { updateQuiz } from "@/lib/firestore";
 import { sendAssignmentInvite } from "@/lib/integrations";
@@ -16,7 +17,7 @@ import Card from "@/components/ui/Card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, resendVerification } = useAuth();
   const { t } = useLang();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [fetching, setFetching] = useState(true);
@@ -26,6 +27,9 @@ export default function DashboardPage() {
   const [assignQuiz, setAssignQuiz] = useState<any>(null);
   const [assignEmails, setAssignEmails] = useState("");
   const [assignStatus, setAssignStatus] = useState<"" | "sending" | "sent" | "err">("");
+  const [shared, setShared] = useState<Quiz[]>([]);
+  const [shareQuiz, setShareQuiz] = useState<any>(null);
+  const [verifySent, setVerifySent] = useState(false);
 
   const assignLink = assignQuiz ? (typeof window !== "undefined" ? window.location.origin : "") + "/assignment?quizId=" + assignQuiz.id : "";
 
@@ -50,6 +54,11 @@ export default function DashboardPage() {
     listQuizzesByHost(user.uid)
       .then((q) => { setQuizzes(q); setFetching(false); })
       .catch((err) => { console.error("Failed to load quizzes:", err); setFetching(false); });
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !user.email) return;
+    listQuizzesSharedWith(user.email).then(setShared).catch(() => {});
   }, [user]);
 
   const createQuiz = async () => {
@@ -120,6 +129,16 @@ export default function DashboardPage() {
           <button key={f} onClick={() => setFilter(f)} className={"px-3 py-1 rounded-lg text-sm font-bold " + (filter === f ? "bg-kahoot-purple text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>{f === "all" ? "All" : f === "quiz" ? "Quizzes" : "Polls"}</button>
         ))}
       </div>
+      {user && !user.emailVerified && (
+        <div className="mb-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-amber-900 flex-1 min-w-[220px]">
+            {t("Verify your email to unlock quizzes people share with you.")} <strong>{user.email}</strong>
+          </p>
+          <Button size="sm" variant="secondary" disabled={verifySent} onClick={async () => { try { await resendVerification(); setVerifySent(true); } catch (e) {} }}>
+            {verifySent ? t("Sent - check your inbox") : t("Send the link")}
+          </Button>
+        </div>
+      )}
       {createError && <p className="text-red-500 mb-4 font-semibold">{createError}</p>}
       {quizzes.length === 0 ? (
         <Card className="text-center py-16">
@@ -154,11 +173,64 @@ export default function DashboardPage() {
                 >
                   {t("📝 Assign")}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setShareQuiz(quiz)}
+                  title={t("Invite someone to edit or host this")}
+                >
+                  {t("Share")}
+                </Button>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(quiz.id)}>{t("Delete")}</Button>
               </div>
             </Card>
           ))}
         </div>
+      )}
+
+      {shared.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-black mb-1">{t("Shared with me")}</h2>
+          <p className="text-gray-500 mb-4">{t("Quizzes and polls other people have invited you to.")}</p>
+          <div className="grid gap-4">
+            {shared.map((s: any) => {
+              const mine = String((user && user.email) || "").toLowerCase();
+              const canEdit = (s.collabEditors || []).indexOf(mine) >= 0;
+              const me = (s.collaborators || []).filter((c: any) => c.email === mine)[0];
+              return (
+                <Card key={s.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold">
+                      {s.title || "Untitled"}
+                      <span className="ml-2 align-middle text-xs font-black bg-kahoot-blue text-white rounded-full px-2 py-0.5">{t("SHARED")}</span>
+                    </h3>
+                    <p className="text-gray-500">
+                      {s.questions.length} questions
+                      {me && me.invitedByName ? " \u00b7 " + t("from") + " " + me.invitedByName : ""}
+                      {" \u00b7 "}
+                      {canEdit ? t("Can edit and host") : t("Can host games only")}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/game/lobby?quizId=${s.id}`}><Button size="sm">{t("Host")}</Button></Link>
+                    {canEdit && (
+                      <Link href={`/quiz/edit?id=${s.id}`}><Button size="sm" variant="secondary">{t("Edit")}</Button></Link>
+                    )}
+                    <Link href={`/reports?quizId=${s.id}`}><Button size="sm" variant="secondary">{t("Analytics")}</Button></Link>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {shareQuiz && (
+        <ShareDialog
+          quiz={shareQuiz}
+          onClose={() => setShareQuiz(null)}
+          onSaved={(updated: any) => setQuizzes((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))}
+        />
       )}
 
       {assignQuiz && (

@@ -10,6 +10,7 @@ import {
   User,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { createUserProfile, getUserProfile } from "@/lib/firestore";
@@ -22,6 +23,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  resendVerification: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -58,6 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(user, { displayName: name });
     await createUserProfile(user.uid, email, name, { marketing: true, analytics: true });
+    // A verified address is what unlocks quizzes shared with this person.
+    try { await sendEmailVerification(user); } catch (e) { /* signup still succeeds */ }
+  };
+
+  const resendVerification = async () => {
+    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
   };
 
   const loginWithGoogle = async () => {
@@ -75,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithEmail, signupWithEmail, loginWithGoogle, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, loginWithEmail, signupWithEmail, loginWithGoogle, logout, resetPassword, resendVerification }}>
       {children}
     </AuthContext.Provider>
   );

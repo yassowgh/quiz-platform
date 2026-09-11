@@ -110,6 +110,28 @@ export async function sendAssignmentEmail(params: {
   }
 }
 
+export async function sendCollabInvite(params: {
+  toEmail: string;
+  inviterName: string;
+  quizTitle: string;
+  role: string;
+  kind: string;
+  link: string;
+}): Promise<void> {
+  if (!isValidEmail(params.toEmail)) throw new Error("invalid recipient address");
+  const what = params.kind === "poll" ? "poll" : "quiz";
+  const can = params.role === "edit" ? "edit it and run it live" : "run it live with a group";
+  const subject = params.inviterName + " invited you to work on \"" + params.quizTitle + "\"";
+  const message =
+    "<p style=\"font-size:17px\"><strong>" + params.inviterName + "</strong> would like your help with a " + what + " on QuizUps.</p>" +
+    "<p style=\"font-size:20px;font-weight:bold;margin:18px 0 4px\">" + params.quizTitle + "</p>" +
+    "<p style=\"color:#555;margin-top:0\">You can " + can + " whenever you like. Nothing to install, nothing to pay for.</p>" +
+    "<p style=\"margin:26px 0\"><a href=\"" + params.link + "\" style=\"background:#5333e8;color:#fff;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:10px;display:inline-block\">Open the " + what + "</a></p>" +
+    "<p style=\"color:#555\">New to QuizUps? Sign up with <strong>" + params.toEmail + "</strong> and verify your address - this " + what + " will be waiting on your dashboard. It is free, with no player limits and no ads.</p>" +
+    "<p style=\"color:#999;font-size:13px;margin-top:26px\">If you were not expecting this, you can ignore the message and nothing will happen.</p>";
+  await workerSend(params.toEmail.trim(), subject, message);
+}
+
 export async function sendAssignmentInvite(params: {
   toEmails: string[];
   quizTitle: string;

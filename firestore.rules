@@ -12,10 +12,32 @@ service cloud.firestore {
       allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
     }
+    // Collaborators are invited by email address. We only honour the claim when
+    // the address is verified, otherwise anyone could register someone else's
+    // address and inherit their shared quizzes.
+    function collabEmail() {
+      return (request.auth != null
+              && request.auth.token.get('email_verified', false) == true
+              && request.auth.token.get('email', null) != null)
+        ? request.auth.token.email.lower()
+        : 'no-collaborator';
+    }
     match /quizzes/{quizId} {
-      allow read: if resource.data.get('examMode', false) != true || (request.auth != null && resource.data.hostId == request.auth.uid) || isAdmin();
+      allow read: if resource.data.get('examMode', false) != true
+        || (request.auth != null && resource.data.hostId == request.auth.uid)
+        || collabEmail() in resource.data.get('collabEditors', [])
+        || collabEmail() in resource.data.get('collabHosts', [])
+        || isAdmin();
       allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.hostId == request.auth.uid;
+      // An editor may change the content but never the owner or the guest list.
+      allow update: if request.auth != null && (
+        resource.data.hostId == request.auth.uid
+        || (collabEmail() in resource.data.get('collabEditors', [])
+            && request.resource.data.hostId == resource.data.hostId
+            && request.resource.data.get('collabEditors', []) == resource.data.get('collabEditors', [])
+            && request.resource.data.get('collabHosts', []) == resource.data.get('collabHosts', []))
+      );
+      allow delete: if request.auth != null && resource.data.hostId == request.auth.uid;
     }
     match /games/{gameId} {
       allow read: if isAdmin() || (request.auth != null && (resource.data.hostId == request.auth.uid || (resource.data.playerIds != null && resource.data.playerIds.hasAny([request.auth.uid]))));
