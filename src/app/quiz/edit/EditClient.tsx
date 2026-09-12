@@ -2,6 +2,7 @@
 import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { logHandled } from "@/components/ui/ErrorReporter";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImage } from "@/lib/integrations";
 import { getQuiz, updateQuiz, saveExamPublic, getAdmins } from "@/lib/firestore";
@@ -62,6 +63,7 @@ export default function EditQuizPage() {
       }
     }
     setSaving(true);
+    try {
     await updateQuiz({
       ...quiz,
       questions,
@@ -96,6 +98,12 @@ export default function EditQuizPage() {
         creatorEmail: quiz.creatorEmail || user?.email || "",
         updatedAt: Date.now(),
       });
+    }
+    } catch (err) {
+      logHandled("quiz save", err);
+      setSaving(false);
+      alert(t("We could not save your changes. Please check your connection and try again."));
+      return;
     }
     setSaving(false);
     router.push("/dashboard");

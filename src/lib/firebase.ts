@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
@@ -17,7 +17,18 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Firestore rejects a write outright if any field is undefined, which took
+// down quiz saving for anyone whose quiz carried an unset optional field.
+// Skipping those fields is the documented behaviour we want.
+function initDb() {
+  try {
+    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+  } catch (e) {
+    // Already initialised (a second import, or a dev hot reload) - reuse it.
+    return getFirestore(app);
+  }
+}
+export const db = initDb();
 export const rtdb = getDatabase(app);
 export const storage = getStorage(app);
 export default app;

@@ -15,6 +15,7 @@ import {
 import { db } from "./firebase";
 import type { Quiz, Question } from "@/types";
 import { nanoid } from "./utils";
+import { breadcrumb } from "@/components/ui/ErrorReporter";
 
 export async function createUserProfile(uid: string, email: string, displayName: string, consent?: { marketing?: boolean; analytics?: boolean }) {
   const ref = doc(db, "users", uid);
@@ -29,8 +30,41 @@ export async function getQuiz(id: string): Promise<Quiz | null> {
   return snap.exists() ? (snap.data() as Quiz) : null;
 }
 
+/**
+ * Drop undefined fields before writing, and remember which ones were dropped.
+ * Belt and braces alongside ignoreUndefinedProperties - and the breadcrumb
+ * means an unset field shows up in the next report instead of as a crash.
+ * Only plain objects and arrays are walked, so Firestore sentinels such as
+ * serverTimestamp() are passed through untouched.
+ */
+function stripUndefined(value: any, dropped: string[], path: string): any {
+  if (Array.isArray(value)) {
+    // An undefined inside an array cannot be skipped the way a field can -
+    // that would shift every later index - so it becomes null instead.
+    return value.map((v, i) => {
+      const here = path + "[" + i + "]";
+      if (v === undefined) { dropped.push(here); return null; }
+      return stripUndefined(v, dropped, here);
+    });
+  }
+  if (value && typeof value === "object" && (value.constructor === Object || value.constructor === undefined)) {
+    const out: any = {};
+    for (const key of Object.keys(value)) {
+      const child = value[key];
+      const here = path ? path + "." + key : key;
+      if (child === undefined) { dropped.push(here); continue; }
+      out[key] = stripUndefined(child, dropped, here);
+    }
+    return out;
+  }
+  return value;
+}
+
 export async function updateQuiz(quiz: Quiz) {
-  await setDoc(doc(db, "quizzes", quiz.id), { ...quiz, updatedAt: Date.now() });
+  const dropped: string[] = [];
+  const payload = stripUndefined({ ...quiz, updatedAt: Date.now() }, dropped, "");
+  if (dropped.length) breadcrumb("quiz:dropped-undefined", dropped.slice(0, 12).join(", "));
+  await setDoc(doc(db, "quizzes", quiz.id), payload);
 }
 
 export async function deleteQuiz(id: string) {
