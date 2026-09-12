@@ -5,6 +5,43 @@ import { useLang } from "@/contexts/LanguageContext";
 const WORKER = "https://polished-shadow-f08c.yassow.workers.dev/";
 const seen: Record<string, number> = {};
 
+/* ---------------------------------------------------------------------------
+ * Breadcrumbs. A rejection often arrives with no useful message; what we
+ * actually need is what the player was doing in the seconds before it.
+ * Every report carries the last 30 steps.
+ * ------------------------------------------------------------------------- */
+type Crumb = { at: number; label: string; detail?: string };
+const crumbs: Crumb[] = [];
+
+export function breadcrumb(label: string, detail?: any) {
+  try {
+    crumbs.push({ at: Date.now(), label: String(label).slice(0, 60), detail: detail === undefined ? undefined : String(detail).slice(0, 140) });
+    if (crumbs.length > 30) crumbs.shift();
+  } catch (e) { /* never let logging break the app */ }
+}
+
+function crumbTrail(): string {
+  try {
+    if (!crumbs.length) return "(no breadcrumbs recorded)";
+    const now = Date.now();
+    return crumbs
+      .map((c) => "  -" + (Math.round((now - c.at) / 100) / 10) + "s  " + c.label + (c.detail ? "  ::  " + c.detail : ""))
+      .join("\n");
+  } catch (e) {
+    return "(breadcrumbs unavailable)";
+  }
+}
+
+/**
+ * For an error we catch and carry on from. It used to be a bare `catch {}`,
+ * which is how a broken answer submission stayed invisible for weeks.
+ */
+export function logHandled(where: string, err?: any) {
+  try { console.warn("[QuizUps] handled error in " + where, err); } catch (e) {}
+  breadcrumb("error:" + where, describeReason(err).split("\n")[0]);
+  throttledReport("Handled error - " + where, describeReason(err));
+}
+
 /**
  * Errors thrown by the visitor's browser extensions (wallets, ad blockers,
  * password managers) surface on our pages but are not our bugs. Drop them
@@ -34,6 +71,7 @@ export function reportProblem(summary: string, detail?: string, note?: string) {
       "\nLang: " + (typeof document !== "undefined" ? document.documentElement.lang : "") +
       "\nUA: " + (typeof navigator !== "undefined" ? navigator.userAgent : "") +
       (note ? "\nUser note: " + note : "") +
+      "\n\nRecent steps:\n" + crumbTrail() +
       "\n\nDetails:\n" + String(detail || "").slice(0, 2000);
     return fetch(WORKER, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "feedback", ftype: "error report", message: message, email: email }) }).catch(() => {});
   } catch (e) { return Promise.resolve(); }
@@ -61,6 +99,8 @@ function describeReason(r: any): string {
   }
 }
 
+let sdkNoiseSeen = false;
+
 /** Noise from third-party SDKs that we cannot fix from here. */
 function isSdkNoise(text: string): boolean {
   const s = String(text || "");
@@ -76,7 +116,12 @@ function throttledReport(summary: string, detail?: string) {
   try {
     if (Object.keys(seen).length > 25) return; // session cap to avoid floods
     if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
-    if (isSdkNoise(detail || "")) return;
+    if (isSdkNoise(detail || "")) {
+      // Still worth seeing once: if Google sign-in is genuinely broken on a
+      // browser, this is the only signal. Just never let it flood.
+      if (sdkNoiseSeen) return;
+      sdkNoiseSeen = true;
+    }
     const key = (summary + "|" + (detail || "")).slice(0, 140);
     const now = Date.now();
     if (seen[key] && now - seen[key] < 60000) return;

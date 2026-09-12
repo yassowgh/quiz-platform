@@ -9,6 +9,7 @@ import {
   serverTimestamp,
 } from "firebase/database";
 import { rtdb } from "./firebase";
+import { breadcrumb, logHandled } from "@/components/ui/ErrorReporter";
 import type { LiveGameState, GameStatus, PlayerAnswer } from "@/types";
 import { generatePin, nanoid } from "./utils";
 import { registerPin, releasePin } from "./firestore";
@@ -95,7 +96,7 @@ export async function joinGame(
   };
   await set(ref(rtdb, `games/${gameId}/players/${playerId}`), player);
 }
-export async function submitAnswer(
+async function _submitAnswer(
   gameId: string,
   questionIndex: number,
   playerId: string,
@@ -169,7 +170,7 @@ export async function resetPlayerAnswered(gameId: string, players: Record<string
   });
   await update(ref(rtdb), updates);
 }
-export async function applyChest(
+async function _applyChest(
   gameId: string,
   playerId: string,
   outcome: { type: "gain" | "lose" | "steal"; amount: number; targetId?: string }
@@ -210,7 +211,7 @@ export async function applyBattleElimination(gameId: string, questionIndex: numb
   if (Object.keys(updates).length) await update(gRef, updates);
 }
 
-export async function submitResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
+async function _submitResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
   const t = String(text || "").slice(0, 140);
   if (!t.trim()) return;
   const key = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -222,6 +223,40 @@ export async function upvoteResponse(gameId: string, questionIndex: number, resp
   await set(r, (snap.exists() ? Number(snap.val()) || 0 : 0) + 1);
 }
 
-export async function setPlayerResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
+async function _setPlayerResponse(gameId: string, questionIndex: number, playerId: string, text: string) {
   await set(ref(rtdb, "games/" + gameId + "/responses/" + questionIndex + "/" + playerId), { pid: playerId, text: String(text).slice(0, 140), ts: Date.now() });
+}
+
+/* ---------------------------------------------------------------------------
+ * Player writes were awaited in PlayerClient with no catch, so a write that
+ * failed on a flaky mobile connection became an unhandled promise rejection
+ * with no message - impossible to trace, and the player was never told their
+ * answer had not been recorded. These wrappers log the failure with the game
+ * and question it happened on, and resolve false instead of rejecting.
+ * ------------------------------------------------------------------------- */
+async function guarded(name: string, context: string, run: () => Promise<any>): Promise<boolean> {
+  breadcrumb(name, context);
+  try {
+    await run();
+    return true;
+  } catch (err) {
+    logHandled(name + " " + context, err);
+    return false;
+  }
+}
+
+export async function submitAnswer(...args: any[]): Promise<boolean> {
+  return guarded("submitAnswer", "game=" + args[0] + " q=" + args[1] + " answer=" + args[3], () => (_submitAnswer as any).apply(null, args));
+}
+
+export async function submitResponse(...args: any[]): Promise<boolean> {
+  return guarded("submitResponse", "game=" + args[0] + " q=" + args[1], () => (_submitResponse as any).apply(null, args));
+}
+
+export async function setPlayerResponse(...args: any[]): Promise<boolean> {
+  return guarded("setPlayerResponse", "game=" + args[0] + " q=" + args[1], () => (_setPlayerResponse as any).apply(null, args));
+}
+
+export async function applyChest(...args: any[]): Promise<boolean> {
+  return guarded("applyChest", "game=" + args[0] + " type=" + (args[2] && args[2].type), () => (_applyChest as any).apply(null, args));
 }

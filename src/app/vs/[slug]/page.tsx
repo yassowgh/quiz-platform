@@ -267,6 +267,20 @@ export default async function VsPage({ params }: { params: any }) {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-white">
       <div className="max-w-3xl mx-auto px-6 py-12">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "QuizUps", item: "https://quizups.com" },
+                { "@type": "ListItem", position: 2, name: "Comparisons", item: "https://quizups.com/features" },
+                { "@type": "ListItem", position: 3, name: "QuizUps vs " + c.name, item: "https://quizups.com/vs/" + slug },
+              ],
+            }),
+          }}
+        />
         <p className="text-kahoot-blue font-bold mb-2">Free {c.name} alternative</p>
         <h1 className="text-4xl font-black text-gray-900 mb-4">QuizUps vs {c.name}</h1>
         <p className="text-lg text-gray-600 mb-8">{c.intro}</p>

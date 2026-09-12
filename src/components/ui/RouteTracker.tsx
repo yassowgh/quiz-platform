@@ -1,10 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { breadcrumb } from "@/components/ui/ErrorReporter";
 
 export default function RouteTracker() {
   const pathname = usePathname();
   useEffect(() => {
+    breadcrumb("route", pathname);
     try {
       const w = window as any;
       w.dataLayer = w.dataLayer || [];
