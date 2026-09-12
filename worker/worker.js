@@ -63,6 +63,7 @@ export default {
     if (body.mode === "urlq") return handleUrlQ(body, env, cors);
     if (body.mode === "email") return handleEmail(body, env, cors);
     if (body.mode === "logs") return handleLogs(body, env, cors);
+    if (body.mode === "errors") return handleErrors(body, env, cors);
     if (body.mode === "hubspot") return handleHubspot(body, env, cors);
     if (body.mode === "feedback") return handleFeedback(body, env, cors);
     if (body.mode === "stats") return handleStats(body, env, cors);
@@ -639,7 +640,7 @@ async function logEvent(env, ev) {
 
 async function handleLogs(body, env, cors) {
   if (!env.MEDIA) return json({ logs: [], reason: "R2 not configured" }, 200, cors);
-  const limit = Math.min(Math.max(parseInt(body.limit) || 50, 1), 200);
+  const limit = Math.min(Math.max(parseInt(body.limit) || 50, 1), 1000);
   const listed = await env.MEDIA.list({ prefix: "logs/", limit: limit });
   const logs = [];
   for (const o of (listed.objects || [])) {
@@ -676,8 +677,101 @@ async function handleFeedback(body, env, cors) {
   const html = "<h3>New QuizUps " + ftype + "</h3><p><b>From:</b> " + from + "</p><p>" + safe + "</p><p style='color:#888'>" + new Date().toISOString() + "</p>";
   let res = { ok: false };
   if (env.RESEND_KEY && env.ALERT_EMAIL) res = await sendEmail(env, env.ALERT_EMAIL, "QuizUps " + ftype + " from " + from, html);
-  await logEvent(env, { type: "feedback", ok: true, topic: ftype, detail: from });
+  const fpInfo = /error/i.test(ftype) ? errFingerprint(message) : null;
+  await logEvent(env, {
+    type: "feedback", ok: true, topic: ftype, detail: from,
+    fp: fpInfo ? fpInfo.fp : undefined,
+    summary: fpInfo ? fpInfo.summary : undefined,
+    err: fpInfo ? fpInfo.detail : undefined,
+  });
+  if (fpInfo) await noteErrorOccurrence(env, fpInfo, from);
   return json({ ok: true, emailed: !!res.ok }, 200, cors);
+}
+
+/* ---------------------------------------------------------------------------
+ * Error grouping. The log used to record only that a report happened and who
+ * from - the error text lived solely in one inbox, so nothing could tell
+ * whether five people hit the same fault or five different ones.
+ * ------------------------------------------------------------------------- */
+function errFingerprint(message) {
+  try {
+    const m = String(message || "");
+    const sum = (m.match(/Summary:\s*([^\n]+)/) || [])[1] || "";
+    const det = (m.split(/\nDetails:\s*/)[1] || "").split("\n")[0] || "";
+    const basis = (sum + " | " + det)
+      .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s)"']+/gi, "<url>")
+      .replace(/\b[A-Za-z0-9]{12}\b/g, "<id>")
+      .replace(/\b[A-Za-z0-9]{16,}\b/g, "<id>")
+      .replace(/\b\d+\b/g, "<n>")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 200);
+    let h = 5381;
+    for (let i = 0; i < basis.length; i++) h = ((h << 5) + h + basis.charCodeAt(i)) >>> 0;
+    return { fp: h.toString(36), summary: sum.slice(0, 140), detail: det.slice(0, 240) };
+  } catch (e) {
+    return { fp: "unknown", summary: "", detail: "" };
+  }
+}
+
+async function noteErrorOccurrence(env, info, from) {
+  try {
+    if (!env.MEDIA) return;
+    const key = "errstats/" + info.fp + ".json";
+    const now = Date.now();
+    let rec = { fp: info.fp, count: 0, users: [], recent: [], firstSeen: now, lastSeen: 0, lastAlert: 0 };
+    const existing = await env.MEDIA.get(key);
+    if (existing) { try { rec = Object.assign(rec, JSON.parse(await existing.text())); } catch (e) {} }
+    rec.count = (rec.count || 0) + 1;
+    rec.lastSeen = now;
+    if (info.summary) rec.summary = info.summary;
+    if (info.detail) rec.detail = info.detail;
+    if (from && from !== "anonymous" && (rec.users || []).indexOf(from) < 0) {
+      rec.users = (rec.users || []).concat([from]).slice(-25);
+    }
+    rec.recent = (rec.recent || []).filter((t) => t > now - 3600000).concat([now]).slice(-200);
+
+    // One alert per fault per hour, however many people are hitting it.
+    const shouldAlert = rec.recent.length >= 3 && now - (rec.lastAlert || 0) > 3600000 && env.RESEND_KEY && env.ALERT_EMAIL;
+    if (shouldAlert) rec.lastAlert = now;
+    await env.MEDIA.put(key, JSON.stringify(rec), { httpMetadata: { contentType: "application/json" } });
+
+    if (shouldAlert) {
+      const lines =
+        "The same error has been reported " + rec.recent.length + " times in the past hour.\n\n" +
+        "Summary: " + (rec.summary || "(none)") + "\n" +
+        "Detail:  " + (rec.detail || "(none)") + "\n\n" +
+        "Reported " + rec.count + " times in total, first seen " + new Date(rec.firstSeen).toISOString() + ".\n" +
+        "Signed-in accounts affected: " + ((rec.users || []).join(", ") || "none - all anonymous") + "\n" +
+        "Fingerprint: " + rec.fp;
+      const safe = lines.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      await sendEmail(env, env.ALERT_EMAIL, "QuizUps alert: " + rec.recent.length + " reports of one error in an hour", "<pre>" + safe + "</pre>");
+    }
+  } catch (e) { /* never let bookkeeping break a user's report */ }
+}
+
+async function handleErrors(body, env, cors) {
+  if (!env.MEDIA) return json({ groups: [], reason: "R2 not configured" }, 200, cors);
+  const listed = await env.MEDIA.list({ prefix: "errstats/", limit: 1000 });
+  const now = Date.now();
+  const groups = [];
+  for (const o of (listed.objects || [])) {
+    const g = await env.MEDIA.get(o.key);
+    if (!g) continue;
+    try {
+      const r = JSON.parse(await g.text());
+      groups.push({
+        fp: r.fp, summary: r.summary || "", detail: r.detail || "",
+        count: r.count || 0,
+        lastHour: (r.recent || []).filter((t) => t > now - 3600000).length,
+        lastDay: (r.recent || []).filter((t) => t > now - 86400000).length,
+        users: r.users || [],
+        firstSeen: r.firstSeen, lastSeen: r.lastSeen,
+      });
+    } catch (e) {}
+  }
+  groups.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  return json({ groups: groups, count: groups.length }, 200, cors);
 }
 
 async function isUnsubscribed(env, email) {
