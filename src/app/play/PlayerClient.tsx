@@ -13,6 +13,7 @@ import Confetti from "@/components/game/Confetti";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Podium from "@/components/game/Podium";
+import HostCta from "@/components/game/HostCta";
 import { playSuccess, playFail } from "@/lib/sfx";
 import { useLang } from "@/contexts/LanguageContext";
 
@@ -470,6 +471,7 @@ export default function PlayPage() {
           <h2 className="text-4xl font-black mb-3">{t("thanksForPlaying")}</h2>
           <p className="text-white/70 mb-6">{t("Your response has been recorded.")}</p>
           <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">{t("Done")}</a>
+          <HostCta variant="poll" />
         </div>
         ) : (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
@@ -477,6 +479,7 @@ export default function PlayPage() {
           <h2 className="text-4xl font-black mb-8">🎉 {t("gameOver")}</h2>
           <Podium players={state.players || {}} metric={isGold ? "gold" : "score"} />
           <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
+          <HostCta />
         </div>
         )
       )}
@@ -485,6 +488,7 @@ export default function PlayPage() {
           <h2 className="text-4xl font-black mb-4">{t("thanksForPlaying")}</h2>
           <p className="text-white/60 mb-6">Final score: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
           <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again →</a>
+          <HostCta />
         </div>
       )}
     </div>
