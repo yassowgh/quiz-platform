@@ -52,6 +52,29 @@ service cloud.firestore {
       allow create: if true;
       allow read: if isAdmin() || (request.auth != null && resource.data.hostId == request.auth.uid);
     }
+    // Referral programme. A code maps to the host who owns it and must be
+    // publicly readable so an invite link can be resolved before signing up.
+    match /referralCodes/{code} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+    // One row per referred person, keyed by their own uid so nobody can be
+    // counted twice. They write it; the referrer and admins can read it.
+    match /referrals/{refereeUid} {
+      allow create: if request.auth != null
+        && request.auth.uid == refereeUid
+        && request.resource.data.refereeUid == request.auth.uid
+        && request.resource.data.referrerUid is string
+        && request.resource.data.referrerUid != request.auth.uid;
+      allow update: if request.auth != null
+        && request.auth.uid == refereeUid
+        && request.resource.data.referrerUid == resource.data.referrerUid;
+      allow read: if request.auth != null && (
+        request.auth.uid == refereeUid
+        || resource.data.referrerUid == request.auth.uid
+        || isAdmin()
+      );
+    }
     match /pins/{pin} {
       allow read: if true;
       allow write: if request.auth != null;

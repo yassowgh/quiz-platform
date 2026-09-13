@@ -71,6 +71,89 @@ export async function deleteQuiz(id: string) {
   await deleteDoc(doc(db, "quizzes", id));
 }
 
+/* ---------------------------------------------------------------------------
+ * Referrals. A host shares a code; someone signing up with it creates a single
+ * row keyed by their own uid. It only counts once their email is verified,
+ * otherwise five throwaway inboxes would earn the reward.
+ * ------------------------------------------------------------------------- */
+export const REFERRALS_FOR_REWARD = 5;
+export const AI_QUESTIONS_DEFAULT = 10;
+export const AI_QUESTIONS_REWARD = 50;
+
+/** The host's own code, created on first use. */
+export async function ensureReferralCode(uid: string): Promise<string> {
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+  const existing = snap.exists() ? (snap.data() as any).referralCode : "";
+  if (existing) return existing;
+  const code = nanoid(7);
+  await setDoc(doc(db, "referralCodes", code), { uid, createdAt: Date.now() });
+  await setDoc(userRef, { referralCode: code }, { merge: true });
+  return code;
+}
+
+export async function resolveReferralCode(code: string): Promise<string> {
+  const clean = String(code || "").trim();
+  if (!clean) return "";
+  try {
+    const snap = await getDoc(doc(db, "referralCodes", clean));
+    return snap.exists() ? String((snap.data() as any).uid || "") : "";
+  } catch {
+    return "";
+  }
+}
+
+/** Called once, just after someone signs up through a referral link. */
+export async function recordReferral(refereeUid: string, refereeEmail: string, code: string, verified: boolean) {
+  const referrerUid = await resolveReferralCode(code);
+  if (!referrerUid || referrerUid === refereeUid) return;
+  await setDoc(doc(db, "referrals", refereeUid), {
+    refereeUid,
+    refereeEmail: String(refereeEmail || "").toLowerCase(),
+    referrerUid,
+    code: String(code).trim(),
+    verified: !!verified,
+    createdAt: Date.now(),
+    verifiedAt: verified ? Date.now() : null,
+  });
+}
+
+/** Flip our own row once the address is confirmed. Safe to call on every load. */
+export async function markReferralVerified(refereeUid: string) {
+  try {
+    const ref = doc(db, "referrals", refereeUid);
+    const snap = await getDoc(ref);
+    if (!snap.exists() || (snap.data() as any).verified) return;
+    await updateDoc(ref, { verified: true, verifiedAt: Date.now() });
+  } catch { /* nothing to do if there is no referral */ }
+}
+
+export async function listMyReferrals(referrerUid: string): Promise<any[]> {
+  try {
+    const snap = await getDocs(query(collection(db, "referrals"), where("referrerUid", "==", referrerUid)));
+    return snap.docs.map((d) => d.data() as any).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } catch {
+    return [];
+  }
+}
+
+/** Admin view: every referral, for the console report. */
+export async function listAllReferrals(): Promise<any[]> {
+  try {
+    const snap = await getDocs(collection(db, "referrals"));
+    return snap.docs.map((d) => d.data() as any).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } catch {
+    return [];
+  }
+}
+
+/** How many questions this host may ask for in one AI generation. */
+export async function aiQuestionAllowance(uid: string): Promise<number> {
+  const rows = await listMyReferrals(uid);
+  const verified = rows.filter((r) => r.verified).length;
+  return verified >= REFERRALS_FOR_REWARD ? AI_QUESTIONS_REWARD : AI_QUESTIONS_DEFAULT;
+}
+
 export async function setQuizCollaborators(
   quizId: string,
   collaborators: { email: string; role: string; invitedAt: number; invitedByName?: string }[],

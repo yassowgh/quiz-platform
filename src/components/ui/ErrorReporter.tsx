@@ -56,7 +56,10 @@ function isExtensionNoise(text: string): boolean {
     s.indexOf("safari-extension://") >= 0 ||
     s.indexOf("MetaMask") >= 0 ||
     s.indexOf("ethereum") >= 0 ||
-    s.indexOf("solana") >= 0
+    s.indexOf("solana") >= 0 ||
+    // Headless agents and scrapers running Deno, not a browser our users have.
+    s.indexOf("ext:core/") >= 0 ||
+    s.indexOf("deno:") >= 0
   );
 }
 

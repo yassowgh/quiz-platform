@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { reportProblem } from "@/components/ui/ErrorReporter";
 import { useLang } from "@/contexts/LanguageContext";
-import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz } from "@/lib/firestore";
+import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz, markReferralVerified, listMyReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import ShareDialog from "@/components/quiz/ShareDialog";
 import { nanoid } from "@/lib/utils";
 import { updateQuiz } from "@/lib/firestore";
@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [shared, setShared] = useState<Quiz[]>([]);
   const [shareQuiz, setShareQuiz] = useState<any>(null);
   const [verifySent, setVerifySent] = useState(false);
+  const [refVerified, setRefVerified] = useState(0);
 
   const assignLink = assignQuiz ? (typeof window !== "undefined" ? window.location.origin : "") + "/assignment?quizId=" + assignQuiz.id : "";
 
@@ -59,6 +60,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user || !user.email) return;
     listQuizzesSharedWith(user.email).then(setShared).catch(() => {});
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    // If this host arrived through someone's referral link, their row only
+    // counts once they have confirmed their address.
+    if (user.emailVerified) markReferralVerified(user.uid);
+    listMyReferrals(user.uid)
+      .then((rows) => setRefVerified(rows.filter((r: any) => r.verified).length))
+      .catch(() => {});
   }, [user]);
 
   const createQuiz = async () => {
@@ -187,6 +198,19 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      <Card className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl font-bold">{t("Know five people who would use this?")}</h2>
+          <p className="text-gray-500">
+            {refVerified >= REFERRALS_FOR_REWARD
+              ? t("You unlocked bigger AI generations - up to 50 questions at a time.")
+              : t("Five confirmed sign-ups through your link and the AI drafts 50 questions at a time instead of 10.")}
+            {refVerified > 0 && refVerified < REFERRALS_FOR_REWARD ? " (" + refVerified + "/" + REFERRALS_FOR_REWARD + ")" : ""}
+          </p>
+        </div>
+        <Link href="/refer"><Button size="sm">{refVerified >= REFERRALS_FOR_REWARD ? t("View referrals") : t("Get my link")}</Button></Link>
+      </Card>
 
       {shared.length > 0 && (
         <div className="mt-10">

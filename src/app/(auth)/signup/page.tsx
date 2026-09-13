@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { recordReferral } from "@/lib/firestore";
 import { friendlyAuthError, isEmailInUse } from "@/lib/authErrors";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -11,6 +12,18 @@ import { useLang } from "@/contexts/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  // A referral code travels on the link and has to survive the Google popup.
+  const [refCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get("ref") || "";
+      if (fromUrl) { try { sessionStorage.setItem("refCode", fromUrl); } catch (e) {} return fromUrl; }
+      return sessionStorage.getItem("refCode") || "";
+    } catch (e) {
+      return "";
+    }
+  });
+
   // Keep the invite destination across signing up.
   // Read once, on the first client render. useSearchParams() would need a
   // Suspense boundary that a static export cannot prerender without.
@@ -43,6 +56,13 @@ export default function SignupPage() {
     setLoading(true); setError(""); setNotice(""); setEmailInUse(false);
     try {
       await signupWithEmail(email, password, name);
+      if (refCode) {
+        try {
+          const u = (await import("@/lib/firebase")).auth.currentUser;
+          if (u) await recordReferral(u.uid, u.email || email, refCode, !!u.emailVerified);
+          try { sessionStorage.removeItem("refCode"); } catch (e) {}
+        } catch (e) { /* the account exists either way */ }
+      }
       router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
@@ -54,6 +74,13 @@ export default function SignupPage() {
         setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
+      if (refCode) {
+        try {
+          const u = (await import("@/lib/firebase")).auth.currentUser;
+          if (u) await recordReferral(u.uid, u.email || "", refCode, !!u.emailVerified);
+          try { sessionStorage.removeItem("refCode"); } catch (e) {}
+        } catch (e) { /* the account exists either way */ }
+      }
       router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
