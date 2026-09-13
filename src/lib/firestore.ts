@@ -77,7 +77,7 @@ export async function deleteQuiz(id: string) {
  * otherwise five throwaway inboxes would earn the reward.
  * ------------------------------------------------------------------------- */
 export const REFERRALS_FOR_REWARD = 5;
-export const AI_QUESTIONS_DEFAULT = 10;
+export const AI_QUESTIONS_DEFAULT = 20;
 export const AI_QUESTIONS_REWARD = 50;
 
 /** The host's own code, created on first use. */

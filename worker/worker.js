@@ -160,7 +160,7 @@ async function handleGrade(body, env, cors) {
 async function handleGenerate(body, env, cors) {
   const topic = String(body.topic || "").slice(0, 200);
   const source = String(body.source || "").slice(0, 14000);
-  const count = Math.min(Math.max(parseInt(body.count) || 5, 1), 20);
+  const count = Math.min(Math.max(parseInt(body.count) || 5, 1), 50);
   const language = body.language === "ar" ? "Arabic" : "English";
   if (!topic && !source) return json({ error: "Missing topic or source" }, 400, cors);
 

@@ -238,7 +238,7 @@ export default function DashboardPage() {
           <p className="text-gray-500">
             {refVerified >= REFERRALS_FOR_REWARD
               ? t("You unlocked bigger AI generations - up to 50 questions at a time.")
-              : t("Five confirmed sign-ups through your link and the AI drafts 50 questions at a time instead of 10.")}
+              : t("Five confirmed sign-ups through your link and the AI drafts 50 questions at a time instead of 20.")}
             {refVerified > 0 && refVerified < REFERRALS_FOR_REWARD ? " (" + refVerified + "/" + REFERRALS_FOR_REWARD + ")" : ""}
           </p>
         </div>
