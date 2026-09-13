@@ -178,7 +178,7 @@ export default function DashboardPage() {
       {user && !user.emailVerified && (
         <div className="mb-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
           <p className="text-sm text-amber-900 flex-1 min-w-[220px]">
-            {t("Verify your email to unlock quizzes people share with you.")} <strong>{user.email}</strong>
+            {t("Confirm your email to open exams shared with you, and so we can reach you about your account.")} <strong>{user.email}</strong>
           </p>
           <Button
             size="sm"

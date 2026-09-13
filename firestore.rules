@@ -12,28 +12,43 @@ service cloud.firestore {
       allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
     }
-    // Collaborators are invited by email address. We only honour the claim when
-    // the address is verified, otherwise anyone could register someone else's
-    // address and inherit their shared quizzes.
-    function collabEmail() {
+    // Collaborators are invited by email address.
+    //
+    // Requiring a verified address everywhere locked real people out of work
+    // they were invited to, silently, twice. The risk it guards against is
+    // somebody registering an address they do not own and inheriting what was
+    // shared with it - which matters when the document holds exam answers, and
+    // very little when it is an ordinary quiz. So verification is required for
+    // exams only.
+    function authEmail() {
+      return (request.auth != null && request.auth.token.get('email', null) != null)
+        ? request.auth.token.email.lower()
+        : 'no-collaborator';
+    }
+    function verifiedEmail() {
       return (request.auth != null
               && request.auth.token.get('email_verified', false) == true
               && request.auth.token.get('email', null) != null)
         ? request.auth.token.email.lower()
         : 'no-collaborator';
     }
+    // The address that counts for this document: verified if it is an exam.
+    function claimFor(isExam) {
+      return isExam ? verifiedEmail() : authEmail();
+    }
     match /quizzes/{quizId} {
       allow read: if resource.data.get('examMode', false) != true
         || (request.auth != null && resource.data.hostId == request.auth.uid)
-        || collabEmail() in resource.data.get('collabEditors', [])
-        || collabEmail() in resource.data.get('collabHosts', [])
+        || verifiedEmail() in resource.data.get('collabEditors', [])
+        || verifiedEmail() in resource.data.get('collabHosts', [])
         || isAdmin();
       allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
       // An editor may change the content but never the owner or the guest list.
       allow update: if request.auth != null && (
         resource.data.hostId == request.auth.uid
-        || (collabEmail() in resource.data.get('collabEditors', [])
+        || (claimFor(resource.data.get('examMode', false) == true) in resource.data.get('collabEditors', [])
             && request.resource.data.hostId == resource.data.hostId
+            && request.resource.data.get('examMode', false) == resource.data.get('examMode', false)
             && request.resource.data.get('collabEditors', []) == resource.data.get('collabEditors', [])
             && request.resource.data.get('collabHosts', []) == resource.data.get('collabHosts', []))
       );

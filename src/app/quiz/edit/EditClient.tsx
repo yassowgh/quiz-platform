@@ -118,7 +118,7 @@ export default function EditQuizPage() {
       if (code.indexOf("permission-denied") >= 0 || code.indexOf("insufficient permissions") >= 0) {
         alert(
           user && !user.emailVerified
-            ? t("Your changes were NOT saved. A quiz shared with you only becomes editable once you confirm your email address. Your work is still on this page - confirm your address, reload, then press Save again.")
+            ? t("Your changes were NOT saved. An exam shared with you only becomes editable once you confirm your email address. Your work is still on this page - confirm your address, reload, then press Save again.")
             : t("Your changes were NOT saved: this account does not have edit access to this quiz. Ask the owner to share it with this address.")
         );
       } else {
@@ -175,7 +175,9 @@ export default function EditQuizPage() {
   );
   if (!quiz) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
 
-  const sharedButUnverified = !!user && !!quiz && quiz.hostId !== user.uid && !user.emailVerified;
+  // Only exams still require a confirmed address, so only they need warning.
+  const sharedButUnverified =
+    !!user && !!quiz && quiz.hostId !== user.uid && !user.emailVerified && (quiz as any).examMode === true;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -183,7 +185,7 @@ export default function EditQuizPage() {
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
           <p className="text-sm text-amber-900 flex-1 min-w-[240px]">
             <strong>{t("Your changes will not save yet.")}</strong>{" "}
-            {t("This quiz was shared with you, and a shared quiz only becomes editable once you confirm your email address. Confirm it, reload, and everything here will save normally.")}
+            {t("This is an exam, and an exam shared with you only becomes editable once you confirm your email address. Confirm it, reload, and everything here will save normally.")}
           </p>
           <button
             onClick={async () => {
