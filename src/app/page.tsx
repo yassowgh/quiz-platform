@@ -1,6 +1,7 @@
 "use client";
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolvePin, getHomeContent, saveHomeContent } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
@@ -164,6 +165,9 @@ export default function HomePage() {
           <p className="text-white/60 mb-3">Want to host a quiz?</p>
           <a href="/dashboard">
             <Button variant="secondary" size="lg">Create a Quiz →</Button>
+          </Link>
+          <Link href="/try" className="block mt-3">
+            <span className="text-white/60 text-sm hover:text-white underline">{t("or build one right now, without an account")}</span>
           </a>
         </div>
       </div>

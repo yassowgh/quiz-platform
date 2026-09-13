@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { reportProblem } from "@/components/ui/ErrorReporter";
+import { reportProblem, logHandled } from "@/components/ui/ErrorReporter";
 import { useLang } from "@/contexts/LanguageContext";
 import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz, markReferralVerified, listMyReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import ShareDialog from "@/components/quiz/ShareDialog";
@@ -61,6 +61,39 @@ export default function DashboardPage() {
     if (!user || !user.email) return;
     listQuizzesSharedWith(user.email).then(setShared).catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    // Someone who built a quiz on /try before signing up gets it here, once.
+    if (!user) return;
+    let raw = "";
+    try { raw = localStorage.getItem("quizups:tryDraft") || ""; } catch (e) { return; }
+    if (!raw) return;
+    (async () => {
+      try {
+        const draft = JSON.parse(raw);
+        if (!draft || !Array.isArray(draft.questions) || !draft.questions.length) {
+          try { localStorage.removeItem("quizups:tryDraft"); } catch (e) {}
+          return;
+        }
+        const claimed: Quiz = {
+          id: nanoid(),
+          hostId: user.uid,
+          creatorEmail: user.email || "",
+          title: draft.title || "My first quiz",
+          description: "",
+          questions: draft.questions,
+          isPublished: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        await updateQuiz(claimed);
+        try { localStorage.removeItem("quizups:tryDraft"); } catch (e) {}
+        router.push("/quiz/edit?id=" + claimed.id);
+      } catch (err) {
+        logHandled("claim try draft", err);
+      }
+    })();
+  }, [user, router]);
 
   useEffect(() => {
     if (!user) return;
