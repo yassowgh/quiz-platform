@@ -13,7 +13,16 @@ export default function Navbar() {
         <img src="/logo.png" alt="QuizUps" className="h-9 w-auto" />
       </Link>
       <div className="flex items-center gap-3">
-        <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="text-sm font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-2 py-1" title="Language">{lang === "en" ? "🌐 عربي" : "🌐 EN"}</button>
+        <select
+          aria-label="Language"
+          value={lang}
+          onChange={(e) => setLang(e.target.value as any)}
+          className="text-sm font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-2 py-1 border-0 cursor-pointer"
+        >
+          <option value="en">🌐 EN</option>
+          <option value="ar">🌐 عربي</option>
+          <option value="uk">🌐 УКР</option>
+        </select>
         {user ? (
           <>
             {["yassow@gmail.com", "yasser.ghallab@gmail.com"].includes(user.email) && (

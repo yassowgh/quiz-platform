@@ -16,7 +16,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = typeof window !== "undefined" ? window.localStorage.getItem("quizzap_lang") : null;
-    if (saved === "ar" || saved === "en") setLangState(saved);
+    if (saved === "ar" || saved === "en" || saved === "uk") setLangState(saved);
   }, []);
 
   const setLang = (l: Lang) => {
