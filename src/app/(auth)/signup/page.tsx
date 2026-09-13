@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { friendlyAuthError, isEmailInUse } from "@/lib/authErrors";
@@ -11,12 +11,18 @@ import { useLang } from "@/contexts/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   // Keep the invite destination across signing up.
-  const nextPath = (() => {
-    const n = searchParams.get("next") || "";
-    return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
-  })();
+  // Read once, on the first client render. useSearchParams() would need a
+  // Suspense boundary that a static export cannot prerender without.
+  const [nextPath] = useState(() => {
+    if (typeof window === "undefined") return "/dashboard";
+    try {
+      const n = new URLSearchParams(window.location.search).get("next") || "";
+      return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+    } catch (e) {
+      return "/dashboard";
+    }
+  });
   const { t } = useLang();
   const { user, signupWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [name, setName] = useState("");

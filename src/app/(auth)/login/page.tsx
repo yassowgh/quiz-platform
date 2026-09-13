@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { friendlyAuthError } from "@/lib/authErrors";
@@ -11,14 +11,20 @@ import { useLang } from "@/contexts/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLang();
   // An invite link sends people here first. Send them back afterwards instead
   // of dumping everyone on the dashboard. Only same-site paths are honoured.
-  const nextPath = (() => {
-    const n = searchParams.get("next") || "";
-    return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
-  })();
+  // Read once, on the first client render. useSearchParams() would need a
+  // Suspense boundary that a static export cannot prerender without.
+  const [nextPath] = useState(() => {
+    if (typeof window === "undefined") return "/dashboard";
+    try {
+      const n = new URLSearchParams(window.location.search).get("next") || "";
+      return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+    } catch (e) {
+      return "/dashboard";
+    }
+  });
   const { user, loginWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
