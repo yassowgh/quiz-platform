@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures, listAllReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 import RichEditor from "@/components/ui/RichEditor";
 
@@ -16,6 +16,7 @@ const NAV = [
   { id: "crm", label: "CRM", icon: "📇" },
   { id: "campaigns", label: "Campaigns", icon: "✉️" },
   { id: "feedback", label: "Feedback", icon: "🗣️" },
+  { id: "referrals", label: "Referrals", icon: "🎁" },
 ];
 
 export default function QuPsControlPage() {
@@ -23,6 +24,12 @@ export default function QuPsControlPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState("overview");
+  const [referrals, setReferrals] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (tab !== "referrals") return;
+    listAllReferrals().then(setReferrals).catch(() => setReferrals([]));
+  }, [tab]);
   const [users, setUsers] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [admins, setAdmins] = useState<string[]>([]);
@@ -419,6 +426,85 @@ export default function QuPsControlPage() {
               )}
             </div>
           )}
+
+          {tab === "referrals" && (() => {
+            const confirmed = referrals.filter((r) => r.verified);
+            const byReferrer: Record<string, { sent: number; confirmed: number; last: number }> = {};
+            for (const r of referrals) {
+              const k = r.referrerUid || "unknown";
+              byReferrer[k] = byReferrer[k] || { sent: 0, confirmed: 0, last: 0 };
+              byReferrer[k].sent++;
+              if (r.verified) byReferrer[k].confirmed++;
+              byReferrer[k].last = Math.max(byReferrer[k].last, r.createdAt || 0);
+            }
+            const hosts = Object.keys(byReferrer)
+              .map((uid) => ({ uid, ...byReferrer[uid], email: (users.find((u: any) => u.uid === uid) || {}).email || uid }))
+              .sort((a, b) => b.confirmed - a.confirmed || b.sent - a.sent);
+            const rate = referrals.length ? Math.round((confirmed.length / referrals.length) * 100) : 0;
+            return (
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                    <p className="text-3xl font-black text-gray-900">{referrals.length}</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Referred</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                    <p className="text-3xl font-black text-green-600">{confirmed.length}</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Registered</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                    <p className="text-3xl font-black text-gray-900">{rate}%</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Confirm rate</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                    <p className="text-3xl font-black text-kahoot-purple">{hosts.filter((h) => h.confirmed >= REFERRALS_FOR_REWARD).length}</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Earned reward</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 text-sm text-gray-500">Referring hosts</div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[520px]">
+                      <thead><tr className="bg-gray-50 text-left">
+                        <th className="p-3 font-bold text-gray-700">Host</th>
+                        <th className="p-3 font-bold text-gray-700">Referred</th>
+                        <th className="p-3 font-bold text-gray-700">Registered</th>
+                        <th className="p-3 font-bold text-gray-700">Reward</th>
+                      </tr></thead>
+                      <tbody>
+                        {hosts.length === 0 && (<tr><td className="p-3 text-gray-400" colSpan={4}>Nobody has shared a link yet.</td></tr>)}
+                        {hosts.map((h) => (
+                          <tr key={h.uid} className="border-t border-gray-100">
+                            <td className="p-3 text-gray-800">{h.email}</td>
+                            <td className="p-3 text-gray-600">{h.sent}</td>
+                            <td className="p-3 text-gray-900 font-semibold">{h.confirmed}</td>
+                            <td className="p-3">{h.confirmed >= REFERRALS_FOR_REWARD
+                              ? <span className="text-xs font-bold text-green-600">Unlocked</span>
+                              : <span className="text-xs text-gray-400">{h.confirmed}/{REFERRALS_FOR_REWARD}</span>}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 text-sm text-gray-500">{referrals.length} people referred</div>
+                  <div className="divide-y divide-gray-100 max-h-[50vh] overflow-auto">
+                    {referrals.map((r) => (
+                      <div key={r.refereeUid} className="p-3 text-sm flex items-center justify-between gap-3">
+                        <span className="text-gray-800 truncate">{r.refereeEmail || r.refereeUid}</span>
+                        <span className={"text-xs font-bold shrink-0 " + (r.verified ? "text-green-600" : "text-amber-600")}>
+                          {r.verified ? "Registered" : "Signed up, not confirmed"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {tab === "feedback" && (
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
