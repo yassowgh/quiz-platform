@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { friendlyAuthError, isEmailInUse } from "@/lib/authErrors";
@@ -11,6 +11,12 @@ import { useLang } from "@/contexts/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Keep the invite destination across signing up.
+  const nextPath = (() => {
+    const n = searchParams.get("next") || "";
+    return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+  })();
   const { t } = useLang();
   const { user, signupWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [name, setName] = useState("");
@@ -31,7 +37,7 @@ export default function SignupPage() {
     setLoading(true); setError(""); setNotice(""); setEmailInUse(false);
     try {
       await signupWithEmail(email, password, name);
-      router.push("/dashboard");
+      router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
       if (isEmailInUse(err)) setEmailInUse(true);
@@ -42,7 +48,7 @@ export default function SignupPage() {
         setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
-      router.push("/dashboard");
+      router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
     } finally { setLoading(false); }

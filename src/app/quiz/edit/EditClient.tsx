@@ -17,8 +17,9 @@ export default function EditQuizPage() {
   const { t } = useLang();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
+  const { user, loading, resendVerification } = useAuth();
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [verifySent, setVerifySent] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [saving, setSaving] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -31,7 +32,10 @@ export default function EditQuizPage() {
   }, [user]);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/login");
+    if (!loading && !user) {
+      const back = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/dashboard";
+      router.push("/login?next=" + encodeURIComponent(back));
+    }
   }, [user, loading, router]);
 
   useEffect(() => {
@@ -43,9 +47,15 @@ export default function EditQuizPage() {
         if (!q) setLoadError("missing");
         else setQuiz(q);
       })
-      .catch((err) => {
-        console.error("Failed to load quiz:", err);
-        setLoadError("failed");
+      .catch((err: any) => {
+        const code = String((err && (err.code || err.message)) || "");
+        if (code.indexOf("permission-denied") >= 0 || code.indexOf("insufficient permissions") >= 0) {
+          // Shared with a different address, or this account is not verified yet.
+          setLoadError("denied");
+        } else {
+          logHandled("quiz load", err);
+          setLoadError("failed");
+        }
       });
   }, [searchParams]);
 
@@ -112,16 +122,33 @@ export default function EditQuizPage() {
   if (loading) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
   if (loadError) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-3 px-6 text-center">
-      <div className="text-6xl mb-1">{loadError === "missing" ? "\ud83d\udd75\ufe0f" : "\ud83d\udce1"}</div>
+      <div className="text-6xl mb-1">{loadError === "missing" ? "\ud83d\udd75\ufe0f" : loadError === "denied" ? "\ud83d\udd10" : "\ud83d\udce1"}</div>
       <p className="text-2xl font-black text-gray-800">
-        {loadError === "missing" ? t("This quiz has left the building") : t("We could not load that quiz")}
+        {loadError === "missing"
+          ? t("This quiz has left the building")
+          : loadError === "denied"
+          ? t("This quiz has not been shared with this account")
+          : t("We could not load that quiz")}
       </p>
       <p className="text-gray-500 max-w-sm">
         {loadError === "missing"
           ? t("We looked under the sofa, behind the leaderboard and inside the podium. Nothing. Either the host deleted it, or the link has a typo in it.")
+          : loadError === "denied"
+          ? (user && !user.emailVerified
+              ? t("Your email address is not verified yet, and a shared quiz only opens once it is. Send yourself the link below, click it, then reload this page.")
+              : t("You are signed in as") + " " + ((user && user.email) || "") + ". " + t("Ask the host to share it with this exact address, or sign in with the address the invite was sent to."))
           : t("That looks like a connection problem rather than a missing quiz. Check your signal and give it another go.")}
       </p>
       <div className="flex flex-wrap gap-2 justify-center mt-2">
+        {loadError === "denied" && user && !user.emailVerified && (
+          <button
+            onClick={async () => { try { await resendVerification(); setVerifySent(true); } catch (err) { logHandled("resend verification", err); } }}
+            disabled={verifySent}
+            className="px-4 py-2 bg-kahoot-blue text-white rounded-xl font-bold disabled:opacity-60"
+          >
+            {verifySent ? t("Sent - check your inbox") : t("Send me the verification link")}
+          </button>
+        )}
         {loadError !== "missing" && (
           <button onClick={() => location.reload()} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold">{t("Try again")}</button>
         )}

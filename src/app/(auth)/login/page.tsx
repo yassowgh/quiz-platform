@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { friendlyAuthError } from "@/lib/authErrors";
@@ -11,7 +11,14 @@ import { useLang } from "@/contexts/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLang();
+  // An invite link sends people here first. Send them back afterwards instead
+  // of dumping everyone on the dashboard. Only same-site paths are honoured.
+  const nextPath = (() => {
+    const n = searchParams.get("next") || "";
+    return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+  })();
   const { user, loginWithEmail, loginWithGoogle, resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,14 +27,14 @@ export default function LoginPage() {
   const [resetMode, setResetMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
-  useEffect(() => { if (user) router.replace("/dashboard"); }, [user, router]);
+  useEffect(() => { if (user) router.replace(nextPath); }, [user, router, nextPath]);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError(""); setNotice("");
     try {
       await loginWithEmail(email, password);
-      router.push("/dashboard");
+      router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
     } finally { setLoading(false); }
@@ -37,7 +44,7 @@ export default function LoginPage() {
     setLoading(true); setError(""); setNotice("");
     try {
       await loginWithGoogle();
-      router.push("/dashboard");
+      router.push(nextPath);
     } catch (err: unknown) {
       setError(friendlyAuthError(err));
     } finally { setLoading(false); }
