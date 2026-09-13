@@ -165,10 +165,10 @@ export default function HomePage() {
           <p className="text-white/60 mb-3">Want to host a quiz?</p>
           <a href="/dashboard">
             <Button variant="secondary" size="lg">Create a Quiz →</Button>
-          </Link>
+          </a>
           <Link href="/try" className="block mt-3">
             <span className="text-white/60 text-sm hover:text-white underline">{t("or build one right now, without an account")}</span>
-          </a>
+          </Link>
         </div>
       </div>
 
