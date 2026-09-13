@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { reportProblem, logHandled } from "@/components/ui/ErrorReporter";
+import { resendVerificationSafely, resendMessage, type ResendOutcome } from "@/lib/verifyMail";
 import { useLang } from "@/contexts/LanguageContext";
 import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz, markReferralVerified, listMyReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import ShareDialog from "@/components/quiz/ShareDialog";
@@ -29,7 +30,8 @@ export default function DashboardPage() {
   const [assignStatus, setAssignStatus] = useState<"" | "sending" | "sent" | "err">("");
   const [shared, setShared] = useState<Quiz[]>([]);
   const [shareQuiz, setShareQuiz] = useState<any>(null);
-  const [verifySent, setVerifySent] = useState(false);
+  const [verifyNote, setVerifyNote] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState(false);
   const [refVerified, setRefVerified] = useState(0);
 
   const assignLink = assignQuiz ? (typeof window !== "undefined" ? window.location.origin : "") + "/assignment?quizId=" + assignQuiz.id : "";
@@ -178,9 +180,20 @@ export default function DashboardPage() {
           <p className="text-sm text-amber-900 flex-1 min-w-[220px]">
             {t("Verify your email to unlock quizzes people share with you.")} <strong>{user.email}</strong>
           </p>
-          <Button size="sm" variant="secondary" disabled={verifySent} onClick={async () => { try { await resendVerification(); setVerifySent(true); } catch (e) {} }}>
-            {verifySent ? t("Sent - check your inbox") : t("Send the link")}
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={verifyBusy || !!verifyNote}
+            onClick={async () => {
+              setVerifyBusy(true);
+              const outcome: ResendOutcome = await resendVerificationSafely(resendVerification);
+              setVerifyNote(resendMessage(outcome, t));
+              setVerifyBusy(false);
+            }}
+          >
+            {verifyBusy ? t("Sending…") : t("Send the link")}
           </Button>
+          {verifyNote && <p className="text-xs text-amber-900 w-full">{verifyNote}</p>}
         </div>
       )}
       {createError && <p className="text-red-500 mb-4 font-semibold">{createError}</p>}

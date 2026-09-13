@@ -3,6 +3,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { logHandled } from "@/components/ui/ErrorReporter";
+import { resendVerificationSafely, resendMessage, type ResendOutcome } from "@/lib/verifyMail";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImage } from "@/lib/integrations";
 import { getQuiz, updateQuiz, saveExamPublic, getAdmins } from "@/lib/firestore";
@@ -19,7 +20,8 @@ export default function EditQuizPage() {
   const searchParams = useSearchParams();
   const { user, loading, resendVerification } = useAuth();
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [verifySent, setVerifySent] = useState(false);
+  const [verifyNote, setVerifyNote] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [saving, setSaving] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -109,10 +111,19 @@ export default function EditQuizPage() {
         updatedAt: Date.now(),
       });
     }
-    } catch (err) {
+    } catch (err: any) {
+      const code = String((err && (err.code || err.message)) || "");
       logHandled("quiz save", err);
       setSaving(false);
-      alert(t("We could not save your changes. Please check your connection and try again."));
+      if (code.indexOf("permission-denied") >= 0 || code.indexOf("insufficient permissions") >= 0) {
+        alert(
+          user && !user.emailVerified
+            ? t("Your changes were NOT saved. A quiz shared with you only becomes editable once you confirm your email address. Your work is still on this page - confirm your address, reload, then press Save again.")
+            : t("Your changes were NOT saved: this account does not have edit access to this quiz. Ask the owner to share it with this address.")
+        );
+      } else {
+        alert(t("We could not save your changes. Please check your connection and try again."));
+      }
       return;
     }
     setSaving(false);
@@ -139,14 +150,20 @@ export default function EditQuizPage() {
               : t("You are signed in as") + " " + ((user && user.email) || "") + ". " + t("Ask the host to share it with this exact address, or sign in with the address the invite was sent to."))
           : t("That looks like a connection problem rather than a missing quiz. Check your signal and give it another go.")}
       </p>
+      {verifyNote && <p className="text-sm text-gray-600 max-w-sm">{verifyNote}</p>}
       <div className="flex flex-wrap gap-2 justify-center mt-2">
         {loadError === "denied" && user && !user.emailVerified && (
           <button
-            onClick={async () => { try { await resendVerification(); setVerifySent(true); } catch (err) { logHandled("resend verification", err); } }}
-            disabled={verifySent}
+            onClick={async () => {
+              setVerifyBusy(true);
+              const outcome: ResendOutcome = await resendVerificationSafely(resendVerification);
+              setVerifyNote(resendMessage(outcome, t));
+              setVerifyBusy(false);
+            }}
+            disabled={verifyBusy || !!verifyNote}
             className="px-4 py-2 bg-kahoot-blue text-white rounded-xl font-bold disabled:opacity-60"
           >
-            {verifySent ? t("Sent - check your inbox") : t("Send me the verification link")}
+            {verifyBusy ? t("Sending…") : t("Send me the verification link")}
           </button>
         )}
         {loadError !== "missing" && (
@@ -158,8 +175,31 @@ export default function EditQuizPage() {
   );
   if (!quiz) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">Loading...</div>;
 
+  const sharedButUnverified = !!user && !!quiz && quiz.hostId !== user.uid && !user.emailVerified;
+
   return (
     <div className="max-w-3xl mx-auto p-6">
+      {sharedButUnverified && (
+        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-amber-900 flex-1 min-w-[240px]">
+            <strong>{t("Your changes will not save yet.")}</strong>{" "}
+            {t("This quiz was shared with you, and a shared quiz only becomes editable once you confirm your email address. Confirm it, reload, and everything here will save normally.")}
+          </p>
+          <button
+            onClick={async () => {
+              setVerifyBusy(true);
+              const outcome: ResendOutcome = await resendVerificationSafely(resendVerification);
+              setVerifyNote(resendMessage(outcome, t));
+              setVerifyBusy(false);
+            }}
+            disabled={verifyBusy || !!verifyNote}
+            className="px-3 py-2 bg-amber-600 text-white rounded-xl font-bold text-sm disabled:opacity-60"
+          >
+            {verifyBusy ? t("Sending…") : t("Resend the link")}
+          </button>
+          {verifyNote && <p className="text-xs text-amber-900 w-full">{verifyNote}</p>}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-black">{quiz.kind === "poll" ? "Edit Poll" : "Edit Quiz"}</h1>
         <div className="flex gap-2">

@@ -61,11 +61,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateProfile(user, { displayName: name });
     await createUserProfile(user.uid, email, name, { marketing: true, analytics: true });
     // A verified address is what unlocks quizzes shared with this person.
-    try { await sendEmailVerification(user); } catch (e) { /* signup still succeeds */ }
+    // Signing up already sends one. Record it so the resend buttons do not
+    // immediately fire a second and trip Firebase's rate limit.
+    try {
+      await sendEmailVerification(user);
+      try { localStorage.setItem("quizups:verifySentAt", String(Date.now())); } catch (e) {}
+    } catch (e) { /* signup still succeeds */ }
   };
 
   const resendVerification = async () => {
-    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
+    if (!auth.currentUser) return;
+    await sendEmailVerification(auth.currentUser);
+    try { localStorage.setItem("quizups:verifySentAt", String(Date.now())); } catch (e) {}
   };
 
   const loginWithGoogle = async () => {
