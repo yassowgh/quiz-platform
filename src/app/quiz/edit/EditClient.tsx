@@ -327,7 +327,10 @@ export default function EditQuizPage() {
                             const url = await uploadImage(blob);
                             setQuiz((prev: any) => ({ ...prev, branding: { ...prev.branding, logoUrl: url } }));
                           } catch (e) {
-                            setQuiz((prev: any) => ({ ...prev, branding: { ...prev.branding, logoUrl: canvas.toDataURL("image/png") } }));
+                            // Never embed the logo as a data URL - that is one of the
+                            // three paths that pushed quizzes past the 1 MB limit.
+                            logHandled("logo upload", e);
+                            alert(t("That logo could not be uploaded. Please check your connection and try again, or paste an image URL instead."));
                           }
                         }, "image/png");
                       };

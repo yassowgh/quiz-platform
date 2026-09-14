@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  browserPopupRedirectResolver,
   signOut,
   onAuthStateChanged,
   User,
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    const { user } = await signInWithPopup(auth, provider);
+    const { user } = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
     await createUserProfile(user.uid, user.email!, user.displayName || "User");
   };
 

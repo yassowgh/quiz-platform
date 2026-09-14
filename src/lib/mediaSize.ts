@@ -11,7 +11,8 @@ export function docBytes(obj: any): number {
 }
 
 function dataUrlToBlob(dataUrl: string): Blob | null {
-  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl);
+  // [\s\S] rather than . with the /s flag: the tsconfig target predates es2018.
+  const m = /^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(dataUrl);
   if (!m) return null;
   const mime = m[1] || "application/octet-stream";
   const isB64 = !!m[2];

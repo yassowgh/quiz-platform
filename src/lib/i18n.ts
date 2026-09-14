@@ -1,6 +1,10 @@
 export type Lang = "en" | "ar" | "uk";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string }> = {
+  // media upload failure messages (3/3)
+  "That image could not be uploaded. Please check your connection and try again, or paste an image URL instead.": { en: "That image could not be uploaded. Please check your connection and try again, or paste an image URL instead.", ar: "تعذّر رفع هذه الصورة. تحقق من اتصالك وحاول مرة أخرى، أو الصق رابط صورة بدلًا من ذلك.", uk: "Не вдалося завантажити це зображення. Перевірте зʼєднання та спробуйте ще раз або вставте посилання на зображення." },
+  "That logo could not be uploaded. Please check your connection and try again, or paste an image URL instead.": { en: "That logo could not be uploaded. Please check your connection and try again, or paste an image URL instead.", ar: "تعذّر رفع هذا الشعار. تحقق من اتصالك وحاول مرة أخرى، أو الصق رابط صورة بدلًا من ذلك.", uk: "Не вдалося завантажити цей логотип. Перевірте зʼєднання та спробуйте ще раз або вставте посилання на зображення." },
+  "Audio files are no longer stored inside the quiz — they made quizzes too large to save. Please paste a link to your audio instead.": { en: "Audio files are no longer stored inside the quiz — they made quizzes too large to save. Please paste a link to your audio instead.", ar: "لم تعد ملفات الصوت تُخزَّن داخل الاختبار — فقد كانت تجعله أكبر من أن يُحفظ. الرجاء لصق رابط للملف الصوتي بدلًا من ذلك.", uk: "Аудіофайли більше не зберігаються всередині вікторини — через них вона ставала завеликою. Вставте посилання на аудіо." },
   // quiz size / 1MB limit (media fix)
   "Quiz size": { en: "Quiz size", ar: "حجم الاختبار", uk: "Розмір вікторини" },
   "Quizzes have a 1 MB limit. Large images are moved to cloud storage when you save.": { en: "Quizzes have a 1 MB limit. Large images are moved to cloud storage when you save.", ar: "الحد الأقصى لحجم الاختبار 1 ميغابايت. تُنقل الصور الكبيرة إلى التخزين السحابي عند الحفظ.", uk: "Ліміт вікторини — 1 МБ. Великі зображення переносяться у хмарне сховище під час збереження." },

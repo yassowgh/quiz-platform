@@ -5,7 +5,6 @@ import {
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,
-  browserPopupRedirectResolver,
 } from "firebase/auth";
 import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
@@ -33,7 +32,6 @@ function initAuth() {
   try {
     return initializeAuth(app, {
       persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence],
-      popupRedirectResolver: browserPopupRedirectResolver,
     });
   } catch (e) {
     // Already initialised (a second import, or a dev hot reload) - reuse it.

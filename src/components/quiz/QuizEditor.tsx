@@ -22,19 +22,23 @@ import { useLang } from "@/contexts/LanguageContext";
 import type { Question } from "@/types";
 import { makeBlankQuestion } from "@/lib/firestore";
 import { generateQuestions, generateFromUrl, uploadImage } from "@/lib/integrations";
+import { logHandled } from "@/components/ui/ErrorReporter";
 import { extractTextFromFile } from "@/lib/docExtract";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
-function uploadCompressed(file: File, cb: (url: string) => void) {
+function uploadCompressed(file: File, cb: (url: string) => void, onError?: () => void) {
   compressImageToDataUrl(file, async (dataUrl) => {
     try {
       const blob = await (await fetch(dataUrl)).blob();
       const url = await uploadImage(blob);
       cb(url);
-    } catch {
-      cb(dataUrl);
+    } catch (e) {
+      // Never fall back to embedding the base64 image in the quiz document -
+      // that silently grew quizzes past Firestore\u0027s 1 MB limit. Report instead.
+      logHandled("image upload", e);
+      if (onError) onError();
     }
   });
 }
@@ -181,7 +185,7 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) uploadCompressed(file, (url) => onChange({ ...question, imageUrl: url }));
+                  if (file) uploadCompressed(file, (url) => onChange({ ...question, imageUrl: url }), () => alert(t("That image could not be uploaded. Please check your connection and try again, or paste an image URL instead.")));
                   e.target.value = "";
                 }}
                 className="text-sm"
@@ -214,14 +218,11 @@ function SortableQuestion({ question, index, onChange, onDelete, startExpanded, 
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  if (file.size > 600 * 1024) {
-                    alert(t("Audio file is too large (max 600 KB). Please use a shorter clip or paste a URL instead."));
-                    e.target.value = "";
-                    return;
-                  }
-                  const reader = new FileReader();
-                  reader.onload = () => onChange({ ...question, audioUrl: String(reader.result || "") });
-                  reader.readAsDataURL(file);
+                  // Audio was embedded in the quiz document as base64. A 600 KB clip
+                  // is ~800 KB of the 1 MB Firestore allows for the WHOLE quiz, so one
+                  // could make a quiz unsaveable - and /upload takes images only, so it
+                  // cannot be lifted out afterwards. Link to a hosted file instead.
+                  alert(t("Audio files are no longer stored inside the quiz — they made quizzes too large to save. Please paste a link to your audio instead."));
                   e.target.value = "";
                 }}
                 className="text-sm"
