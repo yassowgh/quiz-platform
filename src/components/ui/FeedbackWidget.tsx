@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { submitFeedback } from "@/lib/firestore";
 import { useLang } from "@/contexts/LanguageContext";
 import { uploadImage } from "@/lib/integrations";
@@ -8,6 +9,7 @@ const WORKER = "https://polished-shadow-f08c.yassow.workers.dev/";
 
 export default function FeedbackWidget() {
   const { t } = useLang();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [ftype, setFtype] = useState("recommendation");
   const [message, setMessage] = useState("");
@@ -33,6 +35,9 @@ export default function FeedbackWidget() {
     } catch (e) { setErr(t("Something went wrong. Please try again.")); }
     setBusy(false);
   }
+
+  // Keep the floating button off the auth screens, where it overlapped the Log in link.
+  if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
