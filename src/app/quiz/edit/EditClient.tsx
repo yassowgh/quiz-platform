@@ -1,11 +1,12 @@
 "use client";
 import { useLang } from "@/contexts/LanguageContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { logHandled } from "@/components/ui/ErrorReporter";
 import { resendVerificationSafely, resendMessage, type ResendOutcome } from "@/lib/verifyMail";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImage } from "@/lib/integrations";
+import { QUIZ_MAX_BYTES, QUIZ_SOFT_BYTES, docBytes, liftInlineMedia, isSizeError, describeLargest } from "@/lib/mediaSize";
 import { getQuiz, updateQuiz, saveExamPublic, getAdmins } from "@/lib/firestore";
 import { sealExam } from "@/lib/integrations";
 import VideoQuizEditor from "@/components/quiz/VideoQuizEditor";
@@ -61,6 +62,8 @@ export default function EditQuizPage() {
       });
   }, [searchParams]);
 
+  const sizeBytes = useMemo(() => docBytes(quiz || {}), [quiz]);
+
   const save = async (publish?: boolean) => {
     if (!quiz) return;
     if (publish && !quiz.title.trim()) { alert(t("Please give your quiz a title before publishing.")); return; }
@@ -76,13 +79,26 @@ export default function EditQuizPage() {
     }
     setSaving(true);
     try {
-    await updateQuiz({
+    let toSave: any = {
       ...quiz,
       questions,
       creatorEmail: quiz.creatorEmail || user?.email || "",
       isPublished: publish !== undefined ? publish : quiz.isPublished,
       updatedAt: Date.now(),
-    });
+    };
+    if (docBytes(toSave) > QUIZ_SOFT_BYTES) {
+      const res = await liftInlineMedia(toSave as Quiz);
+      toSave = res.quiz as any;
+      questions = (toSave as any).questions;
+      setQuiz((prev: any) => (prev ? { ...prev, questions: (toSave as any).questions, branding: (toSave as any).branding } : prev));
+    }
+    const _bytes = docBytes(toSave);
+    if (_bytes > QUIZ_MAX_BYTES) {
+      setSaving(false);
+      alert(t("The maximum size for one quiz is 1 MB.") + " " + t("This quiz is") + " " + Math.round(_bytes / 1024) + " KB. " + t("Largest items:") + " " + describeLargest(toSave) + ". " + t("Please remove or shrink them, or replace images with links."));
+      return;
+    }
+    await updateQuiz(toSave);
     if (quiz.examMode && (publish !== undefined ? publish : quiz.isPublished)) {
       const items = questions.map((qq: any) => ({
         id: qq.id,
@@ -104,7 +120,7 @@ export default function EditQuizPage() {
         questions: sealed ? questions.map(strip) : questions,
         examMode: true,
         examSeal: sealed || null,
-        branding: quiz.branding || null,
+        branding: (toSave as any).branding || null,
         language: quiz.language || "en",
         allowAssignment: true,
         creatorEmail: quiz.creatorEmail || user?.email || "",
@@ -115,7 +131,9 @@ export default function EditQuizPage() {
       const code = String((err && (err.code || err.message)) || "");
       logHandled("quiz save", err);
       setSaving(false);
-      if (code.indexOf("permission-denied") >= 0 || code.indexOf("insufficient permissions") >= 0) {
+      if (isSizeError(err)) {
+        alert(t("The maximum size for one quiz is 1 MB.") + " " + t("This quiz is too large to save.") + " " + t("Replace large images with links or remove some, then save again."));
+      } else if (code.indexOf("permission-denied") >= 0 || code.indexOf("insufficient permissions") >= 0) {
         alert(
           user && !user.emailVerified
             ? t("Your changes were NOT saved. An exam shared with you only becomes editable once you confirm your email address. Your work is still on this page - confirm your address, reload, then press Save again.")
@@ -181,6 +199,13 @@ export default function EditQuizPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
+      {sizeBytes > QUIZ_MAX_BYTES * 0.7 && (
+        <div className={"mb-4 rounded-xl border-2 p-3 " + (sizeBytes > QUIZ_MAX_BYTES * 0.9 ? "border-red-300 bg-red-50" : "border-amber-300 bg-amber-50")}>
+          <div className="flex justify-between text-xs font-bold text-gray-700 mb-1"><span>{t("Quiz size")}</span><span>{Math.round(sizeBytes / 1024)} KB / 1024 KB</span></div>
+          <div className="h-2 bg-black/10 rounded-full overflow-hidden"><div className={(sizeBytes > QUIZ_MAX_BYTES * 0.9 ? "bg-red-500" : "bg-amber-500") + " h-2 rounded-full"} style={{ width: Math.min(100, (sizeBytes / QUIZ_MAX_BYTES) * 100) + "%" }} /></div>
+          <p className="mt-1 text-xs text-gray-600">{t("Quizzes have a 1 MB limit. Large images are moved to cloud storage when you save.")}</p>
+        </div>
+      )}
       {sharedButUnverified && (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3">
           <p className="text-sm text-amber-900 flex-1 min-w-[240px]">

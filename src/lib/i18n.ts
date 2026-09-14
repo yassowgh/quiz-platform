@@ -1,6 +1,15 @@
 export type Lang = "en" | "ar" | "uk";
 
 export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string }> = {
+  // quiz size / 1MB limit (media fix)
+  "Quiz size": { en: "Quiz size", ar: "حجم الاختبار", uk: "Розмір вікторини" },
+  "Quizzes have a 1 MB limit. Large images are moved to cloud storage when you save.": { en: "Quizzes have a 1 MB limit. Large images are moved to cloud storage when you save.", ar: "الحد الأقصى لحجم الاختبار 1 ميغابايت. تُنقل الصور الكبيرة إلى التخزين السحابي عند الحفظ.", uk: "Ліміт вікторини — 1 МБ. Великі зображення переносяться у хмарне сховище під час збереження." },
+  "The maximum size for one quiz is 1 MB.": { en: "The maximum size for one quiz is 1 MB.", ar: "الحد الأقصى لحجم الاختبار الواحد هو 1 ميغابايت.", uk: "Максимальний розмір однієї вікторини — 1 МБ." },
+  "This quiz is": { en: "This quiz is", ar: "هذا الاختبار", uk: "Ця вікторина —" },
+  "Largest items:": { en: "Largest items:", ar: "أكبر العناصر:", uk: "Найбільші елементи:" },
+  "Please remove or shrink them, or replace images with links.": { en: "Please remove or shrink them, or replace images with links.", ar: "يرجى إزالتها أو تصغيرها، أو استبدال الصور بروابط.", uk: "Будь ласка, видаліть чи зменшіть їх або замініть зображення посиланнями." },
+  "This quiz is too large to save.": { en: "This quiz is too large to save.", ar: "هذا الاختبار كبير جدًا بحيث لا يمكن حفظه.", uk: "Ця вікторина завелика для збереження." },
+  "Replace large images with links or remove some, then save again.": { en: "Replace large images with links or remove some, then save again.", ar: "استبدل الصور الكبيرة بروابط أو احذف بعضها، ثم احفظ مرة أخرى.", uk: "Замініть великі зображення посиланнями або видаліть деякі, потім збережіть знову." },
   // account + nav
   "My Account": { en: "My Account", ar: "حسابي" , uk: "Мій акаунт" },
   "Dashboard": { en: "Dashboard", ar: "لوحة التحكم" , uk: "Панель керування" },
