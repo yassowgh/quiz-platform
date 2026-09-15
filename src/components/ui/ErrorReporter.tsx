@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLang } from "@/contexts/LanguageContext";
 
 const WORKER = "https://polished-shadow-f08c.yassow.workers.dev/";
+const QUEUE_KEY = "quizups:errorQueue";
 const seen: Record<string, number> = {};
 
 /* ---------------------------------------------------------------------------
@@ -30,6 +31,54 @@ function crumbTrail(): string {
   } catch (e) {
     return "(breadcrumbs unavailable)";
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Durable queue. A report that fails to reach the Worker used to vanish -
+ * which is exactly what happens during the network trouble that caused the
+ * error in the first place. Failed reports are parked in localStorage and
+ * flushed on the next page load, so no log is ever silently lost.
+ * ------------------------------------------------------------------------- */
+type Queued = { at: number; body: any };
+
+function readQueue(): Queued[] {
+  try {
+    const raw = window.localStorage.getItem(QUEUE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) { return []; }
+}
+
+function writeQueue(items: Queued[]) {
+  try { window.localStorage.setItem(QUEUE_KEY, JSON.stringify(items.slice(-40))); } catch (e) {}
+}
+
+function enqueue(body: any) {
+  try { writeQueue(readQueue().concat([{ at: Date.now(), body: body }])); } catch (e) {}
+}
+
+function post(body: any): Promise<boolean> {
+  return fetch(WORKER, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then((r) => !!(r && r.ok))
+    .catch(() => false);
+}
+
+/** Send, and park it for the next page load if the send fails. */
+function postDurable(body: any): Promise<boolean> {
+  return post(body).then((ok) => { if (!ok) enqueue(body); return ok; });
+}
+
+/** Flush anything parked by an earlier session. Called once on mount. */
+export async function flushQueuedReports() {
+  const items = readQueue();
+  if (!items.length) return;
+  writeQueue([]);
+  const failed: Queued[] = [];
+  for (const item of items) {
+    const ok = await post(item.body);
+    if (!ok) failed.push(item);
+  }
+  if (failed.length) writeQueue(failed);
 }
 
 /**
@@ -63,21 +112,37 @@ function isExtensionNoise(text: string): boolean {
   );
 }
 
-export function reportProblem(summary: string, detail?: string, note?: string) {
+function envelope(summary: string, detail?: string, note?: string, replyTo?: string): string {
+  const email = (typeof window !== "undefined" && (window as any).__userEmail) || replyTo || "anonymous";
+  return (
+    "Summary: " + summary +
+    "\nURL: " + (typeof location !== "undefined" ? location.href : "") +
+    "\nTime: " + new Date().toISOString() +
+    "\nUser: " + email +
+    (replyTo ? "\nReply to: " + replyTo : "") +
+    "\nLang: " + (typeof document !== "undefined" ? document.documentElement.lang : "") +
+    "\nScreen: " + (typeof window !== "undefined" ? window.innerWidth + "x" + window.innerHeight : "") +
+    "\nOnline: " + (typeof navigator !== "undefined" ? String(navigator.onLine) : "") +
+    "\nUA: " + (typeof navigator !== "undefined" ? navigator.userAgent : "") +
+    (note ? "\n\nWhat the user was doing:\n" + note : "") +
+    "\n\nRecent steps:\n" + crumbTrail() +
+    "\n\nDetails:\n" + String(detail || "").slice(0, 2000)
+  );
+}
+
+export function reportProblem(summary: string, detail?: string, note?: string, replyTo?: string) {
   try {
-    const email = (typeof window !== "undefined" && (window as any).__userEmail) || "anonymous";
-    const message =
-      "Summary: " + summary +
-      "\nURL: " + (typeof location !== "undefined" ? location.href : "") +
-      "\nTime: " + new Date().toISOString() +
-      "\nUser: " + email +
-      "\nLang: " + (typeof document !== "undefined" ? document.documentElement.lang : "") +
-      "\nUA: " + (typeof navigator !== "undefined" ? navigator.userAgent : "") +
-      (note ? "\nUser note: " + note : "") +
-      "\n\nRecent steps:\n" + crumbTrail() +
-      "\n\nDetails:\n" + String(detail || "").slice(0, 2000);
-    return fetch(WORKER, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "feedback", ftype: "error report", message: message, email: email }) }).catch(() => {});
-  } catch (e) { return Promise.resolve(); }
+    const email = (typeof window !== "undefined" && (window as any).__userEmail) || replyTo || "anonymous";
+    return postDurable({ mode: "feedback", ftype: "error report", message: envelope(summary, detail, note, replyTo), email: email });
+  } catch (e) { return Promise.resolve(false); }
+}
+
+/** A correction or comment the user typed of their own accord. */
+export function reportExperience(ftype: string, note: string, replyTo?: string) {
+  try {
+    const email = (typeof window !== "undefined" && (window as any).__userEmail) || replyTo || "anonymous";
+    return postDurable({ mode: "feedback", ftype: ftype, message: envelope(ftype, "", note, replyTo), email: email });
+  } catch (e) { return Promise.resolve(false); }
 }
 
 /**
@@ -102,6 +167,29 @@ function describeReason(r: any): string {
   }
 }
 
+/**
+ * Rejections the browser raises that are not our bugs and that the user can do
+ * nothing about: storage that is unavailable, a dropped request, and WebKit's
+ * IndexedDB chatter on iOS Safari. Kept as a list so adding one is a one-line
+ * change rather than an edit to the handler.
+ */
+const BENIGN_REJECTIONS = [
+  "insufficient permissions",
+  "Indexed Database",
+  "IndexedDB",
+  "Load failed",
+  "NetworkError",
+  "object store",        // iOS Safari
+  "looking up record",   // iOS Safari
+];
+
+function isBenignRejection(message: any): boolean {
+  const s = String(message || "");
+  if (!s) return false;
+  for (const p of BENIGN_REJECTIONS) if (s.indexOf(p) >= 0) return true;
+  return false;
+}
+
 let sdkNoiseSeen = false;
 
 /** Noise from third-party SDKs that we cannot fix from here. */
@@ -117,7 +205,7 @@ function isSdkNoise(text: string): boolean {
 
 function throttledReport(summary: string, detail?: string) {
   try {
-    if (Object.keys(seen).length > 25) return; // session cap to avoid floods
+    if (Object.keys(seen).length > 60) return; // session cap to avoid floods
     if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
     if (isSdkNoise(detail || "")) {
       // Still worth seeing once: if Google sign-in is genuinely broken on a
@@ -133,22 +221,72 @@ function throttledReport(summary: string, detail?: string) {
   } catch (e) {}
 }
 
+/* ---------------------------------------------------------------------------
+ * The shared "tell us what happened" form. Every error surface uses this one,
+ * so the wording is translated once and the layout works on a phone.
+ * ------------------------------------------------------------------------- */
+export function ReportForm({ summary, detail, onDone }: { summary: string; detail?: string; onDone?: () => void }) {
+  const { t } = useLang();
+  const [note, setNote] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const send = async () => {
+    setBusy(true);
+    await reportProblem(summary, detail, note.trim(), email.trim() || undefined);
+    setBusy(false);
+    setSent(true);
+    setTimeout(() => { if (onDone) onDone(); }, 1800);
+  };
+
+  if (sent) return <p className="text-sm font-bold text-green-600 py-2">{t("Thanks — that really helps.")}</p>;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-gray-500">{t("Tell us what happened. It helps us fix it faster, and we read every one.")}</p>
+      <textarea
+        dir="auto"
+        rows={3}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder={t("What were you doing when this happened?")}
+        className="w-full rounded-xl border-2 border-gray-200 p-2 text-sm focus:outline-none focus:border-indigo-500"
+      />
+      <input
+        type="email"
+        dir="auto"
+        inputMode="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder={t("Your email (optional, so we can reply)")}
+        className="w-full rounded-xl border-2 border-gray-200 p-2 text-sm focus:outline-none focus:border-indigo-500"
+      />
+      <div className="flex flex-wrap gap-2 justify-end">
+        {onDone && <button onClick={onDone} className="text-xs font-bold px-3 py-2 rounded-lg bg-gray-100 text-gray-600">{t("Dismiss")}</button>}
+        <button onClick={send} disabled={busy} className="text-xs font-bold px-3 py-2 rounded-lg bg-indigo-600 text-white disabled:opacity-60">
+          {busy ? t("Sending…") : t("Send report")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ErrorFallback({ error, onReload }: { error?: any; onReload?: () => void }) {
   const { t } = useLang();
-  const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
-  async function send() { setBusy(true); await reportProblem("React render error", (error && (error.stack || error.message)) || String(error)); setSent(true); setBusy(false); }
+  const detail = (error && (error.stack || error.message)) || String(error);
   return (
-    <div className="min-h-[60vh] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-6 text-center shadow">
+    <div className="min-h-[60vh] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow text-center">
         <div className="text-4xl mb-2">🙏</div>
-        <h2 className="text-xl font-black text-gray-800 mb-1">{t("Oops — something went wrong on our side.")}</h2>
+        <h2 className="text-lg sm:text-xl font-black text-gray-800 mb-1">{t("Oops — something went wrong on our side.")}</h2>
         <p className="text-sm text-gray-500 mb-4">{t("We're really sorry for the inconvenience. You can report this and our team will look into it.")}</p>
-        <div className="flex gap-2 justify-center">
-          <button onClick={() => (onReload ? onReload() : location.reload())} className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold text-sm">{t("Reload")}</button>
-          {sent ? <span className="px-4 py-2 text-sm text-green-600 font-semibold">{t("Thanks — your report was sent.")}</span>
-            : <button onClick={send} disabled={busy} className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-sm">{busy ? t("Sending…") : t("Report a problem")}</button>}
+        <div className="text-left">
+          <ReportForm summary="React render error" detail={detail} />
         </div>
+        <button onClick={() => (onReload ? onReload() : location.reload())} className="mt-4 w-full sm:w-auto px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold text-sm">
+          {t("Reload")}
+        </button>
       </div>
     </div>
   );
@@ -163,23 +301,43 @@ export default class ErrorBoundary extends React.Component<{ children: React.Rea
 
 export function GlobalErrorListener() {
   const { t } = useLang();
-  const [toast, setToast] = useState<null | { msg: string }>(null);
+  // `detail` is the raw technical text for the report. It is never shown to
+  // the user: what they see is a translated sentence in their own language.
+  const [toast, setToast] = useState<null | { detail: string }>(null);
+
+  useEffect(() => { flushQueuedReports(); }, []);
+
   useEffect(() => {
-    function onErr(e: ErrorEvent) { if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return; if (e.filename && e.filename.indexOf("/_next/") < 0) return; if ((e.error.stack || "").indexOf("global code") >= 0) return; if (isExtensionNoise(e.error.stack || "") || isExtensionNoise(e.message || "")) return; throttledReport("Uncaught error", e.error.stack || e.error.message); setToast({ msg: e.message }); }
-    function onRej(e: PromiseRejectionEvent) { const r: any = e.reason; if (!r || !(r.stack || r.message)) return; if (r.message && (r.message.indexOf("insufficient permissions") >= 0 || r.message.indexOf("Indexed Database") >= 0 || r.message.indexOf("IndexedDB") >= 0 || r.message.indexOf("Load failed") >= 0 || r.message.indexOf("NetworkError") >= 0 || r.message.indexOf("object store") >= 0 || r.message.indexOf("looking up record") >= 0)) return; if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return; const detail = describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : ""); throttledReport("Unhandled promise rejection", detail); if (isSdkNoise(detail)) return; setToast({ msg: r.message || r.name || "Something went wrong" }); }
+    function onErr(e: ErrorEvent) {
+      if (!e.error || !e.error.stack || e.message === "Script error." || !e.message) return;
+      if (e.filename && e.filename.indexOf("/_next/") < 0) return;
+      if ((e.error.stack || "").indexOf("global code") >= 0) return;
+      if (isExtensionNoise(e.error.stack || "") || isExtensionNoise(e.message || "")) return;
+      const detail = (e.error.stack || e.error.message || e.message) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
+      throttledReport("Uncaught error", detail);
+      setToast({ detail: detail });
+    }
+    function onRej(e: PromiseRejectionEvent) {
+      const r: any = e.reason;
+      if (!r || !(r.stack || r.message)) return;
+      if (isBenignRejection(r.message)) return;
+      if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return;
+      const detail = describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
+      throttledReport("Unhandled promise rejection", detail);
+      if (isSdkNoise(detail)) return;
+      setToast({ detail: detail });
+    }
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };
   }, []);
+
   if (!toast) return null;
   return (
-    <div className="fixed bottom-4 left-4 z-[60] max-w-xs bg-white rounded-2xl border border-gray-200 shadow-2xl p-4 text-sm">
+    <div className="fixed inset-x-3 bottom-3 sm:inset-x-auto sm:left-4 sm:bottom-4 z-[60] sm:max-w-xs bg-white rounded-2xl border border-gray-200 shadow-2xl p-4 text-sm">
       <div className="font-bold text-gray-800 mb-1">⚠️ {t("Something went wrong")}</div>
-      <p className="text-gray-500 mb-2">{t("Sorry about that — our team has been automatically notified.")}</p>
-      <div className="flex gap-2 justify-end">
-        <button onClick={() => { const note = typeof window !== "undefined" ? window.prompt(t("Add any details (optional):")) : ""; reportProblem("User-submitted report", toast.msg, note || ""); setToast(null); }} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">{t("Report a problem")}</button>
-        <button onClick={() => setToast(null)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">{t("Dismiss")}</button>
-      </div>
+      <p className="text-gray-500 mb-2">{t("Something went wrong on this page. Our team has already been notified.")}</p>
+      <ReportForm summary="User-submitted report" detail={toast.detail} onDone={() => setToast(null)} />
     </div>
   );
 }

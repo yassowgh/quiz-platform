@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import FeedbackWidget from "@/components/ui/FeedbackWidget";
 import ErrorBoundary, { GlobalErrorListener } from "@/components/ui/ErrorReporter";
 import RouteTracker from "@/components/ui/RouteTracker";
+import LangNotice from "@/components/ui/LangNotice";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quizups.com"),
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <LanguageProvider>
             <Navbar />
+            <LangNotice />
             <ErrorBoundary><main>{children}</main></ErrorBoundary>
             <FeedbackWidget />
             <GlobalErrorListener />
