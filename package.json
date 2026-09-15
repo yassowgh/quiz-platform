@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/check-i18n.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "next": "14.2.0",
