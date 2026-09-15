@@ -213,24 +213,24 @@ export default function HostPlayPage() {
     }
   }, [state?.status]);
 
-  if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">Loading game...</div>;
+  if (!state) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold text-white bg-kahoot-dark">{t("Loading game...")}</div>;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6" style={quiz?.branding?.primaryColor ? { background: quiz.branding.primaryColor } : undefined}>
       <ReactionOverlay gameId={gameId} />
       {(quiz as any)?.kind === "poll" && (state.status === "question" || state.status === "answer_reveal") && (
         <div className="fixed top-4 right-4 z-40 bg-white rounded-2xl p-3 shadow-lg flex items-center gap-3">
-          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + encodeURIComponent("https://quizups.com/join?gameId=" + gameId)} alt="Join QR" className="w-20 h-20" />
+          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + encodeURIComponent("https://quizups.com/join?gameId=" + gameId)} alt={t("Join QR")} className="w-20 h-20" />
           <div className="text-gray-800 pr-1">
-            <div className="text-xs text-gray-500 font-semibold">Join at quizups.com</div>
+            <div className="text-xs text-gray-500 font-semibold">{t("Join at quizups.com")}</div>
             <div className="font-black text-2xl tracking-widest text-gray-900">{state.pin}</div>
           </div>
         </div>
       )}
       <div className="fixed top-20 left-4 z-40 flex gap-3 bg-black/40 backdrop-blur rounded-full px-4 py-2 text-sm font-bold text-white">
-        <span title="Attendees">👥 {players.length}</span>
-        <span title="Likes">❤️ {(state as any)?.reactions ? Object.values((state as any).reactions).filter((r: any) => r && r.e === "❤️").length : 0}</span>
-        <span title="Reactions">✨ {(state as any)?.reactions ? Object.keys((state as any).reactions).length : 0}</span>
+        <span title={t("Attendees")}>👥 {players.length}</span>
+        <span title={t("Likes")}>❤️ {(state as any)?.reactions ? Object.values((state as any).reactions).filter((r: any) => r && r.e === "❤️").length : 0}</span>
+        <span title={t("Reactions")}>✨ {(state as any)?.reactions ? Object.keys((state as any).reactions).length : 0}</span>
       </div>
       {quiz?.branding?.logoUrl && <img src={quiz.branding.logoUrl} alt="" className="h-10 mx-auto mb-3" />}
       {countdown !== null && (
@@ -238,11 +238,11 @@ export default function HostPlayPage() {
           <div className="text-9xl font-black text-white animate-bounce">{countdown}</div>
         </div>
       )}
-      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title="Mute music">{muted ? "🔇" : "🔊"}</button>
+      <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title={t("Mute music")}>{muted ? "🔇" : "🔊"}</button>
       {state.status === "lobby" && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
           <Card className="text-center bg-white/10 text-white">
-            <p className="text-2xl mb-2 font-semibold">PIN: <span className="font-black text-4xl tracking-widest">{state.pin}</span></p>
+            <p className="text-2xl mb-2 font-semibold">{t("PIN:")} <span className="font-black text-4xl tracking-widest">{state.pin}</span></p>
             <p className="text-white/70">{players.length} {t("players")}</p>
           </Card>
           <Button size="lg" onClick={handleStart} disabled={players.length === 0}> {t("startGame")} </Button>
@@ -276,7 +276,7 @@ export default function HostPlayPage() {
             className="mb-4"
           />
           ) : (
-          <Button onClick={nextQuestion} size="lg" className="w-full mb-4">Next slide →</Button>
+          <Button onClick={nextQuestion} size="lg" className="w-full mb-4">{t("Next slide →")}</Button>
           )}
           {currentQ.type === "ranking" ? (
             <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
@@ -303,10 +303,10 @@ export default function HostPlayPage() {
               <WordCloud responses={((state as any).responses || {})[state.currentQuestionIndex] || {}} />
             </div>
           ) : currentQ.type === "typeanswer" ? (
-            <div className="text-center text-xl font-bold bg-white/10 rounded-xl p-6 mb-4">⌨️ Players type their answer on their devices!</div>
+            <div className="text-center text-xl font-bold bg-white/10 rounded-xl p-6 mb-4">⌨️ {t("typeOnDevices")}</div>
           ) : currentQ.type === "sorting" ? (
             <div className="bg-white/10 rounded-xl p-6 mb-4">
-              <p className="text-center text-xl font-bold mb-3">🔀 Sort these on your device!</p>
+              <p className="text-center text-xl font-bold mb-3">🔀 {t("sortOnDevices")}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {currentQ.options.filter((o) => o && o.trim()).map((opt, i) => (
                   <span key={i} dir="auto" className="bg-white text-gray-900 rounded-lg px-3 py-1 font-bold"><MathText text={opt} /></span>

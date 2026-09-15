@@ -164,7 +164,7 @@ export default function LobbyPage() {
             <div className="flex justify-center mt-4">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quizups.com/join?gameId=${gameId}`)}`}
-                alt="Scan to join"
+                alt={t("Scan to join")}
                 width={180}
                 height={180}
                 className="rounded-lg border-4 border-kahoot-purple"

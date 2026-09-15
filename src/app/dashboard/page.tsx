@@ -8,6 +8,7 @@ import { resendVerificationSafely, resendMessage, type ResendOutcome } from "@/l
 import { useLang } from "@/contexts/LanguageContext";
 import { listQuizzesByHost, listQuizzesSharedWith, deleteQuiz, markReferralVerified, listMyReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import ShareDialog from "@/components/quiz/ShareDialog";
+import ShareHelp from "@/components/quiz/ShareHelp";
 import { nanoid } from "@/lib/utils";
 import { updateQuiz } from "@/lib/firestore";
 import { sendAssignmentInvite } from "@/lib/integrations";
@@ -163,8 +164,8 @@ export default function DashboardPage() {
   if (loading || fetching) return <div className="flex items-center justify-center min-h-screen text-2xl font-bold">{t("Loading...")}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <div className="flex flex-wrap items-center gap-2 justify-between mb-8">
         <h1 className="text-3xl font-black">{t("My Quizzes")}</h1>
         <Button onClick={createQuiz}>{t("+ New Quiz")}</Button>
         <Button onClick={createPoll} variant="secondary">{t("+ New Poll")}</Button>
@@ -172,7 +173,7 @@ export default function DashboardPage() {
       </div>
       <div className="flex gap-2 mb-4">
         {(["all", "quiz", "poll"] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} className={"px-3 py-1 rounded-lg text-sm font-bold " + (filter === f ? "bg-kahoot-purple text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>{f === "all" ? "All" : f === "quiz" ? "Quizzes" : "Polls"}</button>
+          <button key={f} onClick={() => setFilter(f)} className={"px-3 py-1 rounded-lg text-sm font-bold " + (filter === f ? "bg-kahoot-purple text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>{f === "all" ? t("All") : f === "quiz" ? t("Quizzes") : t("Polls")}</button>
         ))}
       </div>
       {user && !user.emailVerified && (
@@ -207,8 +208,8 @@ export default function DashboardPage() {
           {quizzes.filter((q) => filter === "all" || (filter === "poll" ? (q as any).kind === "poll" : (q as any).kind !== "poll")).map((quiz) => (
             <Card key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <h2 className="text-xl font-bold">{quiz.title || "Untitled"}{(quiz as any).kind === "poll" && <span className="ml-2 align-middle text-xs font-black bg-kahoot-purple text-white rounded-full px-2 py-0.5">{t("POLL")}</span>}</h2>
-                <p className="text-gray-500">{quiz.questions.length} questions · {quiz.isPublished ? "Published" : "Draft"}</p>
+                <h2 className="text-xl font-bold">{quiz.title || t("Untitled")}{(quiz as any).kind === "poll" && <span className="ml-2 align-middle text-xs font-black bg-kahoot-purple text-white rounded-full px-2 py-0.5">{t("POLL")}</span>}</h2>
+                <p className="text-gray-500">{quiz.questions.length} {t("questions")} · {quiz.isPublished ? t("Published") : t("Draft")}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {quiz.videoMode && (<Link href={`/watch?quizId=${quiz.id}`}><Button size="sm">{t("▶ Video")}</Button></Link>)}
@@ -230,14 +231,16 @@ export default function DashboardPage() {
                 >
                   {t("📝 Assign")}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setShareQuiz(quiz)}
-                  title={t("Invite someone to edit or host this")}
-                >
-                  {t("Share")}
-                </Button>
+                <ShareHelp>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setShareQuiz(quiz)}
+                    title={t("Invite someone to edit or host this")}
+                  >
+                    👥 {t("Share")}
+                  </Button>
+                </ShareHelp>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(quiz.id)}>{t("Delete")}</Button>
               </div>
             </Card>

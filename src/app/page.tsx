@@ -102,29 +102,29 @@ export default function HomePage() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
   useEffect(() => { getHomeContent().then(setHome).catch(() => {}); }, []);
-  const line1 = home.heroLine1 ?? "Live multiplayer quizzes";
-  const line2 = home.heroLine2 ?? "The free Kahoot alternative";
+  const line1 = home.heroLine1 ?? t("tagline");
+  const line2 = home.heroLine2 ?? t("freeAlternative");
   const startEdit = () => { setDraft({ heroLine1: line1, heroLine2: line2 }); setEditing(true); };
   const saveEdit = async () => { await saveHomeContent(draft); setHome({ ...home, ...draft }); setEditing(false); };
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.length !== 6) { setError("Enter a 6-digit game PIN"); return; }
+    if (pin.length !== 6) { setError(t("pinError")); return; }
     setLoading(true);
     setError("");
     try {
       const gameId = await resolvePin(pin.trim());
-      if (!gameId) { setError("Game not found. Check your PIN."); return; }
+      if (!gameId) { setError(t("gameNotFound")); return; }
       router.push("/join?gameId=" + gameId);
     } catch {
-      setError("Something went wrong. Try again.");
+      setError(t("Something went wrong. Try again."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern px-6 py-12">
+    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark bg-grid-pattern px-4 sm:px-6 py-10 sm:py-12">
       {/* Hero + join */}
       <div className="max-w-md mx-auto text-center">
         <img src="/logo-full.png" alt="QuizUps" className="w-60 mx-auto mb-3" />
@@ -156,15 +156,15 @@ export default function HomePage() {
             />
             {error && <p className="text-red-400 font-semibold text-sm">{error}</p>}
             <Button type="submit" size="lg" loading={loading} className="w-full">
-              Enter
+              {t("enterPin")}
             </Button>
           </div>
         </form>
 
         <div className="mt-8">
-          <p className="text-white/60 mb-3">Want to host a quiz?</p>
+          <p className="text-white/60 mb-3">{t("wantToHost")}</p>
           <a href="/dashboard">
-            <Button variant="secondary" size="lg">Create a Quiz →</Button>
+            <Button variant="secondary" size="lg">{t("createQuiz")}</Button>
           </a>
           <Link href="/try" className="block mt-3">
             <span className="text-white/60 text-sm hover:text-white underline">{t("or build one right now, without an account")}</span>

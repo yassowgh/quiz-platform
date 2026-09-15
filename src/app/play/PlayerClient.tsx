@@ -241,7 +241,7 @@ export default function PlayPage() {
 
   if (!state) return (
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark flex items-center justify-center">
-      <p className="text-white text-2xl font-bold animate-pulse">Connecting...</p>
+      <p className="text-white text-2xl font-bold animate-pulse">{t("Connecting...")}</p>
     </div>
   );
 
@@ -267,8 +267,8 @@ export default function PlayPage() {
       {state.status === "question" && isBattle && (myPlayer as any)?.eliminated && (
         <div className="flex flex-col items-center justify-center flex-1 gap-3 p-6 text-center">
           <div className="text-6xl">💀</div>
-          <h2 className="text-2xl font-black">You're eliminated</h2>
-          <p className="text-white/60">Watching the rest of the battle…</p>
+          <h2 className="text-2xl font-black">{t("You're eliminated")}</h2>
+          <p className="text-white/60">{t("Watching the rest of the battle…")}</p>
         </div>
       )}
       {state.status === "question" && !(isBattle && (myPlayer as any)?.eliminated) && (
@@ -298,7 +298,7 @@ export default function PlayPage() {
           )}
           {currentQ?.type === "ranking" ? (
             <div className="flex flex-col gap-2 flex-1 justify-center">
-              <p className="text-center text-white/70 text-sm">Order them — top = best</p>
+              <p className="text-center text-white/70 text-sm">{t("Order them — top = best")}</p>
               {(rankOrder || []).map((optIdx, pos) => (
                 <div key={optIdx} className="flex items-center gap-2 bg-white text-gray-900 rounded-xl p-3 font-bold">
                   <span className="w-7 h-7 bg-kahoot-purple text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">{pos + 1}</span>
@@ -307,13 +307,13 @@ export default function PlayPage() {
                   <button type="button" disabled={pos === (rankOrder || []).length - 1 || rankSent} onClick={() => setRankOrder((o) => { if (!o) return o; const n = [...o]; const tmp = n[pos + 1]; n[pos + 1] = n[pos]; n[pos] = tmp; return n; })} className="text-xl px-1 disabled:opacity-30">⬇️</button>
                 </div>
               ))}
-              <button type="button" onClick={sendRank} disabled={rankSent} className="bg-green-500 text-white font-black text-lg rounded-2xl py-3 mt-2 disabled:opacity-40">{rankSent ? "Ranking submitted ✓" : "Submit ranking"}</button>
+              <button type="button" onClick={sendRank} disabled={rankSent} className="bg-green-500 text-white font-black text-lg rounded-2xl py-3 mt-2 disabled:opacity-40">{rankSent ? t("Ranking submitted ✓") : t("Submit ranking")}</button>
             </div>
           ) : currentQ?.type === "openended" ? (
             <div className="flex flex-col gap-3 flex-1 justify-center">
-              <textarea value={openDraft} onChange={(e) => setOpenDraft(e.target.value)} maxLength={140} rows={3} placeholder="Type your answer…" className="px-4 py-3 rounded-2xl text-gray-900 text-lg resize-none" dir="auto" />
-              <button type="button" onClick={sendOpen} disabled={!openDraft.trim() || openSent >= 3} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{openSent >= 3 ? "Max reached" : "Send answer" + (openSent > 0 ? " (" + openSent + "/3)" : "")}</button>
-              <p className="text-center text-white/60 text-sm">Send up to 3 answers from your phone.</p>
+              <textarea value={openDraft} onChange={(e) => setOpenDraft(e.target.value)} maxLength={140} rows={3} placeholder={t("Type your answer…")} className="px-4 py-3 rounded-2xl text-gray-900 text-lg resize-none" dir="auto" />
+              <button type="button" onClick={sendOpen} disabled={!openDraft.trim() || openSent >= 3} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{openSent >= 3 ? t("Max reached") : t("Send answer") + (openSent > 0 ? " (" + openSent + "/3)" : "")}</button>
+              <p className="text-center text-white/60 text-sm">{t("Send up to 3 answers from your phone.")}</p>
             </div>
           ) : currentQ?.type === "rating" ? (
             <div className="flex flex-col gap-4 flex-1 justify-center items-center">
@@ -333,9 +333,9 @@ export default function PlayPage() {
             </div>
           ) : currentQ?.type === "wordcloud" ? (
             <div className="flex flex-col gap-3 flex-1 justify-center">
-              <input value={wordDraft} onChange={(e) => setWordDraft(e.target.value)} maxLength={30} placeholder="Type a word…" onKeyDown={(e) => { if (e.key === "Enter") sendWord(); }} className="px-4 py-4 rounded-2xl text-gray-900 text-xl text-center font-bold" dir="auto" />
-              <button type="button" onClick={sendWord} disabled={!wordDraft.trim() || wordSent >= 8} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{wordSent >= 8 ? "Max reached" : "Send word" + (wordSent > 0 ? " (" + wordSent + ")" : "")}</button>
-              <p className="text-center text-white/60 text-sm">Add up to 8 words from your phone.</p>
+              <input value={wordDraft} onChange={(e) => setWordDraft(e.target.value)} maxLength={30} placeholder={t("Type a word…")} onKeyDown={(e) => { if (e.key === "Enter") sendWord(); }} className="px-4 py-4 rounded-2xl text-gray-900 text-xl text-center font-bold" dir="auto" />
+              <button type="button" onClick={sendWord} disabled={!wordDraft.trim() || wordSent >= 8} className="bg-green-500 text-white font-black text-lg rounded-2xl py-4 disabled:opacity-40">{wordSent >= 8 ? t("Max reached") : t("Send word") + (wordSent > 0 ? " (" + wordSent + ")" : "")}</button>
+              <p className="text-center text-white/60 text-sm">{t("Add up to 8 words from your phone.")}</p>
             </div>
           ) : currentQ?.type === "sorting" && sortOrder ? (
             <div className="flex flex-col gap-2 flex-1 justify-center">
@@ -423,7 +423,7 @@ export default function PlayPage() {
               )}
               {isGold && myAnswer.isCorrect && chestQ !== state.currentQuestionIndex && (
                 <div className="flex flex-col items-center gap-2">
-                  <p className="text-white/80 font-bold">Pick a chest!</p>
+                  <p className="text-white/80 font-bold">{t("Pick a chest!")}</p>
                   <div className="flex gap-4">
                     {[0, 1, 2].map((c) => (
                       <button key={c} onClick={openChest} className="text-5xl hover:scale-125 transition-transform">🎁</button>
@@ -486,8 +486,8 @@ export default function PlayPage() {
       {state.status === "ended" && (
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <h2 className="text-4xl font-black mb-4">{t("thanksForPlaying")}</h2>
-          <p className="text-white/60 mb-6">Final score: {myPlayer?.score.toLocaleString() ?? 0} pts</p>
-          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">Play again →</a>
+          <p className="text-white/60 mb-6">{t("Final score:")} {myPlayer?.score.toLocaleString() ?? 0} {t("pts")}</p>
+          <a href="/" className="text-kahoot-yellow font-bold text-xl hover:underline">{t("Play again →")}</a>
           <HostCta />
         </div>
       )}

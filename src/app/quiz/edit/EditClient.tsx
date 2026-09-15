@@ -374,8 +374,8 @@ export default function EditQuizPage() {
       </div>
       <QuizEditor questions={quiz.questions} kind={quiz.kind} onChange={(questions) => setQuiz({ ...quiz, questions })} />
       <div className="flex gap-2 justify-end mt-8 pt-6 border-t border-gray-200">
-        <Button variant="secondary" onClick={() => save(false)} loading={saving}>Save Draft</Button>
-        <Button onClick={() => save(true)} loading={saving}>Publish</Button>
+        <Button variant="secondary" onClick={() => save(false)} loading={saving}>{t("Save Draft")}</Button>
+        <Button onClick={() => save(true)} loading={saving}>{t("Publish")}</Button>
       </div>
     </div>
   );
