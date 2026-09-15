@@ -185,7 +185,7 @@ export default function PlayPage() {
     await submitAnswer(gameId, q, playerId, picked[0] ?? -1, timeTaken, timeLimit, exact, ratio, mode);
   };
 
-  const myPlayer = state && playerId ? state.players[playerId] : null;
+  const myPlayer = state && playerId ? (state.players?.[playerId] ?? null) : null;
   const isGold = (state as any)?.mode === "goldquest";
   const isBattle = (state as any)?.mode === "battle";
   const isPoll = (state as any)?._quiz?.kind === "poll";
