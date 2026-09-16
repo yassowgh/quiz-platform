@@ -166,6 +166,11 @@ export default function HomePage() {
           <a href="/dashboard">
             <Button variant="secondary" size="lg">{t("createQuiz")}</Button>
           </a>
+          <Link href="/fun" className="block mt-4">
+            <span className="inline-block rounded-2xl bg-white/10 hover:bg-white/20 px-5 py-3 font-bold">
+              {t("🎉 Just for fun")} — <span className="font-semibold text-white/80">{t("Any topic, a code to share, and you are playing.")}</span>
+            </span>
+          </Link>
           <Link href="/try" className="block mt-3">
             <span className="text-white/60 text-sm hover:text-white underline">{t("or build one right now, without an account")}</span>
           </Link>

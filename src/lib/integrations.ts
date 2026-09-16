@@ -15,7 +15,7 @@ export const EMAIL_ENABLED = AI_WORKER_URL.length > 0;
 export async function generateQuestions(
   topic: string,
   count: number,
-  language: "en" | "ar",
+  language: "en" | "ar" | "uk",
   avoid: string[] = [],
   source: string = ""
 ): Promise<Question[]> {
@@ -190,7 +190,7 @@ export async function generateVideoQuestions(
   from: number,
   to: number,
   count: number,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" | "uk" = "en"
 ): Promise<Question[]> {
   const r = await fetch(AI_WORKER_URL, {
     method: "POST",
@@ -217,7 +217,7 @@ export async function generateVideoQuestions(
 export async function generateFromUrl(
   url: string,
   count: number,
-  language: "en" | "ar",
+  language: "en" | "ar" | "uk",
   avoid: string[] = []
 ): Promise<Question[]> {
   const r = await fetch(AI_WORKER_URL, {

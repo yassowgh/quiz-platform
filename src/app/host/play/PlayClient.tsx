@@ -43,12 +43,23 @@ export default function HostPlayPage() {
   const pollStartedRef = useRef(false);
 
   useEffect(() => {
-    if (quizId) getQuiz(quizId).then(setQuiz);
+    if (quizId) getQuiz(quizId).then(setQuiz).catch(() => {});
   }, [quizId]);
+
+  // A Just-for-Fun game has no Firestore quiz - the questions live on the game
+  // itself, the same `_quiz` the player screen already reads. Fall back to it
+  // so the host screen works for a quiz that was never saved.
+  useEffect(() => {
+    const inline = (state as any)?._quiz;
+    if (inline && inline.questions) setQuiz((prev) => prev || (inline as Quiz));
+  }, [state]);
 
   const currentQ = quiz && state ? quiz.questions[state.currentQuestionIndex] : null;
   const players = state?.players ? Object.values(state.players) : [];
   const isPoll = (quiz as any)?.kind === "poll";
+  // A Just-for-Fun round was never saved: its quiz id is minted client-side and
+  // exists only on the game node. Offer the host somewhere to keep it.
+  const isFunRound = (!user || user.isAnonymous) && String(quizId || "").indexOf("fun-") === 0;
   const answers = state && state.currentQuestionIndex >= 0 ? (state.answers?.[state.currentQuestionIndex] || {}) : {};
   const answeredCount = Object.keys(answers).length;
 
@@ -409,6 +420,15 @@ export default function HostPlayPage() {
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 {t("finalResults")}</h2>
           <Podium players={state.players || {}} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
+          {isFunRound && (
+            <div className="mt-6 rounded-2xl bg-white/10 p-5 text-start">
+              <p className="font-black mb-1">{t("Keep this round?")}</p>
+              <p className="text-white/70 text-sm mb-3">
+                {t("It is not saved yet. Create a free account and these questions land in your dashboard, ready to host again.")}
+              </p>
+              <a href="/signup"><Button size="sm">{t("Save it - create my free account")}</Button></a>
+            </div>
+          )}
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">{t("endGame")}</Button>
         </div>
         )

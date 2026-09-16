@@ -41,7 +41,7 @@ export interface Quiz {
   questions: Question[];
   isPublished: boolean;
   branding?: { primaryColor?: string; accentColor?: string; logoUrl?: string };
-  language?: "en" | "ar";
+  language?: "en" | "ar" | "uk";
   allowAssignment?: boolean;
   examMode?: boolean;
   kind?: "quiz" | "poll";
