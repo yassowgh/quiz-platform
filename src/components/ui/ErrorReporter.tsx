@@ -107,6 +107,9 @@ function isExtensionNoise(text: string): boolean {
     s.indexOf("ethereum") >= 0 ||
     s.indexOf("solana") >= 0 ||
     // Headless agents and scrapers running Deno, not a browser our users have.
+    // Third-party analytics (Microsoft Clarity) throwing inside its own script.
+    s.indexOf("clarity.ms") >= 0 ||
+    s.indexOf("clarity.js") >= 0 ||
     s.indexOf("ext:core/") >= 0 ||
     s.indexOf("deno:") >= 0
   );
@@ -181,6 +184,8 @@ const BENIGN_REJECTIONS = [
   "NetworkError",
   "object store",        // iOS Safari
   "looking up record",   // iOS Safari
+  "INTERNAL ASSERTION FAILED",       // Firebase Auth popup/redirect resolver
+  "Pending promise was never set",   // Firebase Auth popup/redirect resolver
 ];
 
 function isBenignRejection(message: any): boolean {
