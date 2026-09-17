@@ -1,5 +1,6 @@
 "use client";
 import { nanoid } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
 import type { Question } from "@/types";
 
 export const AI_WORKER_URL = "https://polished-shadow-f08c.yassow.workers.dev/";
@@ -22,7 +23,7 @@ export async function generateQuestions(
   const r = await fetch(AI_WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, count, language, avoid, source }),
+    body: JSON.stringify({ topic, count, language, avoid, source, email: (auth.currentUser && auth.currentUser.email) || "" }),
   });
   let data: any = {};
   try { data = await r.json(); } catch { /* ignore */ }

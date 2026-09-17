@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [fetching, setFetching] = useState(true);
+  const [ai, setAi] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [openUid, setOpenUid] = useState<string | null>(null);
   const [openQuiz, setOpenQuiz] = useState<string | null>(null);
@@ -22,6 +23,8 @@ export default function AdminPage() {
     if (loading) return;
     if (!user) { router.push("/login"); return; }
     if (!ADMIN_EMAILS.includes(user.email)) { router.push("/dashboard"); return; }
+    fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "aistats" }) })
+      .then((r) => r.json()).then(setAi).catch(() => {});
     Promise.all([listAllUsers(), listAllQuizzes()])
       .then(([u, q]) => { setUsers(u); setQuizzes(q); })
       .catch((e) => setError("Failed to load reports: " + String(e?.message || e)))
@@ -111,6 +114,41 @@ export default function AdminPage() {
             </ul>
           </div>
         </div>
+      </Card>
+      <Card className="mb-6">
+        <h2 className="text-xl font-bold mb-1">AI generation</h2>
+        <p className="text-gray-400 text-xs mb-4">Questions generated with AI, counted from Sep 2026 onward.</p>
+        {!ai ? (
+          <p className="text-gray-400 text-sm">Loading…</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div><p className="text-2xl font-black text-kahoot-purple">{ai.totalGens || 0}</p><p className="text-gray-500 text-sm font-semibold">Generations</p></div>
+              <div><p className="text-2xl font-black text-kahoot-purple">{ai.totalQuestions || 0}</p><p className="text-gray-500 text-sm font-semibold">AI questions</p></div>
+            </div>
+            {Object.keys(ai.users || {}).length === 0 ? (
+              <p className="text-gray-400 text-sm">No AI generations yet.</p>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead><tr className="border-b-2 border-gray-200 text-gray-500"><th className="py-2">Account</th><th className="text-right">Generations</th><th className="text-right">Questions</th><th className="text-right">Last</th></tr></thead>
+                <tbody>
+                  {Object.keys(ai.users).sort((a, b) => (ai.users[b].questions || 0) - (ai.users[a].questions || 0)).map((em) => {
+                    const u = users.find((x: any) => String(x.email || "").toLowerCase() === em);
+                    const row = ai.users[em];
+                    return (
+                      <tr key={em} className="border-b border-gray-100">
+                        <td className="py-2"><span dir="auto" className="font-semibold">{u ? (u.displayName || em) : (em === "anonymous" ? "Anonymous (not signed in)" : em)}</span><div className="text-gray-400 text-xs">{em}</div></td>
+                        <td className="text-right font-black">{row.gens || 0}</td>
+                        <td className="text-right">{row.questions || 0}</td>
+                        <td className="text-right text-gray-400">{row.last ? new Date(row.last).toLocaleDateString() : ""}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </>
+        )}
       </Card>
       <Card>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
