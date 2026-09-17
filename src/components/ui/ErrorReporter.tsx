@@ -186,6 +186,7 @@ const BENIGN_REJECTIONS = [
   "looking up record",   // iOS Safari
   "INTERNAL ASSERTION FAILED",       // Firebase Auth popup/redirect resolver
   "Pending promise was never set",   // Firebase Auth popup/redirect resolver
+  "client is offline",               // transient Firestore connectivity
 ];
 
 function isBenignRejection(message: any): boolean {
@@ -212,6 +213,7 @@ function throttledReport(summary: string, detail?: string) {
   try {
     if (Object.keys(seen).length > 60) return; // session cap to avoid floods
     if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
+    if (isBenignRejection(detail || "") || isBenignRejection(summary)) return;
     if (isSdkNoise(detail || "")) {
       // Still worth seeing once: if Google sign-in is genuinely broken on a
       // browser, this is the only signal. Just never let it flood.
