@@ -73,16 +73,38 @@ export function isValidEmail(v: string | null | undefined): boolean {
 // own domain, is not capped by a third-party free tier, and - unlike the old
 // browser-side EmailJS path - cannot be blocked by the visitor's ad blocker.
 async function workerSend(to: string, subject: string, html: string): Promise<void> {
-  const r = await fetch(AI_WORKER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mode: "email", to: to, subject: subject, html: html, email: to }),
-  });
-  if (!r.ok) {
+  const body = JSON.stringify({ mode: "email", to: to, subject: subject, html: html, email: to });
+  let lastErr: any = null;
+  // iOS Safari in particular surfaces a transient "Load failed" TypeError when a
+  // reused connection has gone stale (e.g. the page sat idle) or on a brief network
+  // blip. A best-effort email should not give up on that, so retry a couple of times
+  // with backoff and a timeout, and only fail fast on a real client (4xx) error.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise((res) => setTimeout(res, 600 * attempt));
+    let timer: any = null;
+    let r: Response;
+    try {
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      if (controller) timer = setTimeout(() => controller.abort(), 15000);
+      r = await fetch(AI_WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body,
+        signal: controller ? controller.signal : undefined,
+      });
+      if (timer) clearTimeout(timer);
+    } catch (e: any) {
+      if (timer) clearTimeout(timer);
+      lastErr = e; // network error or timeout (abort) - retry
+      continue;
+    }
+    if (r.ok) return;
+    if (r.status >= 500 || r.status === 429) { lastErr = new Error("email send failed (HTTP " + r.status + ")"); continue; }
     let detail = "";
-    try { detail = (await r.text()).slice(0, 300); } catch { /* ignore */ }
+    try { detail = (await r.text()).slice(0, 300); } catch (e) { /* ignore */ }
     throw new Error("email send failed (HTTP " + r.status + ") " + detail);
   }
+  throw lastErr || new Error("email send failed");
 }
 
 export async function sendAssignmentEmail(params: {
