@@ -46,6 +46,22 @@ export default function AdminPage() {
     .sort((a: any, b: any) => (byHost[b.uid] || 0) - (byHost[a.uid] || 0))
     .filter((u: any) => !term || String(u.email || "").toLowerCase().indexOf(term) >= 0 || String(u.displayName || "").toLowerCase().indexOf(term) >= 0);
   const quizType = (z: any) => (z.kind === "poll" ? "Poll" : z.examMode ? "Exam" : "Quiz");
+  const questionsByHost: Record<string, number> = {};
+  quizzes.forEach((z: any) => { questionsByHost[z.hostId] = (questionsByHost[z.hostId] || 0) + (z.questions?.length || 0); });
+  const feat = { quiz: 0, poll: 0, exam: 0, video: 0 };
+  const byType: Record<string, number> = {};
+  const byLang: Record<string, number> = {};
+  quizzes.forEach((z: any) => {
+    if (z.kind === "poll") feat.poll++; else if (z.examMode) feat.exam++; else feat.quiz++;
+    const lang = z.language || "en"; byLang[lang] = (byLang[lang] || 0) + 1;
+    let hasVideo = false;
+    (z.questions || []).forEach((qq: any) => {
+      const ty = qq.type || "multiple"; byType[ty] = (byType[ty] || 0) + 1;
+      if (qq.videoUrl) hasVideo = true;
+    });
+    if (hasVideo) feat.video++;
+  });
+  const TYPE_LABELS: Record<string, string> = { multiple: "Multiple choice", truefalse: "True / False", typeanswer: "Type answer", sorting: "Sorting", poll: "Poll choice", wordcloud: "Word cloud", openended: "Open-ended", rating: "Rating", ranking: "Ranking", scale: "Scale" };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -68,6 +84,34 @@ export default function AdminPage() {
           <p className="text-gray-500 font-semibold">Quizzes / User</p>
         </Card>
       </div>
+      <Card className="mb-6">
+        <h2 className="text-xl font-bold mb-4">Feature usage</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div><p className="text-2xl font-black text-kahoot-purple">{feat.quiz}</p><p className="text-gray-500 text-sm font-semibold">Quizzes</p></div>
+          <div><p className="text-2xl font-black text-kahoot-purple">{feat.poll}</p><p className="text-gray-500 text-sm font-semibold">Polls / surveys</p></div>
+          <div><p className="text-2xl font-black text-kahoot-purple">{feat.exam}</p><p className="text-gray-500 text-sm font-semibold">Exams</p></div>
+          <div><p className="text-2xl font-black text-kahoot-purple">{feat.video}</p><p className="text-gray-500 text-sm font-semibold">Video quizzes</p></div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <p className="font-bold text-gray-700 mb-2">Question types</p>
+            <ul className="text-sm text-gray-600 space-y-1">
+              {Object.keys(byType).sort((a, b) => byType[b] - byType[a]).map((k) => (
+                <li key={k} className="flex justify-between"><span>{TYPE_LABELS[k] || k}</span><span className="font-semibold">{byType[k]}</span></li>
+              ))}
+              {Object.keys(byType).length === 0 && <li className="text-gray-400">No questions yet.</li>}
+            </ul>
+          </div>
+          <div>
+            <p className="font-bold text-gray-700 mb-2">Languages</p>
+            <ul className="text-sm text-gray-600 space-y-1">
+              {Object.keys(byLang).sort((a, b) => byLang[b] - byLang[a]).map((k) => (
+                <li key={k} className="flex justify-between"><span>{k.toUpperCase()}</span><span className="font-semibold">{byLang[k]}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Card>
       <Card>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
           <h2 className="text-xl font-bold">Quizzes per user</h2>
@@ -86,6 +130,7 @@ export default function AdminPage() {
               <th className="py-2">Name</th>
               <th>Email</th>
               <th>Joined</th>
+              <th className="text-right">Questions</th>
               <th className="text-right">Quizzes</th>
             </tr>
           </thead>
@@ -106,11 +151,12 @@ export default function AdminPage() {
                     </td>
                     <td className="text-gray-500">{u.email}</td>
                     <td className="text-gray-400 text-sm">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
+                    <td className="text-right text-gray-600">{questionsByHost[u.uid] || 0}</td>
                     <td className="text-right font-black">{count}</td>
                   </tr>
                   {open && (
                     <tr className="bg-gray-50">
-                      <td colSpan={4} className="p-0">
+                      <td colSpan={5} className="p-0">
                         <div className="px-4 py-3">
                           {list.length === 0 ? (
                             <p className="text-gray-400 text-sm py-2">No quizzes.</p>
