@@ -16,6 +16,7 @@ export default function AdminPage() {
   const [fetching, setFetching] = useState(true);
   const [search, setSearch] = useState("");
   const [openUid, setOpenUid] = useState<string | null>(null);
+  const [openQuiz, setOpenQuiz] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -119,13 +120,61 @@ export default function AdminPage() {
                                 .slice()
                                 .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0))
                                 .map((z: any) => (
-                                  <li key={z.id} className="py-2 flex items-center justify-between gap-3">
-                                    <span dir="auto" className="font-semibold text-gray-800 truncate">{z.title || "(untitled)"}</span>
-                                    <span className="shrink-0 text-xs text-gray-500 flex items-center gap-2">
-                                      <span className="rounded-full bg-white border border-gray-200 px-2 py-0.5">{quizType(z)}</span>
-                                      <span>{z.questions?.length || 0} Qs</span>
-                                      <span className="text-gray-400">{z.createdAt ? new Date(z.createdAt).toLocaleDateString() : ""}</span>
-                                    </span>
+                                  <li key={z.id} className="py-2">
+                                    <div
+                                      onClick={() => setOpenQuiz(openQuiz === z.id ? null : z.id)}
+                                      className="flex items-center justify-between gap-3 cursor-pointer hover:bg-white rounded px-1"
+                                    >
+                                      <span dir="auto" className="font-semibold text-gray-800 truncate">
+                                        <span className="text-gray-400 me-1">{openQuiz === z.id ? "▾" : "▸"}</span>
+                                        {z.title || "(untitled)"}
+                                      </span>
+                                      <span className="shrink-0 text-xs text-gray-500 flex items-center gap-2">
+                                        <span className="rounded-full bg-white border border-gray-200 px-2 py-0.5">{quizType(z)}</span>
+                                        <span>{z.questions?.length || 0} Qs</span>
+                                        <span className="text-gray-400">{z.createdAt ? new Date(z.createdAt).toLocaleDateString() : ""}</span>
+                                      </span>
+                                    </div>
+                                    {openQuiz === z.id && (
+                                      <ol className="mt-2 space-y-3 ps-1">
+                                        {(z.questions || []).map((qq: any, qi: number) => {
+                                          const correct = qq.multiSelect && Array.isArray(qq.correctAnswers) && qq.correctAnswers.length
+                                            ? qq.correctAnswers
+                                            : [qq.correctAnswer];
+                                          const graded = !qq.type || qq.type === "multiple" || qq.type === "truefalse";
+                                          return (
+                                            <li key={qq.id || qi} className="rounded-xl bg-white border border-gray-200 p-3">
+                                              <div className="flex items-start gap-2">
+                                                <span className="text-gray-400 font-bold text-sm">{qi + 1}.</span>
+                                                <div className="min-w-0 flex-1">
+                                                  <p dir="auto" className="font-semibold text-gray-800">{qq.text || "—"}</p>
+                                                  {qq.imageUrl && <img src={qq.imageUrl} alt="" className="mt-2 max-h-40 rounded-lg" />}
+                                                  {qq.type === "typeanswer" ? (
+                                                    <p className="mt-1 text-sm text-green-700">Answer: <span dir="auto" className="font-semibold">{qq.correctText || "—"}</span></p>
+                                                  ) : qq.type === "scale" ? (
+                                                    <p className="mt-1 text-sm text-gray-500">Scale {qq.scaleMin ?? 0}{qq.scaleMinLabel ? " (" + qq.scaleMinLabel + ")" : ""} to {qq.scaleMax ?? 10}{qq.scaleMaxLabel ? " (" + qq.scaleMaxLabel + ")" : ""}</p>
+                                                  ) : (qq.options && qq.options.length) ? (
+                                                    <ul className="mt-2 space-y-1">
+                                                      {qq.options.filter((o: any) => o !== undefined && o !== null && String(o).length).map((opt: any, oi: number) => {
+                                                        const isC = graded && correct.indexOf(oi) >= 0;
+                                                        return (
+                                                          <li key={oi} dir="auto" className={"text-sm rounded-lg px-2 py-1 " + (isC ? "bg-green-50 text-green-800 font-semibold" : "text-gray-600")}>
+                                                            {isC ? "✓ " : ""}{opt}
+                                                          </li>
+                                                        );
+                                                      })}
+                                                    </ul>
+                                                  ) : (
+                                                    <p className="mt-1 text-sm text-gray-400">Open response</p>
+                                                  )}
+                                                  <p className="mt-1 text-xs text-gray-400">{(qq.points || 0) + " pts, " + (qq.timeLimit || 0) + "s" + (qq.type ? ", " + qq.type : "")}</p>
+                                                </div>
+                                              </div>
+                                            </li>
+                                          );
+                                        })}
+                                      </ol>
+                                    )}
                                   </li>
                                 ))}
                             </ul>
