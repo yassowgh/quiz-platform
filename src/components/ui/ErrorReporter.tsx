@@ -196,6 +196,21 @@ function isBenignRejection(message: any): boolean {
   return false;
 }
 
+/**
+ * iOS Safari rejects in-flight Firebase promises when a page is torn down on
+ * navigation (e.g. a player leaving a game mid-round). Those surface here as
+ * unhandled rejections with a library-internal stack and are not our bugs, so
+ * ignore any rejection that lands within a moment of a route change.
+ */
+function recentlyNavigated(): boolean {
+  try {
+    for (let i = crumbs.length - 1; i >= 0; i--) {
+      if (crumbs[i].label === "route") return (Date.now() - crumbs[i].at) < 1500;
+    }
+  } catch (e) {}
+  return false;
+}
+
 let sdkNoiseSeen = false;
 
 /** Noise from third-party SDKs that we cannot fix from here. */
@@ -329,6 +344,7 @@ export function GlobalErrorListener() {
       if (!r || !(r.stack || r.message)) return;
       if (isBenignRejection(r.message)) return;
       if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return;
+      if (recentlyNavigated()) return;
       const detail = describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
       throttledReport("Unhandled promise rejection", detail);
       if (isSdkNoise(detail)) return;
