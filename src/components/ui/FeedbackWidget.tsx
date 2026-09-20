@@ -40,9 +40,9 @@ export default function FeedbackWidget() {
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 left-4 z-50">
       {open && (
-        <div className="mb-2 w-80 rounded-2xl bg-white shadow-2xl border border-gray-200 p-4 text-gray-800">
+        <div className="mb-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-2xl border border-gray-200 p-4 text-gray-800">
           {sent ? (
             <div className="text-center py-4">
               <div className="text-3xl mb-2">🙏</div>
