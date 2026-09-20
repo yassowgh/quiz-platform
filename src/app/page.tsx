@@ -172,6 +172,7 @@ export default function HomePage() {
               <span className="block text-sm font-semibold opacity-80 mt-0.5">{t("Any topic, a code to share, and you are playing.")}</span>
             </span>
           </Link>
+          <Link href="/family" className="block mt-2 text-white/60 text-sm hover:text-white underline">{t("New to trivia? See how families play")}</Link>
           <Link href="/try" className="block mt-3">
             <span className="text-white/60 text-sm hover:text-white underline">{t("or build one right now, without an account")}</span>
           </Link>

@@ -643,6 +643,23 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string 
   "Movies & TV": { en: "Movies & TV", ar: "الأفلام والتلفزيون", uk: "Фільми та ТБ" },
   "Music": { en: "Music", ar: "الموسيقى", uk: "Музика" },
   "Sports": { en: "Sports", ar: "الرياضة", uk: "Спорт" },
+  "Trivia night for the whole family": { en: "Trivia night for the whole family", ar: "ليلة أسئلة لكل العائلة", uk: "Вечір вікторини для всієї родини" },
+  "Free, instant trivia games everyone can play together — on any phone, in your language.": { en: "Free, instant trivia games everyone can play together — on any phone, in your language.", ar: "ألعاب أسئلة مجانية وفورية يلعبها الجميع معًا — على أي هاتف، وبلغتك.", uk: "Безкоштовні миттєві вікторини, у які всі грають разом — на будь-якому телефоні й вашою мовою." },
+  "Start a free game": { en: "Start a free game", ar: "ابدأ لعبة مجانية", uk: "Почати безкоштовну гру" },
+  "No sign-up needed to play.": { en: "No sign-up needed to play.", ar: "لا حاجة للتسجيل للعب.", uk: "Щоб грати, реєстрація не потрібна." },
+  "What is trivia gaming?": { en: "What is trivia gaming?", ar: "ما هي ألعاب الأسئلة؟", uk: "Що таке ігрова вікторина?" },
+  "Trivia gaming turns any topic into a quick, friendly quiz everyone answers on their own phone. One screen shows the question, everyone taps their answer, and points go to whoever is fastest and right. It is the party-game version of a quiz.": { en: "Trivia gaming turns any topic into a quick, friendly quiz everyone answers on their own phone. One screen shows the question, everyone taps their answer, and points go to whoever is fastest and right. It is the party-game version of a quiz.", ar: "تحوّل ألعاب الأسئلة أي موضوع إلى مسابقة سريعة وودّية يجيب عنها الجميع على هواتفهم. تعرض شاشة واحدة السؤال، ويضغط الجميع على إجابتهم، وتذهب النقاط لمن يجيب بسرعة وبشكل صحيح. إنها نسخة الحفلات من الاختبار.", uk: "Ігрова вікторина перетворює будь-яку тему на швидку дружню вікторину, на яку всі відповідають зі своїх телефонів. Один екран показує запитання, усі торкаються своєї відповіді, а бали отримує той, хто відповів швидко й правильно. Це вечіркова версія тесту." },
+  "Why families love it": { en: "Why families love it", ar: "لماذا تحبها العائلات", uk: "Чому родини це люблять" },
+  "Everyone can join — no app to install and no account for players.": { en: "Everyone can join — no app to install and no account for players.", ar: "يمكن للجميع الانضمام — بلا تطبيق للتثبيت وبلا حساب للاعبين.", uk: "Долучитися можуть усі — без встановлення застосунку та без акаунта для гравців." },
+  "Any age, any topic — from cartoons to capital cities.": { en: "Any age, any topic — from cartoons to capital cities.", ar: "أي عمر وأي موضوع — من الرسوم المتحركة إلى عواصم الدول.", uk: "Будь-який вік, будь-яка тема — від мультфільмів до столиць." },
+  "Play in English, Arabic or Ukrainian.": { en: "Play in English, Arabic or Ukrainian.", ar: "العب بالإنجليزية أو العربية أو الأوكرانية.", uk: "Грайте англійською, арабською чи українською." },
+  "It is completely free.": { en: "It is completely free.", ar: "إنها مجانية تمامًا.", uk: "Це цілком безкоштовно." },
+  "Kind by design — questions are general-knowledge trivia, safe for all ages.": { en: "Kind by design — questions are general-knowledge trivia, safe for all ages.", ar: "لطيفة بطبيعتها — الأسئلة معلومات عامة آمنة لكل الأعمار.", uk: "Доброзичлива за задумом — запитання із загальних знань, безпечні для всіх віків." },
+  "How to start in a minute": { en: "How to start in a minute", ar: "كيف تبدأ في دقيقة", uk: "Як почати за хвилину" },
+  "Pick a topic — or tap a ready-made one like Animals or Movies & TV.": { en: "Pick a topic — or tap a ready-made one like Animals or Movies & TV.", ar: "اختر موضوعًا — أو اضغط على موضوع جاهز مثل الحيوانات أو الأفلام والتلفزيون.", uk: "Оберіть тему — або торкніться готової, як-от Тварини чи Фільми та ТБ." },
+  "Get a game PIN and share it, or let everyone scan the QR code.": { en: "Get a game PIN and share it, or let everyone scan the QR code.", ar: "احصل على رمز اللعبة وشاركه، أو دع الجميع يمسح رمز QR.", uk: "Отримайте PIN гри та поділіться ним, або нехай усі відсканують QR-код." },
+  "Everyone joins on their phone and you play together.": { en: "Everyone joins on their phone and you play together.", ar: "ينضم الجميع من هواتفهم وتلعبون معًا.", uk: "Усі приєднуються зі своїх телефонів — і ви граєте разом." },
+  "New to trivia? See how families play": { en: "New to trivia? See how families play", ar: "جديد على الأسئلة؟ شاهد كيف تلعب العائلات", uk: "Уперше у вікторині? Подивіться, як грають родини" },
 };
 
 export function t(key: string, lang: Lang): string {
