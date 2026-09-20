@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { generateQuestions } from "@/lib/integrations";
 import { createLiveGame, kickPlayer } from "@/lib/realtimeDb";
 import { useGame } from "@/hooks/useGame";
-import { logHandled } from "@/components/ui/ErrorReporter";
+import { logHandled, reportProblem } from "@/components/ui/ErrorReporter";
 import {
   FUN_MIN_QUESTIONS,
   FUN_MAX_QUESTIONS,
@@ -26,7 +26,7 @@ import Button from "@/components/ui/Button";
 
 const LANG_LABEL: Record<FunLang, string> = { en: "English", ar: "العربية", uk: "Українська" };
 
-const IDEAS = ["90s pop music", "Football World Cups", "Space and astronomy", "Food around the world", "Famous movie quotes"];
+const IDEAS = ["General knowledge", "Animals", "Geography", "Science", "History", "Movies & TV", "Music", "Sports"];
 
 export default function FunClient() {
   const router = useRouter();
@@ -43,6 +43,8 @@ export default function FunClient() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [copied, setCopied] = useState<"" | "link" | "pin">("");
   const [left, setLeft] = useState(FUN_MAX_PER_WINDOW);
+  const [progress, setProgress] = useState(0);
+  const [reported, setReported] = useState(false);
 
   const { state } = useGame(gameId || null);
   const players = state?.players ? Object.values(state.players) : [];
@@ -50,6 +52,16 @@ export default function FunClient() {
 
   useEffect(() => { setLeft(funStartsLeft()); }, []);
   useEffect(() => { setQLang(lang === "ar" ? "ar" : lang === "uk" ? "uk" : "en"); }, [lang]);
+  // Estimated progress: the AI returns everything at once, so ease toward 90%
+  // over the typical wait, then the lobby replaces this on success.
+  useEffect(() => {
+    if (phase !== "working") { setProgress(0); return; }
+    setProgress(8);
+    const id = setInterval(() => {
+      setProgress((p) => (p >= 90 ? 90 : p + Math.max(1, Math.round((93 - p) / 12))));
+    }, 600);
+    return () => clearInterval(id);
+  }, [phase]);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://quizups.com";
   const joinLink = gameId ? origin + "/join?gameId=" + gameId : "";
@@ -72,6 +84,7 @@ export default function FunClient() {
       return;
     }
     setError("");
+    setReported(false);
     setPhase("working");
     try {
       const questions = await generateQuestions(subject, count, qLang, [], "");
@@ -113,6 +126,11 @@ export default function FunClient() {
     if (!quiz || startedRef.current) return;
     startedRef.current = true;
     router.push("/host/play?gameId=" + gameId + "&quizId=" + quiz.id);
+  };
+
+  const reportFun = () => {
+    try { reportProblem("Just for Fun problem", error, "reported by user from /fun"); } catch (e) {}
+    setReported(true);
   };
 
   /* ----------------------------------------------------------------- lobby */
@@ -250,14 +268,32 @@ export default function FunClient() {
           </div>
         </div>
 
-        {error && <p className="text-red-300 font-semibold mb-4 text-sm">{error}</p>}
+        {error && (
+          <div className="mb-4">
+            <p className="text-red-300 font-semibold text-sm">{error}</p>
+            {reported ? (
+              <p className="text-green-300 text-xs mt-1">{t("Thanks — reported. We'll look into it.")}</p>
+            ) : (
+              <button type="button" onClick={reportFun} className="text-xs underline text-white/70 hover:text-white mt-1">{t("Report this problem")}</button>
+            )}
+          </div>
+        )}
 
         <Button size="lg" className="w-full" onClick={start} loading={phase === "working"} disabled={phase === "working" || !topic.trim()}>
           {phase === "working" ? t("Writing your questions…") : t("Get my game code")}
         </Button>
 
         {phase === "working" && (
-          <p className="text-white/60 text-sm mt-3 text-center">{t("This takes a few seconds.")}</p>
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-white/70 mb-1">
+              <span>{progress < 35 ? t("Thinking up your questions…") : progress < 75 ? t("Writing the answer choices…") : t("Almost ready…")}</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full bg-green-400 transition-all duration-500" style={{ width: progress + "%" }} />
+            </div>
+            <p className="text-white/50 text-xs mt-2 text-center">{t("This takes a few seconds.")}</p>
+          </div>
         )}
 
         {phase === "setup" && left < FUN_MAX_PER_WINDOW && (

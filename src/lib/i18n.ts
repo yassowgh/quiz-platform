@@ -630,6 +630,19 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string 
   "Famous movie quotes": { en: "Famous movie quotes", ar: "اقتباسات شهيرة من الأفلام", uk: "Відомі цитати з фільмів" },
   "Keep this round?": { en: "Keep this round?", ar: "تريد الاحتفاظ بهذه الجولة؟", uk: "Зберегти цей раунд?" },
   "It is not saved yet. Create a free account and these questions land in your dashboard, ready to host again.": { en: "It is not saved yet. Create a free account and these questions land in your dashboard, ready to host again.", ar: "لم تُحفظ بعد. أنشئ حسابًا مجانيًا وستظهر هذه الأسئلة في لوحة التحكم جاهزة للاستضافة مجددًا.", uk: "Він ще не збережений. Створіть безкоштовний акаунт — і ці запитання з'являться на вашій панелі, готові до нової гри." },
+  "Thinking up your questions…": { en: "Thinking up your questions…", ar: "نُفكّر في أسئلتك…", uk: "Придумуємо ваші запитання…" },
+  "Writing the answer choices…": { en: "Writing the answer choices…", ar: "نكتب خيارات الإجابات…", uk: "Пишемо варіанти відповідей…" },
+  "Almost ready…": { en: "Almost ready…", ar: "شارف على الانتهاء…", uk: "Майже готово…" },
+  "Report this problem": { en: "Report this problem", ar: "أبلغ عن هذه المشكلة", uk: "Повідомити про проблему" },
+  "Thanks — reported. We'll look into it.": { en: "Thanks — reported. We'll look into it.", ar: "شكرًا — تم الإبلاغ. سننظر في الأمر.", uk: "Дякуємо — повідомлення надіслано. Ми розберемося." },
+  "General knowledge": { en: "General knowledge", ar: "معلومات عامة", uk: "Загальні знання" },
+  "Animals": { en: "Animals", ar: "الحيوانات", uk: "Тварини" },
+  "Geography": { en: "Geography", ar: "الجغرافيا", uk: "Географія" },
+  "Science": { en: "Science", ar: "العلوم", uk: "Наука" },
+  "History": { en: "History", ar: "التاريخ", uk: "Історія" },
+  "Movies & TV": { en: "Movies & TV", ar: "الأفلام والتلفزيون", uk: "Фільми та ТБ" },
+  "Music": { en: "Music", ar: "الموسيقى", uk: "Музика" },
+  "Sports": { en: "Sports", ar: "الرياضة", uk: "Спорт" },
 };
 
 export function t(key: string, lang: Lang): string {
