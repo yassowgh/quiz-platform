@@ -187,6 +187,7 @@ const BENIGN_REJECTIONS = [
   "INTERNAL ASSERTION FAILED",       // Firebase Auth popup/redirect resolver
   "Pending promise was never set",   // Firebase Auth popup/redirect resolver
   "client is offline",               // transient Firestore connectivity
+  "enqueueAndForget",                // Firestore internal async-queue panic
 ];
 
 function isBenignRejection(message: any): boolean {
@@ -336,6 +337,7 @@ export function GlobalErrorListener() {
       if ((e.error.stack || "").indexOf("global code") >= 0) return;
       if (isExtensionNoise(e.error.stack || "") || isExtensionNoise(e.message || "")) return;
       const detail = (e.error.stack || e.error.message || e.message) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
+      if (isBenignRejection(detail)) return;
       throttledReport("Uncaught error", detail);
       setToast({ detail: detail });
     }
