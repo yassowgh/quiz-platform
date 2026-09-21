@@ -5,10 +5,10 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQuiz } from "@/lib/firestore";
-import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered, applyBattleElimination } from "@/lib/realtimeDb";
+import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered, applyBattleElimination, joinGame, submitAnswer } from "@/lib/realtimeDb";
 import { saveGameRecord } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
-import { cleanGameId } from "@/lib/utils";
+import { cleanGameId, nanoid } from "@/lib/utils";
 import { rankPlayers, aggregateTeams } from "@/lib/scoring";
 import { useLang } from "@/contexts/LanguageContext";
 import type { Quiz } from "@/types";
@@ -41,6 +41,9 @@ export default function HostPlayPage() {
   const [muted, setMuted] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const pollStartedRef = useRef(false);
+  const [playAlong, setPlayAlong] = useState(false);
+  const hostPidRef = useRef<string>("");
+  const [hostPicked, setHostPicked] = useState<number | null>(null);
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz).catch(() => {});
@@ -83,6 +86,31 @@ export default function HostPlayPage() {
     await startQuestion(gameId, 0);
     setTimerKey((k) => k + 1);
   };
+
+  // Host play-along (same device): register the host as a player, then let
+  // them answer from the host screen. Their score joins the leaderboard.
+  const togglePlayAlong = async () => {
+    if (playAlong) { setPlayAlong(false); return; }
+    try {
+      if (!hostPidRef.current) hostPidRef.current = "host-" + nanoid();
+      const nm = (user && !user.isAnonymous && user.displayName) ? user.displayName : "Host";
+      await joinGame(gameId, hostPidRef.current, nm);
+      setPlayAlong(true);
+    } catch (e) {}
+  };
+
+  const hostAnswer = async (index: number) => {
+    if (!playAlong || !hostPidRef.current || hostPicked !== null || !currentQ || !state) return;
+    setHostPicked(index);
+    const timeTaken = Math.max(0, Date.now() - (state.questionStartTime + 3000));
+    const isCorrect = index === Number(currentQ.correctAnswer);
+    const mode: "score" | "poll" = currentQ.type === "poll" ? "poll" : "score";
+    try { await submitAnswer(gameId, state.currentQuestionIndex, hostPidRef.current, index, timeTaken, currentQ.timeLimit || 20, isCorrect, undefined, mode); } catch (e) {}
+  };
+
+  useEffect(() => {
+    if (state?.status === "question") setHostPicked(null);
+  }, [state?.status, state?.currentQuestionIndex]);
 
   const handleEnd = async () => {
     if (!state) return;
@@ -256,6 +284,10 @@ export default function HostPlayPage() {
             <p className="text-2xl mb-2 font-semibold">{t("PIN:")} <span className="font-black text-4xl tracking-widest">{state.pin}</span></p>
             <p className="text-white/70">{players.length} {t("players")}</p>
           </Card>
+          <label className="flex items-center gap-2 text-white/80 text-sm cursor-pointer">
+            <input type="checkbox" checked={playAlong} onChange={togglePlayAlong} className="w-4 h-4" />
+            {t("I'll play too (answer on this screen)")}
+          </label>
           <Button size="lg" onClick={handleStart} disabled={players.length === 0}> {t("startGame")} </Button>
         </div>
       )}
@@ -327,11 +359,20 @@ export default function HostPlayPage() {
           ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
             {currentQ.options.map((opt, i) => !opt || !opt.trim() ? null : (
-              <div key={i} className={`p-4 rounded-xl font-bold flex items-center gap-2 ${ANSWER_COLORS[i].bg} ${ANSWER_COLORS[i].text}`}>
-                <span className="text-2xl">{ANSWER_COLORS[i].shape}</span> <span dir="auto"><MathText text={opt} /></span>
-              </div>
+              playAlong && (!currentQ.type || currentQ.type === "multiple" || currentQ.type === "truefalse") ? (
+                <button key={i} onClick={() => hostAnswer(i)} disabled={hostPicked !== null} className={"p-4 rounded-xl font-bold flex items-center gap-2 w-full text-start " + ANSWER_COLORS[i].bg + " " + ANSWER_COLORS[i].text + (hostPicked !== null && hostPicked !== i ? " opacity-40" : "") + (hostPicked === i ? " ring-4 ring-white" : "")}>
+                  <span className="text-2xl">{ANSWER_COLORS[i].shape}</span> <span dir="auto"><MathText text={opt} /></span>
+                </button>
+              ) : (
+                <div key={i} className={"p-4 rounded-xl font-bold flex items-center gap-2 " + ANSWER_COLORS[i].bg + " " + ANSWER_COLORS[i].text}>
+                  <span className="text-2xl">{ANSWER_COLORS[i].shape}</span> <span dir="auto"><MathText text={opt} /></span>
+                </div>
+              )
             ))}
           </div>
+          {playAlong && hostPicked !== null && (!currentQ.type || currentQ.type === "multiple" || currentQ.type === "truefalse") && (
+            <p className="text-white/60 text-xs mb-4 text-center">{t("Answer locked in.")}</p>
+          )}
           )}
           <Button onClick={handleReveal} variant="secondary" className="w-full">{t("skipReveal")}</Button>
         </div>

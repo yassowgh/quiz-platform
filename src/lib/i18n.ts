@@ -660,6 +660,8 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string 
   "Get a game PIN and share it, or let everyone scan the QR code.": { en: "Get a game PIN and share it, or let everyone scan the QR code.", ar: "احصل على رمز اللعبة وشاركه، أو دع الجميع يمسح رمز QR.", uk: "Отримайте PIN гри та поділіться ним, або нехай усі відсканують QR-код." },
   "Everyone joins on their phone and you play together.": { en: "Everyone joins on their phone and you play together.", ar: "ينضم الجميع من هواتفهم وتلعبون معًا.", uk: "Усі приєднуються зі своїх телефонів — і ви граєте разом." },
   "New to trivia? See how families play": { en: "New to trivia? See how families play", ar: "جديد على الأسئلة؟ شاهد كيف تلعب العائلات", uk: "Уперше у вікторині? Подивіться, як грають родини" },
+  "I'll play too (answer on this screen)": { en: "I'll play too (answer on this screen)", ar: "سألعب أيضًا (أجب على هذه الشاشة)", uk: "Я теж гратиму (відповідати на цьому екрані)" },
+  "Answer locked in.": { en: "Answer locked in.", ar: "تم تثبيت الإجابة.", uk: "Відповідь зафіксовано." },
 };
 
 export function t(key: string, lang: Lang): string {
