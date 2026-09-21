@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage } from "@/lib/firestore";
 import Card from "@/components/ui/Card";
 
 const ADMIN_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
@@ -15,6 +15,23 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [fetching, setFetching] = useState(true);
   const [ai, setAi] = useState<any>(null);
+  const [pages, setPages] = useState<any[]>([]);
+  const [pgSlug, setPgSlug] = useState("");
+  const [pgTitle, setPgTitle] = useState("");
+  const [pgBody, setPgBody] = useState("");
+  const [pgPub, setPgPub] = useState(true);
+  const [pgMsg, setPgMsg] = useState("");
+  const editPage = (p: any) => { setPgSlug(p.slug); setPgTitle(p.title || ""); setPgBody(p.body || ""); setPgPub(!!p.published); setPgMsg(""); };
+  const newPage = () => { setPgSlug(""); setPgTitle(""); setPgBody(""); setPgPub(true); setPgMsg(""); };
+  const savePg = async () => {
+    setPgMsg("");
+    try { const s = await savePage({ slug: pgSlug, title: pgTitle, body: pgBody, published: pgPub }); setPages(await listPages()); setPgSlug(s); setPgMsg(t("Saved.")); }
+    catch (e: any) { setPgMsg(String(e?.message || e)); }
+  };
+  const removePg = async (slug: string) => {
+    if (typeof window !== "undefined" && !window.confirm(t("Delete this page?"))) return;
+    try { await deletePage(slug); setPages((ps) => ps.filter((x) => x.slug !== slug)); if (pgSlug === slug) newPage(); } catch (e) {}
+  };
   const [search, setSearch] = useState("");
   const [openUid, setOpenUid] = useState<string | null>(null);
   const [openQuiz, setOpenQuiz] = useState<string | null>(null);
@@ -25,6 +42,7 @@ export default function AdminPage() {
     if (!ADMIN_EMAILS.includes(user.email)) { router.push("/dashboard"); return; }
     fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "aistats" }) })
       .then((r) => r.json()).then(setAi).catch(() => {});
+    listPages().then(setPages).catch(() => {});
     Promise.all([listAllUsers(), listAllQuizzes()])
       .then(([u, q]) => { setUsers(u); setQuizzes(q); })
       .catch((e) => setError("Failed to load reports: " + String(e?.message || e)))
@@ -278,6 +296,45 @@ export default function AdminPage() {
         {users.length === 0 && (
           <p className="text-gray-400 text-center py-4">No users yet. User profiles are created on signup/login.</p>
         )}
+      </Card>
+      <Card className="mt-6">
+        <h2 className="text-xl font-bold mb-1">{t("Custom pages")}</h2>
+        <p className="text-gray-400 text-xs mb-4">{t("Create simple pages published at /p?slug=your-slug")}</p>
+        {pages.length > 0 && (
+          <ul className="divide-y divide-gray-200 mb-4">
+            {pages.map((p) => (
+              <li key={p.slug} className="py-2 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span dir="auto" className="font-semibold">{p.title || p.slug}</span>
+                  <span className={"ms-2 text-xs px-2 py-0.5 rounded-full " + (p.published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500")}>{p.published ? t("Published") : t("Draft")}</span>
+                  <div className="text-gray-400 text-xs">/p?slug={p.slug}</div>
+                </div>
+                <div className="shrink-0 flex gap-2">
+                  <button onClick={() => editPage(p)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700">{t("Edit")}</button>
+                  <a href={"/p?slug=" + p.slug} target="_blank" rel="noreferrer" className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700">{t("View")}</a>
+                  <button onClick={() => removePg(p.slug)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-600">{t("Delete")}</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-bold text-gray-700">{pgSlug ? t("Edit page") : t("New page")}</span>
+            <button onClick={newPage} className="text-xs text-indigo-600">{t("New page")}</button>
+          </div>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">{t("Title")}</label>
+          <input dir="auto" value={pgTitle} onChange={(e) => setPgTitle(e.target.value)} className="w-full mb-2 rounded-lg border border-gray-300 p-2 text-sm" />
+          <label className="block text-xs font-semibold text-gray-500 mb-1">{t("URL slug")}</label>
+          <input value={pgSlug} onChange={(e) => setPgSlug(e.target.value)} placeholder="rules" className="w-full mb-2 rounded-lg border border-gray-300 p-2 text-sm" />
+          <label className="block text-xs font-semibold text-gray-500 mb-1">{t("Content (HTML allowed)")}</label>
+          <textarea dir="auto" value={pgBody} onChange={(e) => setPgBody(e.target.value)} rows={8} className="w-full mb-2 rounded-lg border border-gray-300 p-2 text-sm font-mono" />
+          <label className="flex items-center gap-2 text-sm mb-3"><input type="checkbox" checked={pgPub} onChange={(e) => setPgPub(e.target.checked)} /> {t("Published")}</label>
+          <div className="flex items-center gap-3">
+            <button onClick={savePg} className="text-sm font-bold px-4 py-2 rounded-lg bg-kahoot-purple text-white">{t("Save page")}</button>
+            {pgMsg && <span className="text-sm text-gray-600">{pgMsg}</span>}
+          </div>
+        </div>
       </Card>
     </div>
   );

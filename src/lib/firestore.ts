@@ -346,3 +346,23 @@ export async function listAssignmentResultsByHost(hostId: string): Promise<any[]
   const snap = await getDocs(q);
   return snap.docs.map((d) => d.data()).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
 }
+
+export async function listPages(): Promise<any[]> {
+  const snap = await getDocs(collection(db, "pages"));
+  return snap.docs.map((d) => ({ slug: d.id, ...(d.data() as any) }));
+}
+export async function getPageBySlug(slug: string): Promise<any | null> {
+  const s = String(slug || "").trim().toLowerCase();
+  if (!s) return null;
+  const d = await getDoc(doc(db, "pages", s));
+  return d.exists() ? { slug: d.id, ...(d.data() as any) } : null;
+}
+export async function savePage(page: { slug: string; title: string; body: string; published: boolean }) {
+  const s = String(page.slug || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!s) throw new Error("A URL slug is required");
+  await setDoc(doc(db, "pages", s), { title: page.title || "", body: page.body || "", published: !!page.published, updatedAt: Date.now() }, { merge: true });
+  return s;
+}
+export async function deletePage(slug: string) {
+  await deleteDoc(doc(db, "pages", String(slug || "").trim().toLowerCase()));
+}

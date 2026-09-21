@@ -662,6 +662,18 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string 
   "New to trivia? See how families play": { en: "New to trivia? See how families play", ar: "جديد على الأسئلة؟ شاهد كيف تلعب العائلات", uk: "Уперше у вікторині? Подивіться, як грають родини" },
   "I'll play too (answer on this screen)": { en: "I'll play too (answer on this screen)", ar: "سألعب أيضًا (أجب على هذه الشاشة)", uk: "Я теж гратиму (відповідати на цьому екрані)" },
   "Answer locked in.": { en: "Answer locked in.", ar: "تم تثبيت الإجابة.", uk: "Відповідь зафіксовано." },
+  "Custom pages": { en: "Custom pages", ar: "صفحات مخصصة", uk: "Власні сторінки" },
+  "Create simple pages published at /p?slug=your-slug": { en: "Create simple pages published at /p?slug=your-slug", ar: "أنشئ صفحات بسيطة تُنشر على /p?slug=your-slug", uk: "Створюйте прості сторінки за адресою /p?slug=your-slug" },
+  "View": { en: "View", ar: "عرض", uk: "Переглянути" },
+  "Delete this page?": { en: "Delete this page?", ar: "حذف هذه الصفحة؟", uk: "Видалити цю сторінку?" },
+  "Edit page": { en: "Edit page", ar: "تعديل الصفحة", uk: "Редагувати сторінку" },
+  "New page": { en: "New page", ar: "صفحة جديدة", uk: "Нова сторінка" },
+  "URL slug": { en: "URL slug", ar: "معرّف الرابط", uk: "URL-адреса (slug)" },
+  "Content (HTML allowed)": { en: "Content (HTML allowed)", ar: "المحتوى (يُسمح بـ HTML)", uk: "Вміст (дозволено HTML)" },
+  "Save page": { en: "Save page", ar: "حفظ الصفحة", uk: "Зберегти сторінку" },
+  "Saved.": { en: "Saved.", ar: "تم الحفظ.", uk: "Збережено." },
+  "This page could not be found.": { en: "This page could not be found.", ar: "تعذّر العثور على هذه الصفحة.", uk: "Цю сторінку не знайдено." },
+  "Go home": { en: "Go home", ar: "الصفحة الرئيسية", uk: "На головну" },
 };
 
 export function t(key: string, lang: Lang): string {
