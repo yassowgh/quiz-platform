@@ -370,9 +370,9 @@ export default function HostPlayPage() {
               )
             ))}
           </div>
+          )}
           {playAlong && hostPicked !== null && (!currentQ.type || currentQ.type === "multiple" || currentQ.type === "truefalse") && (
             <p className="text-white/60 text-xs mb-4 text-center">{t("Answer locked in.")}</p>
-          )}
           )}
           <Button onClick={handleReveal} variant="secondary" className="w-full">{t("skipReveal")}</Button>
         </div>
