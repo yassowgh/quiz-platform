@@ -188,6 +188,7 @@ const BENIGN_REJECTIONS = [
   "Pending promise was never set",   // Firebase Auth popup/redirect resolver
   "client is offline",               // transient Firestore connectivity
   "enqueueAndForget",                // Firestore internal async-queue panic
+  "disconnected from all chains",    // crypto wallet extension (EIP-1193)
 ];
 
 function isBenignRejection(message: any): boolean {
@@ -318,7 +319,21 @@ export function ErrorFallback({ error, onReload }: { error?: any; onReload?: () 
 export default class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
   constructor(props: any) { super(props); this.state = { hasError: false, error: null }; }
   static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
-  componentDidCatch(error: any, info: any) { try { reportProblem("React render crash", ((error && error.stack) || String(error)) + "\n\nComponentStack:" + (info && info.componentStack)); } catch (e) {} }
+  componentDidCatch(error: any, info: any) {
+    try {
+      const sig = String((error && (error.name + " " + error.message)) || error || "");
+      if (sig.indexOf("ChunkLoadError") >= 0 || sig.indexOf("Loading chunk") >= 0 || sig.indexOf("Loading CSS chunk") >= 0) {
+        // A lazy chunk failed to load - almost always a stale deploy or a flaky
+        // network. Reload once (guarded) to pull the current chunks rather than
+        // show a crash screen. Not reported: transient, not a bug.
+        try {
+          const k = "quizups:chunkReload";
+          if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, String(Date.now())); location.reload(); return; }
+        } catch (e) { location.reload(); return; }
+      }
+      reportProblem("React render crash", ((error && error.stack) || String(error)) + "\n\nComponentStack:" + (info && info.componentStack));
+    } catch (e) {}
+  }
   render() { if (this.state.hasError) return <ErrorFallback error={this.state.error} onReload={() => this.setState({ hasError: false, error: null })} />; return this.props.children as any; }
 }
 

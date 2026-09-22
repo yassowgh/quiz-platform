@@ -302,6 +302,13 @@ export default function AssignmentClient() {
           <h2 className="text-xl font-black" dir="auto"><MathText text={q.text} /></h2>
           {q.multiSelect && <p className="text-sm text-gray-500 mt-1">{t("☑️ Select all that apply")}</p>}
           {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-52 mx-auto rounded-xl mt-3" />}
+          {q.videoUrl && (
+            q.videoUrl.includes("youtube.com") || q.videoUrl.includes("youtu.be") ? (
+              <iframe src={"https://www.youtube.com/embed/" + (q.videoUrl.match(/(?:v=|youtu\.be\/)([\w-]+)/)?.[1] || "")} className="w-full max-w-lg aspect-video mx-auto rounded-xl mt-3" allow="autoplay; encrypted-media" allowFullScreen />
+            ) : (
+              <video src={q.videoUrl} controls playsInline className="max-h-60 mx-auto rounded-xl mt-3" />
+            )
+          )}
           {q.audioUrl && <audio src={q.audioUrl} controls className="mx-auto mt-3" />}
         </Card>
 
