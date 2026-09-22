@@ -189,6 +189,7 @@ const BENIGN_REJECTIONS = [
   "client is offline",               // transient Firestore connectivity
   "enqueueAndForget",                // Firestore internal async-queue panic
   "disconnected from all chains",    // crypto wallet extension (EIP-1193)
+  "network-request-failed",          // Firebase Auth background token refresh (transient)
 ];
 
 function isBenignRejection(message: any): boolean {
