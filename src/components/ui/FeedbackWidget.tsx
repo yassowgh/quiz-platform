@@ -37,7 +37,7 @@ export default function FeedbackWidget() {
   }
 
   // Keep the floating button off the auth screens, where it overlapped the Log in link.
-  if (pathname === "/login" || pathname === "/signup") return null;
+  if (pathname === "/login" || pathname === "/signup" || pathname === "/play" || pathname === "/host/play") return null;
 
   return (
     <div className="fixed bottom-4 left-4 z-50">

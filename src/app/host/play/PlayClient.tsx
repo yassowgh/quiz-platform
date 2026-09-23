@@ -44,6 +44,8 @@ export default function HostPlayPage() {
   const [playAlong, setPlayAlong] = useState(false);
   const hostPidRef = useRef<string>("");
   const [hostPicked, setHostPicked] = useState<number | null>(null);
+  const [joinCopied, setJoinCopied] = useState(false);
+  const copyJoin = async () => { try { await navigator.clipboard.writeText("https://quizups.com/join?gameId=" + gameId); setJoinCopied(true); setTimeout(() => setJoinCopied(false), 1800); } catch (e) {} };
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz).catch(() => {});
@@ -64,7 +66,8 @@ export default function HostPlayPage() {
   // exists only on the game node. Offer the host somewhere to keep it.
   const isFunRound = (!user || user.isAnonymous) && String(quizId || "").indexOf("fun-") === 0;
   const answers = state && state.currentQuestionIndex >= 0 ? (state.answers?.[state.currentQuestionIndex] || {}) : {};
-  const answeredCount = Object.keys(answers).length;
+  const responsesForQ = state && state.currentQuestionIndex >= 0 ? ((state as any).responses?.[state.currentQuestionIndex] || {}) : {};
+  const answeredCount = Object.keys(answers).length + Object.keys(responsesForQ).length;
 
   const nextQuestion = useCallback(async () => {
     if (!state || !quiz) return;
@@ -258,11 +261,12 @@ export default function HostPlayPage() {
     <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white p-6" style={quiz?.branding?.primaryColor ? { background: quiz.branding.primaryColor } : undefined}>
       <ReactionOverlay gameId={gameId} />
       {(quiz as any)?.kind === "poll" && (state.status === "question" || state.status === "answer_reveal") && (
-        <div className="fixed top-4 right-4 z-40 bg-white rounded-2xl p-3 shadow-lg flex items-center gap-3">
-          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + encodeURIComponent("https://quizups.com/join?gameId=" + gameId)} alt={t("Join QR")} className="w-20 h-20" />
-          <div className="text-gray-800 pr-1">
+        <div className="fixed top-4 right-4 z-40 bg-white rounded-2xl p-3 shadow-lg text-center max-w-[46vw]">
+          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=" + encodeURIComponent("https://quizups.com/join?gameId=" + gameId)} alt={t("Join QR")} className="w-32 h-32 sm:w-44 sm:h-44 mx-auto" />
+          <div className="text-gray-800 mt-1">
             <div className="text-xs text-gray-500 font-semibold">{t("Join at quizups.com")}</div>
             <div className="font-black text-2xl tracking-widest text-gray-900">{state.pin}</div>
+            <button onClick={copyJoin} className="mt-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-kahoot-purple text-white">{joinCopied ? t("Copied") : t("🔗 Copy join link")}</button>
           </div>
         </div>
       )}
