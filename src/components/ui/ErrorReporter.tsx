@@ -190,6 +190,9 @@ const BENIGN_REJECTIONS = [
   "enqueueAndForget",                // Firestore internal async-queue panic
   "disconnected from all chains",    // crypto wallet extension (EIP-1193)
   "network-request-failed",          // Firebase Auth background token refresh (transient)
+  "aborted",                         // fetch/XHR AbortError - user navigated away mid-request
+  "The operation was aborted",       // Chrome AbortController
+  "The user aborted a request",      // Chrome fetch abort
 ];
 
 function isBenignRejection(message: any): boolean {
@@ -197,6 +200,16 @@ function isBenignRejection(message: any): boolean {
   if (!s) return false;
   for (const p of BENIGN_REJECTIONS) if (s.indexOf(p) >= 0) return true;
   return false;
+}
+
+/**
+ * Minified rejections such as message="La" / "Ka" / "Vi" are a thrown internal
+ * token from a code-split chunk, surfaced by iOS during game-end teardown after
+ * every answer already went through. They carry no message a human can act on
+ * (a real error is never one to four bare letters), so we drop them.
+ */
+function isMinifiedNoise(message: any): boolean {
+  return /^[A-Za-z]{1,4}$/.test(String(message || "").trim());
 }
 
 /**
@@ -361,6 +374,7 @@ export function GlobalErrorListener() {
       const r: any = e.reason;
       if (!r || !(r.stack || r.message)) return;
       if (isBenignRejection(r.message)) return;
+      if (isMinifiedNoise(r.message)) return;
       if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return;
       if (recentlyNavigated()) return;
       const detail = describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
