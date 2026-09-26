@@ -10,7 +10,7 @@ QuizUps (quizups.com) is an independent, free live quiz and survey platform laun
 - Players: Unlimited players per game (no cap on the free plan).
 - No account needed to play - join instantly with a game PIN or QR code.
 - AI question generation from a topic, a document, or a web URL.
-- Works on any device (mobile, tablet, desktop). English and Arabic supported.
+- Works on any device (mobile, tablet, desktop). Available in five languages: English, Arabic (RTL), Ukrainian, French, and German.
 - Reliable AI (Gemini, Groq, and OpenRouter fallbacks) so generation rarely fails.
 
 ## What QuizUps is a free alternative to

@@ -11,7 +11,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-const SUPPORTED: Lang[] = ["en", "ar", "uk"];
+const SUPPORTED: Lang[] = ["en", "ar", "uk", "fr", "de"];
 const STORAGE_KEY = "quizzap_lang";
 
 function isLang(v: any): v is Lang {

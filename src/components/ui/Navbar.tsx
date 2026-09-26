@@ -22,6 +22,8 @@ export default function Navbar() {
           <option value="en">🌐 EN</option>
           <option value="ar">🌐 عربي</option>
           <option value="uk">🌐 УКР</option>
+          <option value="fr">🌐 FR</option>
+          <option value="de">🌐 DE</option>
         </select>
         {user ? (
           <>

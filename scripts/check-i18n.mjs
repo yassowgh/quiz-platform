@@ -33,6 +33,8 @@ for (const [k, n] of counts) if (n > 1) { bad = true; console.error("x duplicate
 for (const [k, body] of entries) {
   if (!/\bar\s*:\s*"/.test(body)) { bad = true; console.error("x " + JSON.stringify(k) + " missing ar"); }
   if (!/\buk\s*:\s*"/.test(body)) { bad = true; console.error("x " + JSON.stringify(k) + " missing uk"); }
+  if (!/\bfr\s*:\s*"/.test(body)) { bad = true; console.error("x " + JSON.stringify(k) + " missing fr"); }
+  if (!/\bde\s*:\s*"/.test(body)) { bad = true; console.error("x " + JSON.stringify(k) + " missing de"); }
 }
 const USE = /\bt\(\s*"((?:[^"\\]|\\.)*)"\s*\)/g;
 for (const f of files) {
@@ -42,4 +44,4 @@ for (const f of files) {
   while ((u = USE.exec(txt))) if (!entries.has(u[1])) { bad = true; console.error("x key " + JSON.stringify(u[1]) + " used in " + f + " but not in i18n.ts"); }
 }
 if (bad) { console.error("\ni18n check failed - add the key(s) to src/lib/i18n.ts.\n"); process.exit(1); }
-console.log("i18n OK: " + entries.size + " keys present with ar/uk translations");
+console.log("i18n OK: " + entries.size + " keys present with ar/uk/fr/de translations");
