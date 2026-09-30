@@ -567,6 +567,7 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "Reactions": { en: "Reactions", ar: "التفاعلات", uk: "Реакції", fr: "Réactions", de: "Reaktionen" },
   "PIN:": { en: "PIN:", ar: "الرمز:", uk: "PIN:", fr: "PIN :", de: "PIN:" },
   "Next slide →": { en: "Next slide →", ar: "الشريحة التالية ←", uk: "Наступний слайд →", fr: "Diapositive suivante →", de: "Nächste Folie →" },
+  "← Previous slide": { en: "← Previous slide", ar: "الشريحة السابقة →", uk: "← Попередній слайд", fr: "← Diapositive précédente", de: "← Vorherige Folie" },
   "Scan to join": { en: "Scan to join", ar: "امسح للانضمام", uk: "Скануйте, щоб приєднатися", fr: "Scanner pour rejoindre", de: "Zum Beitreten scannen" },
   "Join QR": { en: "Join QR", ar: "رمز QR للانضمام", uk: "QR для приєднання", fr: "QR de participation", de: "Beitritts-QR" },
   "Type your answer…": { en: "Type your answer…", ar: "اكتب إجابتك…", uk: "Введіть свою відповідь…", fr: "Saisissez votre réponse…", de: "Gib deine Antwort ein…" },

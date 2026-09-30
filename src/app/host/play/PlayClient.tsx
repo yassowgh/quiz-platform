@@ -83,6 +83,15 @@ export default function HostPlayPage() {
     }
   }, [state, quiz, gameId]);
 
+  const prevQuestion = useCallback(async () => {
+    if (!state || !quiz) return;
+    const prev = state.currentQuestionIndex - 1;
+    if (prev < 0) return;
+    await resetPlayerAnswered(gameId, state.players);
+    await startQuestion(gameId, prev);
+    setTimerKey((k) => k + 1);
+  }, [state, quiz, gameId]);
+
   const handleStart = async () => {
     if (!state || !quiz) return;
     await resetPlayerAnswered(gameId, state.players);
@@ -323,7 +332,12 @@ export default function HostPlayPage() {
             className="mb-4"
           />
           ) : (
-          <Button onClick={nextQuestion} size="lg" className="w-full mb-4">{t("Next slide →")}</Button>
+          <div className="flex gap-2 mb-4">
+            {state.currentQuestionIndex > 0 && (
+              <Button onClick={prevQuestion} size="lg" variant="secondary" className="flex-1">{t("← Previous slide")}</Button>
+            )}
+            <Button onClick={nextQuestion} size="lg" className="flex-1">{t("Next slide →")}</Button>
+          </div>
           )}
           {currentQ.type === "ranking" ? (
             <div className="bg-white rounded-2xl p-6 sm:p-8 mb-4">
