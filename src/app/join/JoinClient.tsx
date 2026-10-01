@@ -80,22 +80,30 @@ export default function JoinClient() {
         ) : (
         <>
         <h1 className="text-3xl font-black mb-2">{t("You're in!")}</h1>
-        <p className="text-gray-500 mb-6">{t("Choose your nickname")}</p>
+        <p className="text-gray-500 mb-5">{t("Pick a name others will see — tap the box to type your own.")}</p>
         <form onSubmit={handleJoin} className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              maxLength={20}
-              className="text-center text-2xl font-bold border-b-4 border-kahoot-purple py-3 focus:outline-none w-full"
-            />
-            <button
-              type="button"
-              onClick={() => setNickname(randomNickname())}
-              className="text-3xl hover:rotate-12 transition-transform"
-              title={t("Random nickname")}
-            >🎲</button>
+          <div className="flex flex-col gap-1 text-left">
+            <label htmlFor="nickname" className="text-sm font-bold text-kahoot-purple flex items-center gap-1">✏️ {t("Your name")}</label>
+            <div className="flex items-center gap-2 rounded-2xl border-2 border-kahoot-purple bg-purple-50 ps-3 pe-2 focus-within:ring-4 focus-within:ring-purple-200 transition-shadow">
+              <input
+                id="nickname"
+                type="text"
+                value={nickname}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setNickname(e.target.value)}
+                maxLength={20}
+                aria-label={t("Your name")}
+                placeholder={t("Type your name")}
+                className="text-center text-2xl font-bold bg-transparent py-3 focus:outline-none w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setNickname(randomNickname())}
+                className="shrink-0 flex items-center gap-1 text-sm font-bold text-kahoot-purple whitespace-nowrap rounded-lg px-2 py-1 hover:bg-purple-100 transition-colors"
+                title={t("Random nickname")}
+              >🎲 {t("Shuffle")}</button>
+            </div>
+            <p className="text-xs text-gray-400">{t("We picked one for you — change it to whatever you like.")}</p>
           </div>
           {state?.teamMode && (
             <div className="flex flex-col gap-1 text-left">
