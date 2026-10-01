@@ -366,3 +366,20 @@ export async function savePage(page: { slug: string; title: string; body: string
 export async function deletePage(slug: string) {
   await deleteDoc(doc(db, "pages", String(slug || "").trim().toLowerCase()));
 }
+
+export async function logAccountDeletion(data: { uid: string; email: string; displayName?: string; quizzesDeleted?: number; memberSince?: number | null }) {
+  await addDoc(collection(db, "deletions"), {
+    uid: data.uid,
+    email: data.email || "",
+    displayName: data.displayName || "",
+    quizzesDeleted: data.quizzesDeleted || 0,
+    memberSince: data.memberSince || null,
+    deletedAt: Date.now(),
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function listDeletions(): Promise<any[]> {
+  const snap = await getDocs(query(collection(db, "deletions"), orderBy("createdAt", "desc")));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+}

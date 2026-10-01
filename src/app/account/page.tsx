@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, deleteUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { updateUserCrm, getUserProfile } from "@/lib/firestore";
+import { updateUserCrm, getUserProfile, listQuizzesByHost, deleteQuiz, deleteUserDoc, logAccountDeletion } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -17,6 +17,9 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [delStep, setDelStep] = useState(0);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.push("/login"); }, [user, loading, router]);
   useEffect(() => {
@@ -34,6 +37,26 @@ export default function AccountPage() {
       setMsg(t("Saved! Your name updates across the app after your next refresh."));
     } catch (e: any) { setMsg(t("Could not save: ") + (e && e.message ? e.message : e)); }
     setSaving(false);
+  };
+
+  const performDelete = async () => {
+    if (!user || !auth.currentUser) return;
+    setDeleting(true); setMsg("");
+    try {
+      const quizzes = await listQuizzesByHost(user.uid).catch(() => [] as any[]);
+      await logAccountDeletion({ uid: user.uid, email: user.email || "", displayName: user.displayName || "", quizzesDeleted: quizzes.length, memberSince: profile && profile.createdAt ? profile.createdAt : null });
+      for (const q of quizzes) { try { await deleteQuiz((q as any).id); } catch (e) {} }
+      try { await deleteUserDoc(user.uid); } catch (e) {}
+      await deleteUser(auth.currentUser);
+      router.push("/");
+    } catch (e: any) {
+      if (e && e.code === "auth/requires-recent-login") {
+        setMsg(t("For your security, please sign out and sign in again, then delete your account."));
+      } else {
+        setMsg(t("Could not delete your account. Please try again.") + " " + (e && e.message ? e.message : ""));
+      }
+      setDeleting(false); setDelStep(0); setConfirmText("");
+    }
   };
 
   if (loading || !user) return <div className="flex items-center justify-center min-h-[60vh] text-xl font-bold text-gray-400">{t("Loading…")}</div>;
@@ -58,6 +81,50 @@ export default function AccountPage() {
           <Button variant="secondary" onClick={() => router.push("/dashboard")}>{t("Back to dashboard")}</Button>
         </div>
       </div>
+
+      <div className="bg-white rounded-2xl border-2 border-red-200 p-5 mt-6">
+        <h2 className="text-lg font-black text-red-700 mb-1">{t("Delete account")}</h2>
+        <p className="text-sm text-gray-500 mb-4">{t("Permanently delete your account, your quizzes, and your data. This cannot be undone.")}</p>
+        <Button variant="danger" onClick={() => { setDelStep(1); setConfirmText(""); }}>{t("Delete my account")}</Button>
+      </div>
+
+      {delStep > 0 && (
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            {delStep === 1 && (
+              <>
+                <h3 className="text-xl font-black text-red-700 mb-2">{t("Delete your account?")}</h3>
+                <p className="text-sm text-gray-600 mb-5">{t("This permanently deletes your account and all of your quizzes, polls, and reports. This cannot be undone.")}</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="secondary" onClick={() => setDelStep(0)}>{t("Cancel")}</Button>
+                  <Button variant="danger" onClick={() => setDelStep(2)}>{t("Continue")}</Button>
+                </div>
+              </>
+            )}
+            {delStep === 2 && (
+              <>
+                <h3 className="text-xl font-black text-red-700 mb-2">{t("Are you absolutely sure?")}</h3>
+                <p className="text-sm text-gray-600 mb-5">{t("There is no way to recover your account once it is deleted. All your content will be gone forever.")}</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="secondary" onClick={() => setDelStep(0)}>{t("Cancel")}</Button>
+                  <Button variant="danger" onClick={() => setDelStep(3)}>{t("Continue")}</Button>
+                </div>
+              </>
+            )}
+            {delStep === 3 && (
+              <>
+                <h3 className="text-xl font-black text-red-700 mb-2">{t("Final confirmation")}</h3>
+                <p className="text-sm text-gray-600 mb-3">{t("Type DELETE below to permanently delete your account.")}</p>
+                <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" className="w-full mb-4 px-3 py-2 rounded-xl border-2 border-red-200 focus:outline-none focus:border-red-500" />
+                <div className="flex gap-2 justify-end">
+                  <Button variant="secondary" onClick={() => { setDelStep(0); setConfirmText(""); }}>{t("Cancel")}</Button>
+                  <Button variant="danger" loading={deleting} disabled={confirmText.trim().toUpperCase() !== "DELETE"} onClick={performDelete}>{t("Delete account permanently")}</Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

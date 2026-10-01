@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage, listDeletions } from "@/lib/firestore";
 import Card from "@/components/ui/Card";
 
 const ADMIN_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
@@ -16,6 +16,7 @@ export default function AdminPage() {
   const [fetching, setFetching] = useState(true);
   const [ai, setAi] = useState<any>(null);
   const [pages, setPages] = useState<any[]>([]);
+  const [dels, setDels] = useState<any[]>([]);
   const [pgSlug, setPgSlug] = useState("");
   const [pgTitle, setPgTitle] = useState("");
   const [pgBody, setPgBody] = useState("");
@@ -43,6 +44,7 @@ export default function AdminPage() {
     fetch("https://polished-shadow-f08c.yassow.workers.dev/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "aistats" }) })
       .then((r) => r.json()).then(setAi).catch(() => {});
     listPages().then(setPages).catch(() => {});
+    listDeletions().then(setDels).catch(() => {});
     Promise.all([listAllUsers(), listAllQuizzes()])
       .then(([u, q]) => { setUsers(u); setQuizzes(q); })
       .catch((e) => setError("Failed to load reports: " + String(e?.message || e)))
@@ -105,6 +107,28 @@ export default function AdminPage() {
           <p className="text-gray-500 font-semibold">Quizzes / User</p>
         </Card>
       </div>
+      <Card className="mb-6">
+        <h2 className="text-xl font-bold mb-4">Deleted accounts ({dels.length})</h2>
+        {dels.length === 0 ? (
+          <p className="text-gray-400 text-sm">No account deletions yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="text-left text-gray-500 border-b"><th className="py-1 pr-4">Email</th><th className="py-1 pr-4">Name</th><th className="py-1 pr-4">Quizzes deleted</th><th className="py-1">When</th></tr></thead>
+              <tbody>
+                {dels.map((d) => (
+                  <tr key={d.id} className="border-b border-gray-100">
+                    <td className="py-1 pr-4 font-semibold text-gray-700">{d.email || "\u2014"}</td>
+                    <td className="py-1 pr-4 text-gray-600">{d.displayName || "\u2014"}</td>
+                    <td className="py-1 pr-4 text-gray-600">{d.quizzesDeleted ?? 0}</td>
+                    <td className="py-1 text-gray-500">{d.deletedAt ? new Date(d.deletedAt).toLocaleString() : "\u2014"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
       <Card className="mb-6">
         <h2 className="text-xl font-bold mb-4">Feature usage</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
