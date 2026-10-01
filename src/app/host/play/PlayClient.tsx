@@ -8,7 +8,7 @@ import { getQuiz } from "@/lib/firestore";
 import { startQuestion, revealAnswer, showLeaderboard, showPodium, endGame, resetPlayerAnswered, applyBattleElimination, joinGame, submitAnswer } from "@/lib/realtimeDb";
 import { saveGameRecord } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
-import { cleanGameId, nanoid } from "@/lib/utils";
+import { cleanGameId, nanoid, copyText } from "@/lib/utils";
 import { rankPlayers, aggregateTeams } from "@/lib/scoring";
 import { useLang } from "@/contexts/LanguageContext";
 import type { Quiz } from "@/types";
@@ -45,7 +45,7 @@ export default function HostPlayPage() {
   const hostPidRef = useRef<string>("");
   const [hostPicked, setHostPicked] = useState<number | null>(null);
   const [joinCopied, setJoinCopied] = useState(false);
-  const copyJoin = async () => { try { await navigator.clipboard.writeText("https://quizups.com/join?gameId=" + gameId); setJoinCopied(true); setTimeout(() => setJoinCopied(false), 1800); } catch (e) {} };
+  const copyJoin = async () => { const ok = await copyText("https://quizups.com/join?gameId=" + gameId); if (ok) { setJoinCopied(true); setTimeout(() => setJoinCopied(false), 1800); } };
 
   useEffect(() => {
     if (quizId) getQuiz(quizId).then(setQuiz).catch(() => {});

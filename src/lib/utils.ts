@@ -54,3 +54,36 @@ export function ordinal(n: number): string {
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
+
+/**
+ * Copy text to the clipboard without ever throwing. navigator.clipboard.writeText
+ * REJECTS (NotAllowedError) when the document is not focused - e.g. the tab lost
+ * focus, or the click arrived just after focus left - and an un-awaited call turns
+ * that into an unhandled rejection. This awaits it, falls back to a hidden textarea
+ * + execCommand, and swallows anything that still fails. Returns whether it worked.
+ */
+export async function copyText(text: string): Promise<boolean> {
+  const str = String(text == null ? "" : text);
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard && typeof window !== "undefined" && window.isSecureContext) {
+      await navigator.clipboard.writeText(str);
+      return true;
+    }
+  } catch (e) { /* fall through to the legacy path */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = str;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}

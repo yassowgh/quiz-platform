@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { ensureReferralCode, listMyReferrals, REFERRALS_FOR_REWARD, AI_QUESTIONS_DEFAULT, AI_QUESTIONS_REWARD } from "@/lib/firestore";
 import { logHandled } from "@/components/ui/ErrorReporter";
+import { copyText } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 
@@ -52,8 +53,8 @@ export default function ReferPage() {
   const remaining = Math.max(0, REFERRALS_FOR_REWARD - verified);
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000); }
-    catch (err) { logHandled("copy referral link", err); }
+    const ok = await copyText(link);
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 2000); }
   };
 
   const shareText = t("I have been using QuizUps to run live quizzes - unlimited players, free, no ads. Worth a look:") + " " + link;

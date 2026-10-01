@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { generateQuestions } from "@/lib/integrations";
 import { createLiveGame, kickPlayer } from "@/lib/realtimeDb";
 import { useGame } from "@/hooks/useGame";
+import { copyText } from "@/lib/utils";
 import { logHandled, reportProblem } from "@/components/ui/ErrorReporter";
 import {
   FUN_MIN_QUESTIONS,
@@ -68,7 +69,8 @@ export default function FunClient() {
 
   const copy = async (value: string, which: "link" | "pin") => {
     try {
-      await navigator.clipboard.writeText(value);
+      const ok = await copyText(value);
+      if (!ok) throw new Error("copy failed");
       setCopied(which);
       setTimeout(() => setCopied(""), 1800);
     } catch (e) {

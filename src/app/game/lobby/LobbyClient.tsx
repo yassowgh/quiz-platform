@@ -7,6 +7,7 @@ import { getQuiz } from "@/lib/firestore";
 import { createLiveGame, kickPlayer, lockLobby } from "@/lib/realtimeDb";
 import { listGamesByHost } from "@/lib/firestore";
 import { useGame } from "@/hooks/useGame";
+import { copyText } from "@/lib/utils";
 import type { Quiz } from "@/types";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -160,7 +161,7 @@ export default function LobbyPage() {
             <p className="text-gray-500 font-semibold mb-1">{t("Game PIN")}</p>
             <p className="text-7xl font-black tracking-widest text-kahoot-purple">{pin}</p>
             <p className="text-gray-400 mt-2">{t("Players join at quizups.com")}</p>
-            {gameId && <button type="button" onClick={() => { try { navigator.clipboard.writeText("https://quizups.com/join?gameId=" + gameId); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); } catch (e) {} }} className="mt-2 text-sm font-bold px-4 py-2 rounded-lg bg-kahoot-purple/10 text-kahoot-purple hover:bg-kahoot-purple/20">{linkCopied ? t("✓ Link copied") : t("🔗 Copy join link")}</button>}
+            {gameId && <button type="button" onClick={async () => { const ok = await copyText("https://quizups.com/join?gameId=" + gameId); if (ok) { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); } }} className="mt-2 text-sm font-bold px-4 py-2 rounded-lg bg-kahoot-purple/10 text-kahoot-purple hover:bg-kahoot-purple/20">{linkCopied ? t("✓ Link copied") : t("🔗 Copy join link")}</button>}
             <div className="flex justify-center mt-4">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://quizups.com/join?gameId=${gameId}`)}`}
