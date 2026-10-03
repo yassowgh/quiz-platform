@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   addDoc,
   orderBy,
+  limit,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Quiz, Question } from "@/types";
@@ -381,5 +382,21 @@ export async function logAccountDeletion(data: { uid: string; email: string; dis
 
 export async function listDeletions(): Promise<any[]> {
   const snap = await getDocs(query(collection(db, "deletions"), orderBy("createdAt", "desc")));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+}
+
+export async function submitTriviaScore(category: string, name: string, score: number, correct: number, total: number) {
+  await addDoc(collection(db, "triviaBoards", String(category), "scores"), {
+    name: String(name || "Player").slice(0, 24),
+    score: Math.max(0, Math.round(score) || 0),
+    correct: correct || 0,
+    total: total || 0,
+    at: Date.now(),
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function topTriviaScores(category: string, n = 50): Promise<any[]> {
+  const snap = await getDocs(query(collection(db, "triviaBoards", String(category), "scores"), orderBy("score", "desc"), limit(n)));
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 }

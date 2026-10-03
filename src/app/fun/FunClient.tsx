@@ -209,6 +209,11 @@ export default function FunClient() {
           {t("Pick a topic, get a code, play with your friends. No account, no setup, about a minute.")}
         </p>
 
+        <Link href="/trivia" className="block mb-8 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 p-4 shadow-lg hover:scale-[1.02] transition-transform">
+          <div className="font-black text-lg">{t("🏆 Trivia Arena")}</div>
+          <div className="text-sm text-white/90">{t("Ready-made categories: play solo vs the world, or with family →")}</div>
+        </Link>
+
         <label className="block text-sm font-bold mb-2" htmlFor="fun-topic">{t("What is it about?")}</label>
         <input
           id="fun-topic"

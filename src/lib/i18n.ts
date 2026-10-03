@@ -663,7 +663,27 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "Pick a name others will see — tap the box to type your own.": { en: "Pick a name others will see — tap the box to type your own.", ar: "اختر اسمًا سيراه الآخرون — انقر على المربع لكتابة اسمك.", uk: "Виберіть ім'я, яке бачитимуть інші — торкніться поля, щоб ввести своє.", fr: "Choisissez un nom que les autres verront — touchez le champ pour saisir le vôtre.", de: "Wähle einen Namen, den andere sehen — tippe auf das Feld, um deinen eigenen einzugeben." },
   "Type your name": { en: "Type your name", ar: "اكتب اسمك", uk: "Введіть своє ім'я", fr: "Saisissez votre nom", de: "Gib deinen Namen ein" },
   "Shuffle": { en: "Shuffle", ar: "عشوائي", uk: "Випадково", fr: "Aléatoire", de: "Zufall" },
-  "We picked one for you — change it to whatever you like.": { en: "We picked one for you — change it to whatever you like.", ar: "اخترنا لك اسمًا — غيّره إلى ما يحلو لك.", uk: "Ми вибрали ім'я за вас — змініть його на будь-яке.", fr: "Nous en avons choisi un pour vous — changez-le comme vous voulez.", de: "Wir haben einen für dich gewählt — ändere ihn, wie du möchtest." }
+  "We picked one for you — change it to whatever you like.": { en: "We picked one for you — change it to whatever you like.", ar: "اخترنا لك اسمًا — غيّره إلى ما يحلو لك.", uk: "Ми вибрали ім'я за вас — змініть його на будь-яке.", fr: "Nous en avons choisi un pour vous — changez-le comme vous voulez.", de: "Wir haben einen für dich gewählt — ändere ihn, wie du möchtest." },
+  "Join my trivia game on QuizUps!": { en: "Join my trivia game on QuizUps!", ar: "انضم إلى لعبتي في تريفيا على QuizUps!", uk: "Приєднуйся до моєї гри-вікторини на QuizUps!", fr: "Rejoignez ma partie de trivia sur QuizUps !", de: "Mach mit bei meinem Trivia-Spiel auf QuizUps!" },
+  "Trivia Arena": { en: "Trivia Arena", ar: "ساحة تريفيا", uk: "Арена вікторини", fr: "Arène de trivia", de: "Trivia-Arena" },
+  "Pick a category. Play solo against the world, or invite your family.": { en: "Pick a category. Play solo against the world, or invite your family.", ar: "اختر فئة. العب منفردًا ضد العالم، أو ادعُ عائلتك.", uk: "Виберіть категорію. Грайте самі проти світу або запросіть родину.", fr: "Choisissez une catégorie. Jouez en solo contre le monde ou invitez votre famille.", de: "Wähle eine Kategorie. Spiele solo gegen die Welt oder lade deine Familie ein." },
+  "← Back": { en: "← Back", ar: "→ رجوع", uk: "← Назад", fr: "← Retour", de: "← Zurück" },
+  "Play solo": { en: "Play solo", ar: "العب منفردًا", uk: "Грати самому", fr: "Jouer en solo", de: "Solo spielen" },
+  "Answer fast and climb the worldwide leaderboard.": { en: "Answer fast and climb the worldwide leaderboard.", ar: "أجب بسرعة واصعد في لوحة الصدارة العالمية.", uk: "Відповідайте швидко й підіймайтеся у світовому рейтингу.", fr: "Répondez vite et grimpez dans le classement mondial.", de: "Antworte schnell und klettere in der weltweiten Bestenliste." },
+  "Play with family": { en: "Play with family", ar: "العب مع العائلة", uk: "Грати з родиною", fr: "Jouer en famille", de: "Mit der Familie spielen" },
+  "Invite everyone by WhatsApp or QR and play together.": { en: "Invite everyone by WhatsApp or QR and play together.", ar: "ادعُ الجميع عبر واتساب أو رمز QR والعبوا معًا.", uk: "Запросіть усіх через WhatsApp або QR і грайте разом.", fr: "Invitez tout le monde par WhatsApp ou QR et jouez ensemble.", de: "Lade alle per WhatsApp oder QR ein und spielt zusammen." },
+  "Question": { en: "Question", ar: "سؤال", uk: "Питання", fr: "Question", de: "Frage" },
+  "Correct! 🎉": { en: "Correct! 🎉", ar: "إجابة صحيحة! 🎉", uk: "Правильно! 🎉", fr: "Correct ! 🎉", de: "Richtig! 🎉" },
+  "Oops!": { en: "Oops!", ar: "عذرًا!", uk: "Ой!", fr: "Oups !", de: "Hoppla!" },
+  "Amazing! 🏆": { en: "Amazing! 🏆", ar: "رائع! 🏆", uk: "Чудово! 🏆", fr: "Incroyable ! 🏆", de: "Fantastisch! 🏆" },
+  "Well played! 👏": { en: "Well played! 👏", ar: "أحسنت! 👏", uk: "Гарна гра! 👏", fr: "Bien joué ! 👏", de: "Gut gespielt! 👏" },
+  "Good try — play again! 💪": { en: "Good try — play again! 💪", ar: "محاولة جيدة — العب مرة أخرى! 💪", uk: "Непогано — зіграйте ще! 💪", fr: "Bien tenté — rejouez ! 💪", de: "Guter Versuch — spiel nochmal! 💪" },
+  "World rank": { en: "World rank", ar: "الترتيب العالمي", uk: "Світовий ранг", fr: "Rang mondial", de: "Weltrang" },
+  "Worldwide leaderboard": { en: "Worldwide leaderboard", ar: "لوحة الصدارة العالمية", uk: "Світовий рейтинг", fr: "Classement mondial", de: "Weltweite Bestenliste" },
+  "You": { en: "You", ar: "أنت", uk: "Ви", fr: "Vous", de: "Du" },
+  "Play again": { en: "Play again", ar: "العب مرة أخرى", uk: "Зіграти ще", fr: "Rejouer", de: "Nochmal spielen" },
+  "🏆 Trivia Arena": { en: "🏆 Trivia Arena", ar: "🏆 ساحة تريفيا", uk: "🏆 Арена вікторини", fr: "🏆 Arène de trivia", de: "🏆 Trivia-Arena" },
+  "Ready-made categories: play solo vs the world, or with family →": { en: "Ready-made categories: play solo vs the world, or with family →", ar: "فئات جاهزة: العب منفردًا ضد العالم، أو مع العائلة ←", uk: "Готові категорії: грайте самі проти світу або з родиною →", fr: "Catégories prêtes : jouez en solo contre le monde, ou en famille →", de: "Fertige Kategorien: spiele solo gegen die Welt oder mit der Familie →" }
 };
 
 export function t(key: string, lang: Lang): string {

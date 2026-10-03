@@ -114,6 +114,10 @@ service cloud.firestore {
       allow create: if true;
       allow read: if isAdmin();
     }
+    match /triviaBoards/{cat}/scores/{id} {
+      allow read: if true;
+      allow create: if true;
+    }
     match /campaigns/{cid} {
       allow read, write: if isAdmin();
     }
