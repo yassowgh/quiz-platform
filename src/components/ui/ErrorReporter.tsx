@@ -240,11 +240,28 @@ function isSdkNoise(text: string): boolean {
   );
 }
 
+/**
+ * A fetch that fails while the browser is OFFLINE is the user's connection, not
+ * our bug - and we could not deliver the report anyway. Drop these. A genuine
+ * Worker/R2 outage still reports, because then the browser is online.
+ */
+const NETWORK_SIGNS = ["Failed to fetch", "Load failed", "NetworkError", "network-request-failed", "ERR_INTERNET_DISCONNECTED", "ERR_NETWORK"];
+function isOfflineNetworkError(text: string): boolean {
+  try {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      const s = String(text || "");
+      for (const p of NETWORK_SIGNS) if (s.indexOf(p) >= 0) return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
 function throttledReport(summary: string, detail?: string) {
   try {
     if (Object.keys(seen).length > 60) return; // session cap to avoid floods
     if (isExtensionNoise(detail || "") || isExtensionNoise(summary)) return;
     if (isBenignRejection(detail || "") || isBenignRejection(summary)) return;
+    if (isOfflineNetworkError(detail || "") || isOfflineNetworkError(summary)) return;
     if (isSdkNoise(detail || "")) {
       // Still worth seeing once: if Google sign-in is genuinely broken on a
       // browser, this is the only signal. Just never let it flood.
