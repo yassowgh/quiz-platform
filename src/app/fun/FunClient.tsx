@@ -47,6 +47,10 @@ export default function FunClient() {
   const [progress, setProgress] = useState(0);
   const [reported, setReported] = useState(false);
 
+  useEffect(() => {
+    try { const tp = new URLSearchParams(window.location.search).get("topic"); if (tp) setTopic(tp); } catch (e) {}
+  }, []);
+
   const { state } = useGame(gameId || null);
   const players = state?.players ? Object.values(state.players) : [];
   const startedRef = useRef(false);

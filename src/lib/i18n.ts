@@ -683,7 +683,8 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "You": { en: "You", ar: "أنت", uk: "Ви", fr: "Vous", de: "Du" },
   "Play again": { en: "Play again", ar: "العب مرة أخرى", uk: "Зіграти ще", fr: "Rejouer", de: "Nochmal spielen" },
   "🏆 Trivia Arena": { en: "🏆 Trivia Arena", ar: "🏆 ساحة تريفيا", uk: "🏆 Арена вікторини", fr: "🏆 Arène de trivia", de: "🏆 Trivia-Arena" },
-  "Ready-made categories: play solo vs the world, or with family →": { en: "Ready-made categories: play solo vs the world, or with family →", ar: "فئات جاهزة: العب منفردًا ضد العالم، أو مع العائلة ←", uk: "Готові категорії: грайте самі проти світу або з родиною →", fr: "Catégories prêtes : jouez en solo contre le monde, ou en famille →", de: "Fertige Kategorien: spiele solo gegen die Welt oder mit der Familie →" }
+  "Ready-made categories: play solo vs the world, or with family →": { en: "Ready-made categories: play solo vs the world, or with family →", ar: "فئات جاهزة: العب منفردًا ضد العالم، أو مع العائلة ←", uk: "Готові категорії: грайте самі проти світу або з родиною →", fr: "Catégories prêtes : jouez en solo contre le monde, ou en famille →", de: "Fertige Kategorien: spiele solo gegen die Welt oder mit der Familie →" },
+  "Choose another topic": { en: "Choose another topic", ar: "اختر موضوعًا آخر", uk: "Вибрати іншу тему", fr: "Choisir un autre sujet", de: "Anderes Thema wählen" }
 };
 
 export function t(key: string, lang: Lang): string {

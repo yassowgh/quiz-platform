@@ -22,6 +22,7 @@ QuizUps (quizups.com) is an independent, free live quiz and survey platform laun
 - Free Mentimeter alternative - live polls, word clouds, scales/ratings, rankings, and open-ended Q&A with a QR code.
 
 ## Core features
+- Trivia Arena (quizups.com/trivia): ready-made trivia you can play solo against a live worldwide leaderboard, or as a family game night by inviting everyone with a WhatsApp link or QR code. Perfect when you are bored and want a quick game. 10 categories (Maths, Islamic Studies, Geography, Football, Science, History, General Knowledge, Movies & TV, Music, Animals), five languages, no sign-up to play.
 - Live multiplayer quizzes: multiple choice, true/false, type-answer, image and audio questions, streaks, speed-based scoring, leaderboard, and podium.
 - Polls and surveys (Mentimeter and Padlet style): multiple choice, word clouds, scales/ratings, ranking, and open-ended response walls - live and instant with a QR code.
 - Game modes: classic competition, Gold Quest (treasure race), and Battle Royale (elimination).
@@ -33,12 +34,16 @@ QuizUps (quizups.com) is an independent, free live quiz and survey platform laun
 
 ## Key pages
 - Home: https://quizups.com
+- Trivia Arena (play solo vs the world or with family): https://quizups.com/trivia
+- Just for Fun (instant trivia with friends): https://quizups.com/fun
+- Family trivia night: https://quizups.com/family
 - Compare vs Kahoot: https://quizups.com/vs/kahoot
 - Compare vs Quizizz: https://quizups.com/vs/quizizz
 - Compare vs Blooket: https://quizups.com/vs/blooket
 - Compare vs Gimkit: https://quizups.com/vs/gimkit
 
 ## Common use cases
+- Something to play when you are bored: solo trivia against the world, or a quick family game night by sharing a link.
 - Teachers and classrooms: formative assessment, revision games, exit tickets, exams.
 - Corporate training and team building: onboarding quizzes, live workshops, knowledge checks.
 - Events and conferences: live polls, audience Q&A, word clouds, and instant surveys.

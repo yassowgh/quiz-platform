@@ -40,6 +40,7 @@ export default function HostPlayPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [muted, setMuted] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  const endAudioRef = useRef<HTMLAudioElement | null>(null);
   const pollStartedRef = useRef(false);
   const [playAlong, setPlayAlong] = useState(false);
   const hostPidRef = useRef<string>("");
@@ -208,12 +209,24 @@ export default function HostPlayPage() {
     }
     if (state?.status === "podium") {
       if (musicRef.current) { try { musicRef.current.pause(); } catch (e) {} }
-      const playCeremony = () => { const c = new Audio("/music/podium-ceremony.mp3"); c.volume = muted ? 0 : 0.85; c.play().catch(() => {}); };
+      const playCeremony = () => { const c = new Audio("/music/podium-ceremony.mp3"); c.volume = muted ? 0 : 0.85; endAudioRef.current = c; c.play().catch(() => {}); };
       const s = new Audio("/music/leaderboard-success.m4a");
       s.volume = muted ? 0 : 0.85;
+      endAudioRef.current = s;
       s.onended = playCeremony;
       s.play().catch(playCeremony);
     }
+  }, [state?.status]);
+
+  // After the podium, the first click anywhere stops the celebration music.
+  useEffect(() => {
+    if (state?.status !== "podium") return;
+    const stop = () => {
+      try { if (endAudioRef.current) endAudioRef.current.pause(); } catch (e) {}
+      try { if (musicRef.current) musicRef.current.pause(); } catch (e) {}
+    };
+    window.addEventListener("click", stop, { once: true });
+    return () => window.removeEventListener("click", stop);
   }, [state?.status]);
 
   // Per-question audio clip
@@ -486,6 +499,12 @@ export default function HostPlayPage() {
                 {t("It is not saved yet. Create a free account and these questions land in your dashboard, ready to host again.")}
               </p>
               <a href="/signup"><Button size="sm">{t("Save it - create my free account")}</Button></a>
+            </div>
+          )}
+          {isFunRound && (
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <a href={"/fun?topic=" + encodeURIComponent((quiz && quiz.title) || "")} className="flex-1"><Button size="lg" className="w-full">{t("Play again")}</Button></a>
+              <a href="/fun" className="flex-1"><Button size="lg" variant="secondary" className="w-full">{t("Choose another topic")}</Button></a>
             </div>
           )}
           <Button onClick={handleEnd} size="lg" variant="danger" className="w-full mt-6">{t("endGame")}</Button>

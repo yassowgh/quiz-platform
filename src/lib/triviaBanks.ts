@@ -46,6 +46,14 @@ export function genMaths(count: number): TQ[] {
   return out;
 }
 
+export function genMathsRandom(count: number): TQ[] {
+  const rng = Math.random;
+  const out: TQ[] = []; const seen = new Set<string>();
+  let guard = 0;
+  while (out.length < count && guard < count * 40) { guard++; const q = mathQuestion(rng); if (seen.has(q.q.en)) continue; seen.add(q.q.en); out.push(q); }
+  return out;
+}
+
 const BANK_CACHE: Record<string, TQ[]> = {};
 export function getBank(categoryId: string): TQ[] {
   if (BANK_CACHE[categoryId]) return BANK_CACHE[categoryId];
@@ -72,6 +80,10 @@ function readUsed(cat: string): number[] { try { const r = window.localStorage.g
 function writeUsed(cat: string, idxs: number[]) { try { window.localStorage.setItem(USED_KEY(cat), JSON.stringify(idxs.slice(-400))); } catch (e) {} }
 
 export function pickQuestions(categoryId: string, n: number, lang: TLang): PlayQuestion[] {
+  if (categoryId === "maths") {
+    const fresh = genMathsRandom(n);
+    return fresh.map((q, k) => toPlayQuestion(q, lang, Date.now() + k));
+  }
   const bank = getBank(categoryId);
   if (!bank.length) return [];
   const used = new Set(readUsed(categoryId));

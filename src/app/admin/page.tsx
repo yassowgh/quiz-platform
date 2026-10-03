@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage, listDeletions } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage, listDeletions, triviaActivity } from "@/lib/firestore";
+import { TRIVIA_CATEGORIES } from "@/lib/triviaBanks";
 import Card from "@/components/ui/Card";
 
 const ADMIN_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
@@ -17,6 +18,7 @@ export default function AdminPage() {
   const [ai, setAi] = useState<any>(null);
   const [pages, setPages] = useState<any[]>([]);
   const [dels, setDels] = useState<any[]>([]);
+  const [triv, setTriv] = useState<any>(null);
   const [pgSlug, setPgSlug] = useState("");
   const [pgTitle, setPgTitle] = useState("");
   const [pgBody, setPgBody] = useState("");
@@ -45,6 +47,7 @@ export default function AdminPage() {
       .then((r) => r.json()).then(setAi).catch(() => {});
     listPages().then(setPages).catch(() => {});
     listDeletions().then(setDels).catch(() => {});
+    triviaActivity(TRIVIA_CATEGORIES.map((c: any) => c.id)).then(setTriv).catch(() => {});
     Promise.all([listAllUsers(), listAllQuizzes()])
       .then(([u, q]) => { setUsers(u); setQuizzes(q); })
       .catch((e) => setError("Failed to load reports: " + String(e?.message || e)))
@@ -127,6 +130,31 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        )}
+      </Card>
+      <Card className="mb-6">
+        <h2 className="text-xl font-bold mb-4">Trivia Arena activity</h2>
+        {!triv ? (
+          <p className="text-gray-400 text-sm">No trivia plays yet.</p>
+        ) : (
+          <>
+            <p className="mb-3"><span className="text-2xl font-black text-kahoot-purple">{triv.total}</span> <span className="text-gray-500 font-semibold">solo plays logged (recent)</span></p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              {TRIVIA_CATEGORIES.map((c: any) => (
+                <div key={c.id} className="text-center"><div className="text-xl">{c.emoji}</div><div className="text-lg font-black text-kahoot-purple">{(triv.byCat && triv.byCat[c.id]) || 0}</div><div className="text-[11px] font-semibold text-gray-500">{c.name.en}</div></div>
+              ))}
+            </div>
+            {triv.recent && triv.recent.length > 0 && (
+              <div>
+                <p className="font-bold text-gray-700 mb-1 text-sm">Recent plays</p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {triv.recent.map((r: any, i: number) => (
+                    <li key={i} className="flex justify-between border-b border-gray-100 py-1"><span>{r.name || "Player"} · {r.category}</span><span className="font-bold">{r.score}</span></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </Card>
       <Card className="mb-6">

@@ -400,3 +400,17 @@ export async function topTriviaScores(category: string, n = 50): Promise<any[]> 
   const snap = await getDocs(query(collection(db, "triviaBoards", String(category), "scores"), orderBy("score", "desc"), limit(n)));
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 }
+
+export async function triviaActivity(categoryIds: string[]): Promise<{ byCat: Record<string, number>; total: number; recent: any[] }> {
+  const byCat: Record<string, number> = {};
+  let recent: any[] = [];
+  for (const cid of categoryIds) {
+    try {
+      const snap = await getDocs(query(collection(db, "triviaBoards", String(cid), "scores"), orderBy("at", "desc"), limit(200)));
+      byCat[cid] = snap.size;
+      recent = recent.concat(snap.docs.map((d) => ({ id: d.id, category: cid, ...(d.data() as any) })));
+    } catch (e) { byCat[cid] = 0; }
+  }
+  recent.sort((a, b) => (b.at || 0) - (a.at || 0));
+  return { byCat, total: Object.values(byCat).reduce((s, n) => s + n, 0), recent: recent.slice(0, 20) };
+}
