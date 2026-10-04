@@ -60,7 +60,11 @@ export function genMathsRandom(count: number, level?: string): TQ[] {
 const BANK_CACHE: Record<string, TQ[]> = {};
 export function getBank(categoryId: string): TQ[] {
   if (BANK_CACHE[categoryId]) return BANK_CACHE[categoryId];
-  const bank = categoryId === "maths" ? genMaths(500) : ((TRIVIA_DATA.curated as any)[categoryId] || []);
+  let bank: TQ[] = categoryId === "maths" ? genMaths(500) : ((TRIVIA_DATA.curated as any)[categoryId] || []);
+  if (categoryId !== "maths") {
+    const LV = ["easy", "intermediate", "hard"];
+    bank = bank.map((q) => (q.d ? q : { ...q, d: LV[hashStr(q.q.en) % 3] }));
+  }
   BANK_CACHE[categoryId] = bank;
   return bank;
 }

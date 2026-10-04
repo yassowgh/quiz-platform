@@ -221,6 +221,11 @@ export async function saveGameRecord(record: object) {
   await setDoc(doc(db, "games", id), { ...record, id, createdAt: Date.now() });
 }
 
+export async function listAllGames() {
+  const snap = await getDocs(collection(db, "games"));
+  return snap.docs.map((d) => d.data());
+}
+
 export async function listGamesByHost(hostId: string) {
   const q = query(collection(db, "games"), where("hostId", "==", hostId));
   const snap = await getDocs(q);

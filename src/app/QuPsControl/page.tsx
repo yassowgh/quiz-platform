@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listDeletions, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures, listAllReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listDeletions, listAllGames, triviaActivity, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures, listAllReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
+import { TRIVIA_CATEGORIES } from "@/lib/triviaBanks";
 import Button from "@/components/ui/Button";
 import RichEditor from "@/components/ui/RichEditor";
 
@@ -27,6 +28,8 @@ export default function QuPsControlPage() {
   const [tab, setTab] = useState("overview");
   const [referrals, setReferrals] = useState<any[]>([]);
   const [dels, setDels] = useState<any[]>([]);
+  const [repGames, setRepGames] = useState<any[]>([]);
+  const [repTrivia, setRepTrivia] = useState<any[]>([]);
   const [repTo, setRepTo] = useState(() => new Date().toISOString().slice(0, 10));
   const [repFrom, setRepFrom] = useState(() => new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
 
@@ -39,6 +42,8 @@ export default function QuPsControlPage() {
     if (tab !== "reports") return;
     listFeedback().then(setFeedback).catch(() => {});
     listDeletions().then(setDels).catch(() => {});
+    listAllGames().then(setRepGames).catch(() => {});
+    triviaActivity(TRIVIA_CATEGORIES.map((c: any) => c.id)).then((r: any) => setRepTrivia(r && r.recent ? r.recent : [])).catch(() => {});
   }, [tab]);
   const [users, setUsers] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
@@ -247,13 +252,17 @@ export default function QuPsControlPage() {
                 const newQuizzes = quizzes.filter((qz: any) => inRange(qz.createdAt != null ? qz.createdAt : qz.updatedAt)).length;
                 const fb = feedback.filter((f: any) => inRange(f.createdAt)).length;
                 const deleted = dels.filter((dd: any) => inRange(dd.deletedAt)).length;
+                const games = repGames.filter((g: any) => inRange(g.createdAt)).length;
+                const trivia = repTrivia.filter((p: any) => inRange(p.at)).length;
                 const cell = (n: any, lab: string) => (<div className="bg-white rounded-2xl border border-gray-200 p-6 text-center"><div className="text-4xl font-black text-kahoot-purple">{n}</div><div className="text-gray-400 text-sm mt-1">{lab}</div></div>);
                 return (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {cell(newUsers, "New users")}
                     {cell(newQuizzes, "New quizzes & polls")}
                     {cell(fb, "Feedback received")}
                     {cell(deleted, "Accounts deleted")}
+                    {cell(games, "Games played")}
+                    {cell(trivia, "Trivia plays")}
                   </div>
                 );
               })()}
