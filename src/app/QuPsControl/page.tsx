@@ -43,6 +43,22 @@ export default function QuPsControlPage() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [features, setFeatures] = useState<any>({});
   const [feedback, setFeedback] = useState<any[]>([]);
+  const [replyId, setReplyId] = useState("");
+  const [replyText, setReplyText] = useState("");
+  const [replyFrom, setReplyFrom] = useState("CEO@quizups.com");
+  const [replyBusy, setReplyBusy] = useState(false);
+  const sendReply = async (f: any) => {
+    if (!f.email || !replyText.trim()) return;
+    setReplyBusy(true);
+    try {
+      const html = replyText.trim().replace(/\n/g, "<br>") + "<br><br>\u2014 The QuizUps Team<br><a href=\"https://quizups.com\">QuizUps.com</a>";
+      const r = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "email", to: f.email, subject: "Re: your feedback to QuizUps", html: html, from: "QuizUps <" + replyFrom + ">" }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { flash("Reply sent to " + f.email); setReplyId(""); setReplyText(""); try { await updateFeedback(f.id, { status: "resolved" }); } catch (e) {} }
+      else { flash("Could not send: " + (d.detail || d.error || r.status)); }
+    } catch (e) { flash("Could not send the reply."); }
+    setReplyBusy(false);
+  };
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [editCamp, setEditCamp] = useState<any>(null);
   const [progress, setProgress] = useState<any>(null);
@@ -524,6 +540,24 @@ export default function QuPsControlPage() {
                         <button key={st} onClick={() => setFbStatus(f, st)} className={"text-xs px-2 py-1 rounded-lg " + ((f.status || "new") === st ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500")}>{st}</button>
                       ))}
                     </div>
+                    {f.email && (replyId === f.id ? (
+                      <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                        <div className="flex items-center gap-2 mb-2 text-xs">
+                          <span className="font-bold text-gray-600">Reply from:</span>
+                          <select value={replyFrom} onChange={(e) => setReplyFrom(e.target.value)} className="border border-gray-300 rounded px-1 py-0.5">
+                            <option value="CEO@quizups.com">CEO@quizups.com</option>
+                            <option value="support@quizups.com">support@quizups.com</option>
+                          </select>
+                        </div>
+                        <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} placeholder={"Write a reply to " + f.email} className="w-full border border-gray-300 rounded p-2 text-sm" />
+                        <div className="flex gap-2 mt-2">
+                          <button disabled={replyBusy || !replyText.trim()} onClick={() => sendReply(f)} className="text-xs px-3 py-1 rounded-lg bg-indigo-600 text-white disabled:opacity-50">{replyBusy ? "Sending\u2026" : "Send reply"}</button>
+                          <button onClick={() => { setReplyId(""); setReplyText(""); }} className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-600">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setReplyId(f.id); setReplyText(""); setReplyFrom("CEO@quizups.com"); }} className="mt-2 text-xs px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold">\u2709\ufe0f Reply by email</button>
+                    ))}
                   </div>
                 ))}
                 {!feedback.length && <p className="p-6 text-gray-400">No feedback yet.</p>}
