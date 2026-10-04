@@ -685,7 +685,8 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "🏆 Trivia Arena": { en: "🏆 Trivia Arena", ar: "🏆 ساحة تريفيا", uk: "🏆 Арена вікторини", fr: "🏆 Arène de trivia", de: "🏆 Trivia-Arena" },
   "Ready-made categories: play solo vs the world, or with family →": { en: "Ready-made categories: play solo vs the world, or with family →", ar: "فئات جاهزة: العب منفردًا ضد العالم، أو مع العائلة ←", uk: "Готові категорії: грайте самі проти світу або з родиною →", fr: "Catégories prêtes : jouez en solo contre le monde, ou en famille →", de: "Fertige Kategorien: spiele solo gegen die Welt oder mit der Familie →" },
   "This name goes on the worldwide leaderboard.": { en: "This name goes on the worldwide leaderboard.", ar: "سيظهر هذا الاسم في لوحة الصدارة العالمية.", uk: "Це ім'я з'явиться у світовому рейтингу.", fr: "Ce nom apparaîtra dans le classement mondial.", de: "Dieser Name erscheint in der weltweiten Bestenliste." },
-  "Get ready…": { en: "Get ready…", ar: "استعد…", uk: "Приготуйтеся…", fr: "Préparez-vous…", de: "Mach dich bereit…" }
+  "Get ready…": { en: "Get ready…", ar: "استعد…", uk: "Приготуйтеся…", fr: "Préparez-vous…", de: "Mach dich bereit…" },
+  "Choose another topic": { en: "Choose another topic", ar: "اختر موضوعًا آخر", uk: "Вибрати іншу тему", fr: "Choisir un autre sujet", de: "Anderes Thema wählen" }
 };
 
 export function t(key: string, lang: Lang): string {
