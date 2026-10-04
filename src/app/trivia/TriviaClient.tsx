@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLang } from "@/contexts/LanguageContext";
 import { createLiveGame } from "@/lib/realtimeDb";
 import { useGame } from "@/hooks/useGame";
@@ -10,9 +9,10 @@ import { logHandled } from "@/components/ui/ErrorReporter";
 import { ensureHost, isAnonDisabled, buildFunQuiz } from "@/lib/funGame";
 import { submitTriviaScore, topTriviaScores } from "@/lib/firestore";
 import { TRIVIA_CATEGORIES, pickQuestions, seededCompetitors, bankSize } from "@/lib/triviaBanks";
+import { playSuccess, playFail, isSfxEnabled, toggleSfx } from "@/lib/sfx";
 import Button from "@/components/ui/Button";
 
-const SOLO_COUNT = 10;
+const SOLO_COUNT = 8;
 const ANSWER_STYLES = ["bg-kahoot-red", "bg-kahoot-blue", "bg-kahoot-yellow text-gray-900", "bg-kahoot-green"];
 const SHAPES = ["▲", "◆", "●", "■"];
 
@@ -22,6 +22,7 @@ export default function TriviaClient() {
   const [view, setView] = useState<string>("home");
   const [cat, setCat] = useState<any>(null);
   const [name, setName] = useState("");
+  const [sfxOn, setSfxOn] = useState(true);
   const [qs, setQs] = useState<any[]>([]);
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -29,6 +30,7 @@ export default function TriviaClient() {
   const [score, setScore] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15);
+  const [cd, setCd] = useState(3);
   const [board, setBoard] = useState<any[]>([]);
   const [rank, setRank] = useState(0);
   const [total, setTotal] = useState(0);
@@ -39,8 +41,19 @@ export default function TriviaClient() {
   const [copied, setCopied] = useState("");
   const { state } = useGame(gameId);
 
-  useEffect(() => { setName(randomNickname()); }, []);
+  useEffect(() => { setName(randomNickname()); setSfxOn(isSfxEnabled()); }, []);
 
+  const scrollTop = () => { try { window.scrollTo(0, 0); } catch (e) {} };
+
+  // Countdown before the questions start.
+  useEffect(() => {
+    if (view !== "count") return;
+    if (cd <= 0) { setView("solo"); scrollTop(); return; }
+    const id = setTimeout(() => setCd((c) => c - 1), 850);
+    return () => clearTimeout(id);
+  }, [view, cd]);
+
+  // Per-question timer.
   useEffect(() => {
     if (view !== "solo" || locked) return;
     if (timeLeft <= 0) { lockAnswer(-1); return; }
@@ -53,13 +66,14 @@ export default function TriviaClient() {
   const startSolo = () => {
     const picks = pickQuestions(cat.id, SOLO_COUNT, lang as any);
     setQs(picks); setQi(0); setPicked(null); setLocked(false);
-    setScore(0); setCorrect(0); setTimeLeft(15); setView("solo");
+    setScore(0); setCorrect(0); setTimeLeft(15); setCd(3); setView("count"); scrollTop();
   };
 
   const lockAnswer = (idx: number) => {
     if (locked) return;
     const q = qs[qi];
     const right = !!q && idx === q.correctAnswer;
+    try { if (right) playSuccess(); else playFail(); } catch (e) {}
     const pts = right ? 500 + Math.round((500 * Math.max(0, timeLeft)) / 15) : 0;
     const newScore = score + pts;
     const newCorrect = correct + (right ? 1 : 0);
@@ -72,7 +86,7 @@ export default function TriviaClient() {
   };
 
   const finish = async (sc: number, cor: number) => {
-    setTotal(qs.length); setView("result");
+    setTotal(qs.length); setView("result"); scrollTop();
     const n = (name || "").trim() || "You";
     try { await submitTriviaScore(cat.id, n, sc, cor, qs.length); } catch (e) { logHandled("trivia score submit", e); }
     let real: any[] = [];
@@ -99,7 +113,7 @@ export default function TriviaClient() {
       const picks = pickQuestions(cat.id, SOLO_COUNT, lang as any);
       const quiz = buildFunQuiz(catName(cat), picks as any, "en" as any, hostId);
       const game = await createLiveGame(quiz.id, hostId, quiz);
-      setGameId(game.gameId); setPin(game.pin); setView("family");
+      setGameId(game.gameId); setPin(game.pin); setView("family"); scrollTop();
     } catch (e) { logHandled("trivia family start", e); setError(t("We could not start the game. Please try again.")); }
     setBusy(false);
   };
@@ -114,23 +128,29 @@ export default function TriviaClient() {
     if (ok) { setCopied(which); setTimeout(() => setCopied(""), 1800); }
   };
 
-  const reset = () => { setView("home"); setCat(null); setGameId(""); setPin(""); setError(""); };
+  const toggleSound = () => { setSfxOn(toggleSfx()); };
+  const reset = () => { setView("home"); setCat(null); setGameId(""); setPin(""); setError(""); scrollTop(); };
 
-  // ----- HOME: category picker -----
+  const SoundBtn = () => (
+    <button onClick={toggleSound} aria-label="sound" title="Sound" className="text-xl leading-none px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">{sfxOn ? "🔊" : "🔇"}</button>
+  );
+
+  // ----- HOME -----
   if (view === "home") {
     return (
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-indigo-50 to-white px-4 py-8">
         <div className="max-w-3xl mx-auto text-center">
+          <div className="flex justify-end mb-1"><SoundBtn /></div>
           <div className="text-6xl mb-2">🎉</div>
-          <h1 className="text-3xl sm:text-4xl font-black mb-2">{t("Trivia Arena")}</h1>
+          <h1 className="text-3xl sm:text-4xl font-black mb-2 text-kahoot-purple">{t("Trivia Arena")}</h1>
           <p className="text-gray-500 mb-6">{t("Pick a category. Play solo against the world, or invite your family.")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {TRIVIA_CATEGORIES.map((c: any) => (
-              <button key={c.id} onClick={() => { setCat(c); setError(""); setView("mode"); }}
-                className={"bg-gradient-to-br " + c.color + " text-white rounded-2xl p-4 sm:p-5 shadow-lg hover:scale-105 active:scale-95 transition-transform flex flex-col items-center gap-1"}>
+              <button key={c.id} onClick={() => { setCat(c); setError(""); setView("mode"); scrollTop(); }}
+                className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100 hover:scale-105 active:scale-95 transition-transform flex flex-col items-center gap-1">
                 <span className="text-4xl sm:text-5xl">{c.emoji}</span>
-                <span className="font-black text-sm sm:text-base leading-tight">{c.name[lang] || c.name.en}</span>
-                <span className="text-[11px] font-bold opacity-80">{bankSize(c.id)} {t("questions")}</span>
+                <span className={"font-black text-sm sm:text-base leading-tight bg-gradient-to-r " + c.color + " bg-clip-text text-transparent"}>{c.name[lang] || c.name.en}</span>
+                <span className="text-[11px] font-bold text-gray-400">{bankSize(c.id)} {t("questions")}</span>
               </button>
             ))}
           </div>
@@ -140,7 +160,7 @@ export default function TriviaClient() {
     );
   }
 
-  // ----- MODE: choose solo or family -----
+  // ----- MODE -----
   if (view === "mode") {
     return (
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-indigo-50 to-white px-4 py-8">
@@ -150,17 +170,18 @@ export default function TriviaClient() {
             <div className="text-6xl mb-1">{cat.emoji}</div>
             <h1 className="text-2xl font-black">{catName(cat)}</h1>
           </div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">{t("Your name")}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} onFocus={(e) => e.target.select()}
-            className="w-full mb-5 text-center text-xl font-bold rounded-2xl border-2 border-indigo-200 bg-indigo-50 py-3 focus:outline-none focus:border-indigo-500" />
+          <div className="rounded-2xl border-2 border-indigo-200 bg-indigo-50 p-4 mb-5">
+            <label htmlFor="tname" className="block text-base font-black text-kahoot-purple mb-1">👤 {t("Your name")}</label>
+            <input id="tname" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} onFocus={(e) => e.target.select()}
+              className="w-full text-center text-2xl font-black rounded-xl border-2 border-indigo-300 bg-white py-3 focus:outline-none focus:border-indigo-500" />
+            <p className="text-xs text-gray-500 mt-2">{t("This name goes on the worldwide leaderboard.")}</p>
+          </div>
           {error && <p className="text-red-500 text-sm font-semibold mb-3 text-center">{error}</p>}
-          <button onClick={startSolo}
-            className="w-full mb-3 rounded-2xl bg-kahoot-purple text-white p-5 text-left shadow-lg hover:scale-[1.02] active:scale-95 transition-transform">
+          <button onClick={startSolo} className="w-full mb-3 rounded-2xl bg-kahoot-purple text-white p-5 text-left shadow-lg hover:scale-[1.02] active:scale-95 transition-transform">
             <div className="text-2xl font-black">🌍 {t("Play solo")}</div>
             <div className="text-sm opacity-90">{t("Answer fast and climb the worldwide leaderboard.")}</div>
           </button>
-          <button onClick={startFamily} disabled={busy}
-            className="w-full rounded-2xl bg-emerald-600 text-white p-5 text-left shadow-lg hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-60">
+          <button onClick={startFamily} disabled={busy} className="w-full rounded-2xl bg-emerald-600 text-white p-5 text-left shadow-lg hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-60">
             <div className="text-2xl font-black">👨‍👩‍👧‍👦 {busy ? t("One moment…") : t("Play with family")}</div>
             <div className="text-sm opacity-90">{t("Invite everyone by WhatsApp or QR and play together.")}</div>
           </button>
@@ -169,7 +190,18 @@ export default function TriviaClient() {
     );
   }
 
-  // ----- SOLO: play -----
+  // ----- COUNTDOWN -----
+  if (view === "count") {
+    return (
+      <div className={"min-h-[calc(100vh-64px)] bg-gradient-to-br " + (cat ? cat.color : "from-indigo-500 to-purple-600") + " flex flex-col items-center justify-center text-white"}>
+        <p className="text-2xl font-bold mb-2">{t("Get ready…")}</p>
+        <div className="text-8xl font-black animate-pulse">{cd > 0 ? cd : "Go!"}</div>
+        <p className="mt-4 text-white/80 font-bold">{cat ? cat.emoji + " " + catName(cat) : ""}</p>
+      </div>
+    );
+  }
+
+  // ----- SOLO PLAY -----
   if (view === "solo") {
     const q = qs[qi];
     if (!q) return <div className="p-10 text-center text-gray-400 font-bold">{t("Loading…")}</div>;
@@ -179,7 +211,7 @@ export default function TriviaClient() {
           <div className="flex items-center justify-between mb-3 text-sm font-bold text-gray-600">
             <span>{cat.emoji} {catName(cat)}</span>
             <span>{t("Question")} {qi + 1}/{qs.length}</span>
-            <span className="text-kahoot-purple">⭐ {score}</span>
+            <span className="flex items-center gap-2"><span className="text-kahoot-purple">⭐ {score}</span><SoundBtn /></span>
           </div>
           <div className="h-2 rounded-full bg-gray-200 mb-4 overflow-hidden">
             <div className={"h-full " + (timeLeft <= 5 ? "bg-kahoot-red" : "bg-kahoot-green")} style={{ width: (timeLeft / 15) * 100 + "%", transition: "width 1s linear" }} />
@@ -213,7 +245,7 @@ export default function TriviaClient() {
     );
   }
 
-  // ----- RESULT: score + worldwide board -----
+  // ----- RESULT -----
   if (view === "result") {
     const pct = total ? Math.round((correct / total) * 100) : 0;
     const cheer = pct >= 80 ? t("Amazing! 🏆") : pct >= 50 ? t("Well played! 👏") : t("Good try — play again! 💪");
@@ -242,16 +274,15 @@ export default function TriviaClient() {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Button onClick={startSolo} size="lg" className="w-full">{t("Play again")}</Button>
+            <Button onClick={reset} size="lg" className="w-full">{t("Play again")}</Button>
             <Button onClick={startFamily} variant="secondary" className="w-full">👨‍👩‍👧‍👦 {t("Play with family")}</Button>
-            <button onClick={reset} className="text-sm font-bold text-gray-500 mt-1">{t("← Back")}</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ----- FAMILY: lobby with invites -----
+  // ----- FAMILY LOBBY -----
   if (view === "family") {
     return (
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-emerald-50 to-white px-4 py-8">
