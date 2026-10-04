@@ -5,12 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { listAllUsers, listAllQuizzes, listPages, savePage, deletePage, listDeletions, triviaActivity } from "@/lib/firestore";
 import { TRIVIA_CATEGORIES } from "@/lib/triviaBanks";
 import Card from "@/components/ui/Card";
+import { useLang } from "@/contexts/LanguageContext";
 
 const ADMIN_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useLang();
   const [users, setUsers] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [error, setError] = useState("");

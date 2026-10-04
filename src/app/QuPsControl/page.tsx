@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures, listAllReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
+import { listAllUsers, listAllQuizzes, getAdmins, saveAdmins, setUserDisabled, deleteUserDoc, getHomeContent, saveHomeContent, updateUserCrm, listFeedback, updateFeedback, listDeletions, listCampaigns, saveCampaign, deleteCampaign, getFeatures, saveFeatures, listAllReferrals, REFERRALS_FOR_REWARD } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 import RichEditor from "@/components/ui/RichEditor";
 
 const OWNER_EMAILS = ["yassow@gmail.com", "yasser.ghallab@gmail.com"];
 const NAV = [
   { id: "overview", label: "Overview", icon: "🏠" },
+  { id: "reports", label: "Reports", icon: "📊" },
   { id: "users", label: "Users", icon: "👤" },
   { id: "admins", label: "Admins", icon: "🛡️" },
   { id: "content", label: "Content", icon: "✏️" },
@@ -25,10 +26,19 @@ export default function QuPsControlPage() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState("overview");
   const [referrals, setReferrals] = useState<any[]>([]);
+  const [dels, setDels] = useState<any[]>([]);
+  const [repTo, setRepTo] = useState(() => new Date().toISOString().slice(0, 10));
+  const [repFrom, setRepFrom] = useState(() => new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
 
   useEffect(() => {
     if (tab !== "referrals") return;
     listAllReferrals().then(setReferrals).catch(() => setReferrals([]));
+  }, [tab]);
+
+  useEffect(() => {
+    if (tab !== "reports") return;
+    listFeedback().then(setFeedback).catch(() => {});
+    listDeletions().then(setDels).catch(() => {});
   }, [tab]);
   const [users, setUsers] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
@@ -217,6 +227,39 @@ export default function QuPsControlPage() {
           <h1 className="text-2xl font-black text-gray-900 mb-1 capitalize">{tab}</h1>
           <p className="text-gray-400 text-sm mb-6">Manage your QuizUps platform</p>
           {msg && <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold">{msg}</div>}
+
+          {tab === "reports" && (
+            <div>
+              <div className="flex flex-wrap items-end gap-3 mb-5">
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">From</label><input type="date" value={repFrom} onChange={(e) => setRepFrom(e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1" /></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">To</label><input type="date" value={repTo} onChange={(e) => setRepTo(e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1" /></div>
+                <div className="flex gap-2">
+                  {([["7 days", 7], ["30 days", 30], ["90 days", 90]] as [string, number][]).map(([lab, d]) => (
+                    <button key={lab} onClick={() => { setRepFrom(new Date(Date.now() - d * 86400000).toISOString().slice(0, 10)); setRepTo(new Date().toISOString().slice(0, 10)); }} className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 font-bold">Last {lab}</button>
+                  ))}
+                </div>
+              </div>
+              {(() => {
+                const fromMs = new Date(repFrom + "T00:00:00").getTime();
+                const toMs = new Date(repTo + "T23:59:59").getTime();
+                const inRange = (ts: any) => typeof ts === "number" && ts >= fromMs && ts <= toMs;
+                const newUsers = users.filter((u: any) => inRange(u.createdAt)).length;
+                const newQuizzes = quizzes.filter((qz: any) => inRange(qz.createdAt != null ? qz.createdAt : qz.updatedAt)).length;
+                const fb = feedback.filter((f: any) => inRange(f.createdAt)).length;
+                const deleted = dels.filter((dd: any) => inRange(dd.deletedAt)).length;
+                const cell = (n: any, lab: string) => (<div className="bg-white rounded-2xl border border-gray-200 p-6 text-center"><div className="text-4xl font-black text-kahoot-purple">{n}</div><div className="text-gray-400 text-sm mt-1">{lab}</div></div>);
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {cell(newUsers, "New users")}
+                    {cell(newQuizzes, "New quizzes & polls")}
+                    {cell(fb, "Feedback received")}
+                    {cell(deleted, "Accounts deleted")}
+                  </div>
+                );
+              })()}
+              <p className="text-xs text-gray-400 mt-4">All-time totals: {users.length} users, {quizzes.length} quizzes &amp; polls. The numbers above are only for the selected period.</p>
+            </div>
+          )}
 
           {tab === "overview" && (
             <div className="grid grid-cols-2 gap-4">
