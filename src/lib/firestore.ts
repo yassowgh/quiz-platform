@@ -12,6 +12,7 @@ import {
   addDoc,
   orderBy,
   limit,
+  getCountFromServer,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Quiz, Question } from "@/types";
@@ -224,6 +225,17 @@ export async function saveGameRecord(record: object) {
 export async function listAllGames() {
   const snap = await getDocs(collection(db, "games"));
   return snap.docs.map((d) => d.data());
+}
+
+export async function triviaPlaysInRange(categoryIds: string[], fromMs: number, toMs: number): Promise<number> {
+  let total = 0;
+  for (const cid of categoryIds) {
+    try {
+      const snap = await getCountFromServer(query(collection(db, "triviaBoards", String(cid), "scores"), where("at", ">=", fromMs), where("at", "<=", toMs)));
+      total += (snap.data().count as number) || 0;
+    } catch (e) {}
+  }
+  return total;
 }
 
 export async function listGamesByHost(hostId: string) {
