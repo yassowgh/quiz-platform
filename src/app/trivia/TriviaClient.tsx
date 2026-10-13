@@ -25,6 +25,7 @@ export default function TriviaClient() {
   const [sfxOn, setSfxOn] = useState(true);
   const [level, setLevel] = useState<string>("intermediate");
   const [timePer, setTimePer] = useState(15);
+  const [count, setCount] = useState(5);
   const [qs, setQs] = useState<any[]>([]);
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -67,7 +68,7 @@ export default function TriviaClient() {
 
   const startSolo = () => {
     const tp = level === "easy" ? 20 : level === "hard" ? 10 : 15;
-    const picks = pickQuestions(cat.id, SOLO_COUNT, lang as any, level);
+    const picks = pickQuestions(cat.id, count, lang as any, level);
     setTimePer(tp);
     setQs(picks); setQi(0); setPicked(null); setLocked(false);
     setScore(0); setCorrect(0); setTimeLeft(tp); setCd(3); setView("count"); scrollTop();
@@ -114,7 +115,7 @@ export default function TriviaClient() {
         setError(isAnonDisabled(e) ? t("Playing without an account is not switched on yet. Please sign in and try again.") : t("We could not start the game. Please try again."));
         setBusy(false); return;
       }
-      const picks = pickQuestions(cat.id, SOLO_COUNT, lang as any, level);
+      const picks = pickQuestions(cat.id, count, lang as any, level);
       const quiz = buildFunQuiz(catName(cat), picks as any, "en" as any, hostId);
       const game = await createLiveGame(quiz.id, hostId, quiz);
       setGameId(game.gameId); setPin(game.pin); setView("family"); scrollTop();
@@ -147,6 +148,7 @@ export default function TriviaClient() {
           <div className="flex justify-end mb-1"><SoundBtn /></div>
           <div className="text-6xl mb-2">🎉</div>
           <h1 className="text-3xl sm:text-4xl font-black mb-2 text-kahoot-purple">{t("Trivia Arena")}</h1>
+          <p className="text-gray-600 font-semibold mb-1">{t("Trivia — test your knowledge and race friends worldwide.")}</p>
           <p className="text-gray-500 mb-6">{t("Pick a category. Play solo against the world, or invite your family.")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {TRIVIA_CATEGORIES.map((c: any) => (
@@ -179,11 +181,20 @@ export default function TriviaClient() {
               className="w-full text-center text-2xl font-black rounded-xl border-2 border-indigo-300 bg-white py-3 focus:outline-none focus:border-indigo-500" />
             <p className="text-xs text-gray-500 mt-2">{t("This name goes on the worldwide leaderboard.")}</p>
           </div>
-          <div className="mb-5">
-            <p className="text-sm font-black text-gray-700 mb-2">{t("Choose a level")}</p>
+          <div className="mb-4">
+            <p className="text-sm font-black text-gray-700 mb-1">{t("Choose a level")}</p>
             <div className="grid grid-cols-3 gap-2">
               {[["easy", t("Easy")], ["intermediate", t("Intermediate")], ["hard", t("Hard")]].map(([lv, lab]) => (
-                <button key={lv} onClick={() => setLevel(lv)} className={"rounded-xl py-2 text-sm font-bold border-2 " + (level === lv ? "border-kahoot-purple bg-kahoot-purple text-white" : "border-gray-200 bg-white text-gray-600")}>{lab}</button>
+                <button key={lv} onClick={() => setLevel(lv)} className={"rounded-xl py-2 text-sm font-bold border-2 transition-colors " + (level === lv ? "border-kahoot-purple bg-kahoot-purple text-white shadow" : "border-gray-200 bg-white text-gray-600")}>{lab}</button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">{level === "easy" ? t("Easier questions, more time.") : level === "hard" ? t("Tougher questions, less time.") : t("A balanced mix.")}</p>
+          </div>
+          <div className="mb-5">
+            <p className="text-sm font-black text-gray-700 mb-1">{t("How many questions?")}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {([["short", 5, t("Short")], ["medium", 8, t("Medium")], ["long", 15, t("Long")]] as [string, number, string][]).map(([id, n, lab]) => (
+                <button key={id} onClick={() => setCount(n)} className={"rounded-xl py-2 text-sm font-bold border-2 transition-colors " + (count === n ? "border-emerald-600 bg-emerald-600 text-white shadow" : "border-gray-200 bg-white text-gray-600")}>{lab}<span className="block text-[11px] font-semibold opacity-80">{n}</span></button>
               ))}
             </div>
           </div>
@@ -315,7 +326,7 @@ export default function TriviaClient() {
           </div>
           <p className="text-sm font-bold text-gray-600 mb-3">{playerCount > 0 ? (playerCount + " " + t("players in")) : t("Waiting for players…")}</p>
           {error && <p className="text-red-500 text-sm font-semibold mb-3">{error}</p>}
-          <Button onClick={() => router.push("/host/play?gameId=" + gameId)} size="lg" className="w-full" disabled={!gameId}>{t("Start the game")}</Button>
+          <Button onClick={() => router.push("/host/play?gameId=" + gameId + "&host=" + encodeURIComponent((name || "").trim()))} size="lg" className="w-full" disabled={!gameId}>{t("Start the game")}</Button>
           <button onClick={reset} className="text-sm font-bold text-gray-500 mt-3">{t("← Back")}</button>
         </div>
       </div>

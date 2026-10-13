@@ -670,7 +670,7 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "← Back": { en: "← Back", ar: "→ رجوع", uk: "← Назад", fr: "← Retour", de: "← Zurück" },
   "Play solo": { en: "Play solo", ar: "العب منفردًا", uk: "Грати самому", fr: "Jouer en solo", de: "Solo spielen" },
   "Answer fast and climb the worldwide leaderboard.": { en: "Answer fast and climb the worldwide leaderboard.", ar: "أجب بسرعة واصعد في لوحة الصدارة العالمية.", uk: "Відповідайте швидко й підіймайтеся у світовому рейтингу.", fr: "Répondez vite et grimpez dans le classement mondial.", de: "Antworte schnell und klettere in der weltweiten Bestenliste." },
-  "Play with family": { en: "Play with family", ar: "العب مع العائلة", uk: "Грати з родиною", fr: "Jouer en famille", de: "Mit der Familie spielen" },
+  "Play with family": { en: "Play with friends or family", ar: "العب مع الأصدقاء أو العائلة", uk: "Грати з друзями чи родиною", fr: "Jouer entre amis ou en famille", de: "Mit Freunden oder Familie spielen" },
   "Invite everyone by WhatsApp or QR and play together.": { en: "Invite everyone by WhatsApp or QR and play together.", ar: "ادعُ الجميع عبر واتساب أو رمز QR والعبوا معًا.", uk: "Запросіть усіх через WhatsApp або QR і грайте разом.", fr: "Invitez tout le monde par WhatsApp ou QR et jouez ensemble.", de: "Lade alle per WhatsApp oder QR ein und spielt zusammen." },
   "Question": { en: "Question", ar: "سؤال", uk: "Питання", fr: "Question", de: "Frage" },
   "Correct! 🎉": { en: "Correct! 🎉", ar: "إجابة صحيحة! 🎉", uk: "Правильно! 🎉", fr: "Correct ! 🎉", de: "Richtig! 🎉" },
@@ -688,7 +688,13 @@ export const TRANSLATIONS: Record<string, { en: string; ar: string; uk?: string;
   "Get ready…": { en: "Get ready…", ar: "استعد…", uk: "Приготуйтеся…", fr: "Préparez-vous…", de: "Mach dich bereit…" },
   "Choose another topic": { en: "Choose another topic", ar: "اختر موضوعًا آخر", uk: "Вибрати іншу тему", fr: "Choisir un autre sujet", de: "Anderes Thema wählen" },
   "Choose a level": { en: "Choose a level", ar: "اختر المستوى", uk: "Виберіть рівень", fr: "Choisissez un niveau", de: "Wähle ein Level" },
-  "Intermediate": { en: "Intermediate", ar: "متوسط", uk: "Середній", fr: "Intermédiaire", de: "Mittel" }
+  "Intermediate": { en: "Intermediate", ar: "متوسط", uk: "Середній", fr: "Intermédiaire", de: "Mittel" },
+  "Short": { en: "Short", ar: "قصير", uk: "Короткий", fr: "Court", de: "Kurz" },
+  "Long": { en: "Long", ar: "طويل", uk: "Довгий", fr: "Long", de: "Lang" },
+  "Easier questions, more time.": { en: "Easier questions, more time.", ar: "أسئلة أسهل ووقت أكثر.", uk: "Легші питання, більше часу.", fr: "Questions plus faciles, plus de temps.", de: "Leichtere Fragen, mehr Zeit." },
+  "Tougher questions, less time.": { en: "Tougher questions, less time.", ar: "أسئلة أصعب ووقت أقل.", uk: "Складніші питання, менше часу.", fr: "Questions plus difficiles, moins de temps.", de: "Schwierigere Fragen, weniger Zeit." },
+  "A balanced mix.": { en: "A balanced mix.", ar: "مزيج متوازن.", uk: "Збалансований набір.", fr: "Un mélange équilibré.", de: "Eine ausgewogene Mischung." },
+  "Trivia — test your knowledge and race friends worldwide.": { en: "Trivia — test your knowledge and race friends worldwide.", ar: "تريفيا — اختبر معلوماتك وتسابق مع الأصدقاء حول العالم.", uk: "Вікторина — перевірте свої знання та позмагайтеся з друзями з усього світу.", fr: "Trivia — testez vos connaissances et défiez des amis du monde entier.", de: "Trivia — teste dein Wissen und miss dich mit Freunden weltweit." }
 };
 
 export function t(key: string, lang: Lang): string {

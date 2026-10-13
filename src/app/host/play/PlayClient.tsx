@@ -32,6 +32,7 @@ export default function HostPlayPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const gameId = cleanGameId(searchParams.get("gameId"));
+  const hostNameParam = (searchParams.get("host") || "").trim();
   const quizId = searchParams.get("quizId") || "";
   const { state } = useGame(gameId);
   const { t } = useLang();
@@ -106,7 +107,7 @@ export default function HostPlayPage() {
     if (playAlong) { setPlayAlong(false); return; }
     try {
       if (!hostPidRef.current) hostPidRef.current = "host-" + nanoid();
-      const nm = (user && !user.isAnonymous && user.displayName) ? user.displayName : "Host";
+      const nm = (user && !user.isAnonymous && user.displayName) ? user.displayName : (hostNameParam || "Host");
       await joinGame(gameId, hostPidRef.current, nm);
       setPlayAlong(true);
     } catch (e) {}
@@ -167,7 +168,9 @@ export default function HostPlayPage() {
       questionReport,
     });
     await endGame(gameId, state.pin);
-    router.push("/dashboard");
+    try { if (endAudioRef.current) endAudioRef.current.pause(); } catch (e) {}
+    try { if (musicRef.current) musicRef.current.pause(); } catch (e) {}
+    router.push(isFunRound ? "/trivia" : "/dashboard");
   };
 
   const handleReveal = () => revealAnswer(gameId);
