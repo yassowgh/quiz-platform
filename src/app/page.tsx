@@ -277,19 +277,19 @@ export default function HomePage() {
 
         <div className="mt-6 bg-amber-400/10 border border-amber-400/30 rounded-2xl p-5 text-center">
           <p className="text-amber-300 font-bold text-lg mb-1">
-            💰 {PAID_COUNT} features that cost money on Kahoot are free on QuizUps
+            💰 {PAID_COUNT} {t("features that cost money on Kahoot are free on QuizUps")}
           </p>
           <p className="text-white/60 text-sm">
-            Everything marked 💰 above sits behind a paid Kahoot subscription or is capped on their free plan. On QuizUps it is included at no cost.
+            {t("Everything marked 💰 above sits behind a paid Kahoot subscription or is capped on their free plan. On QuizUps it is included at no cost.")}
           </p>
         </div>
 
         <p className="text-white/40 text-xs text-center mt-4">
-          Comparison based on Kahoot&apos;s publicly documented plan features as of July 2026; their plans and limits may change. Kahoot! is a trademark of Kahoot! ASA — QuizUps is not affiliated with or endorsed by Kahoot! ASA.
+          {t("Comparison based on Kahoot's publicly documented plan features as of July 2026; their plans and limits may change. Kahoot! is a trademark of Kahoot! ASA — QuizUps is not affiliated with or endorsed by Kahoot! ASA.")}
         </p>
 
         <div className="text-center mt-10 pb-8">
-          <p className="text-kahoot-yellow font-bold text-2xl mb-4">✨ Totally free — start hosting in under a minute</p>
+          <p className="text-kahoot-yellow font-bold text-2xl mb-4">{t("✨ Totally free — start hosting in under a minute")}</p>
           <a href="/signup">
             <Button size="lg">Get started free →</Button>
           </a>

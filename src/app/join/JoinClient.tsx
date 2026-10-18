@@ -26,7 +26,7 @@ export default function JoinClient() {
   const autoJoinedRef = useRef(false);
   useEffect(() => {
     const q = (state as any)?._quiz;
-    if (autoJoinedRef.current || !q || q.kind !== "poll" || q.requireName || !nickname.trim() || !gameId) return;
+    if (autoJoinedRef.current || !q || q.kind !== "poll" || !nickname.trim() || !gameId) return;
     autoJoinedRef.current = true;
     (async () => {
       try {
@@ -58,7 +58,7 @@ export default function JoinClient() {
   };
 
   const _q = (state as any)?._quiz;
-  const pollNoName = !!(_q && _q.kind === "poll" && !_q.requireName);
+  const pollNoName = !!(_q && _q.kind === "poll");
   const waiting = !!gameId && !state && !ready;
 
   return (

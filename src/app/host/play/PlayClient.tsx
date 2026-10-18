@@ -170,7 +170,7 @@ export default function HostPlayPage() {
     await endGame(gameId, state.pin);
     try { if (endAudioRef.current) endAudioRef.current.pause(); } catch (e) {}
     try { if (musicRef.current) musicRef.current.pause(); } catch (e) {}
-    router.push(isFunRound ? "/trivia" : "/dashboard");
+    router.push(isFunRound ? "/trivia" : ((user && !user.isAnonymous) ? "/dashboard" : "/"));
   };
 
   const handleReveal = () => revealAnswer(gameId);

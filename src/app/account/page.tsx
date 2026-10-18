@@ -82,10 +82,8 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border-2 border-red-200 p-5 mt-6">
-        <h2 className="text-lg font-black text-red-700 mb-1">{t("Delete account")}</h2>
-        <p className="text-sm text-gray-500 mb-4">{t("Permanently delete your account, your quizzes, and your data. This cannot be undone.")}</p>
-        <Button variant="danger" onClick={() => { setDelStep(1); setConfirmText(""); }}>{t("Delete my account")}</Button>
+      <div className="mt-8 text-center">
+        <button type="button" onClick={() => { setDelStep(1); setConfirmText(""); }} className="text-xs text-gray-400 underline underline-offset-2 hover:text-red-500">{t("Delete my account")}</button>
       </div>
 
       {delStep > 0 && (
