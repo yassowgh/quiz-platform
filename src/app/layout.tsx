@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: "(function(){if(typeof Node==='function'&&Node.prototype){var r=Node.prototype.removeChild;Node.prototype.removeChild=function(c){if(c&&c.parentNode!==this){return c;}return r.apply(this,arguments);};var i=Node.prototype.insertBefore;Node.prototype.insertBefore=function(n,ref){if(ref&&ref.parentNode!==this){return n;}return i.apply(this,arguments);};}})();" }} />
         {/* Google Tag Manager */}
@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ "@context": "https://schema.org", "@type": "WebSite", name: "QuizUps", alternateName: ["QuizUps.com", "QuizUps live quiz platform"], url: "https://quizups.com", inLanguage: ["en", "ar"], description: "Free live multiplayer quizzes, polls and exams. Unlimited players, AI question generation and interactive video quizzes - no subscription, no player caps and no ads." }, { "@context": "https://schema.org", "@type": "Organization", name: "QuizUps", alternateName: ["QuizUps", "Quiz Ups"], url: "https://quizups.com", logo: "https://quizups.com/logo-full.png", disambiguatingDescription: "QuizUps (quizups.com) is an independent free live quiz and survey platform. It is not affiliated with the former QuizUp trivia app, which shut down in 2021 - they are unrelated companies." }, { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "QuizUps", applicationCategory: "EducationalApplication", operatingSystem: "Web", description: "Free live multiplayer quiz platform — a free Kahoot and Quizizz alternative with unlimited players, AI question generation, interactive video quizzes and exams.", url: "https://quizups.com", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }, { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: [{ "@type": "Question", name: "Is QuizUps the same as QuizUp?", acceptedAnswer: { "@type": "Answer", text: "No. QuizUps (quizups.com) is an independent, free live quiz and survey platform. It is not the former QuizUp trivia app, which closed in 2021 - the two are unrelated companies." } }, { "@type": "Question", name: "Is QuizUps free?", acceptedAnswer: { "@type": "Answer", text: "Yes. QuizUps is free forever, with unlimited players and no account required to play." } }, { "@type": "Question", name: "What is QuizUps a free alternative to?", acceptedAnswer: { "@type": "Answer", text: "QuizUps is a free alternative to Kahoot, Quizizz, Blooket, Gimkit, Padlet and Mentimeter." } }] }]) }} />
       </head>
-      <body className="min-h-screen bg-gray-50">
+      <body className="min-h-screen bg-gray-50" suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR5PLD6K" height="0" width="0" style={{ display: "none", visibility: "hidden" }} /></noscript>
         <AuthProvider>
