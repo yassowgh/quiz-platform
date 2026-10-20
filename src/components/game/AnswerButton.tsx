@@ -32,7 +32,7 @@ export default function AnswerButton({ index, text, selected, correct, disabled,
       <span className="text-2xl w-8 text-center">{color.shape}</span>
       <span className="flex-1"><MathText text={text} /></span>
       {correct && <span className="text-2xl">✓</span>}
-      {selected && !correct && disabled && <span className="text-2xl">✗</span>}
+      {selected && !correct && disabled && <span className="text-xl opacity-80" aria-label="your pick">●</span>}
     </button>
   );
 }
