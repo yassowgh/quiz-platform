@@ -17,6 +17,12 @@ export function ReactionBar({ gameId }: { gameId: string }) {
   );
 }
 
+export function sendReaction(gameId: string, e?: string) {
+  if (!gameId) return;
+  const emoji = e || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  try { push(ref(rtdb, "games/" + gameId + "/reactions"), { e: emoji, t: Date.now() }); } catch {}
+}
+
 export function ReactionOverlay({ gameId }: { gameId: string }) {
   const [items, setItems] = useState<{ id: number; e: string; x: number }[]>([]);
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ReactionBar } from "@/components/game/Reactions";
+import { ReactionBar, ReactionOverlay, sendReaction } from "@/components/game/Reactions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { cleanGameId } from "@/lib/utils";
@@ -43,6 +43,23 @@ export default function PlayPage() {
   const [rankOrder, setRankOrder] = useState<number[] | null>(null);
   const [rankSent, setRankSent] = useState(false);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  // Tap-to-react: turn idle/dead taps on waiting & disabled areas into floating reactions
+  const [floats, setFloats] = useState<{ id: number; x: number; y: number; e: string }[]>([]);
+  const lastReactRef = useRef(0);
+  const FLOAT_EMOJIS = ["👍", "😂", "❤️", "😮", "🔥", "👏"];
+  const reactTap = (ev: any) => {
+    const el = ev && ev.target;
+    if (!el || !el.closest) return;
+    if (el.closest("a, input, textarea, select, label, [role=button], [role=slider]")) return;
+    const btn = el.closest("button");
+    if (btn && !btn.disabled) return;
+    const emoji = FLOAT_EMOJIS[Math.floor(Math.random() * FLOAT_EMOJIS.length)];
+    const id = Date.now() + Math.random();
+    setFloats((f) => [...f.slice(-14), { id, x: ev.clientX, y: ev.clientY, e: emoji }]);
+    setTimeout(() => setFloats((f) => f.filter((o) => o.id !== id)), 1100);
+    const now = Date.now();
+    if (gameId && now - lastReactRef.current > 300) { lastReactRef.current = now; sendReaction(gameId, emoji); }
+  };
 
   // Reset answer when a new question starts
   useEffect(() => {
@@ -247,9 +264,13 @@ export default function PlayPage() {
 
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col" style={(state as any)?._quiz?.branding?.primaryColor ? { background: (state as any)._quiz.branding.primaryColor } : undefined}>
+    <div onClick={reactTap} className="min-h-[calc(100vh-64px)] bg-kahoot-dark text-white flex flex-col" style={(state as any)?._quiz?.branding?.primaryColor ? { background: (state as any)._quiz.branding.primaryColor } : undefined}>
       {(state as any)?._quiz?.branding?.logoUrl && <img src={(state as any)._quiz.branding.logoUrl} alt="" className="h-10 mx-auto mt-3 mb-1 object-contain" />}
       <ReactionBar gameId={gameId} />
+      <ReactionOverlay gameId={gameId} />
+      {floats.map((f) => (
+        <span key={f.id} className="pointer-events-none fixed z-[45] text-4xl select-none" style={{ left: f.x, top: f.y, transform: "translate(-50%,-50%)", animation: "floatUp 1s ease-out forwards" }}>{f.e}</span>
+      ))}
       <button onClick={() => setMuted((m) => !m)} className="fixed bottom-4 right-4 z-40 text-2xl bg-white/10 hover:bg-white/20 rounded-full p-3" title={t("Mute music")}>{muted ? "🔇" : "🔊"}</button>
       {countdown !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
