@@ -266,12 +266,36 @@ export async function generateFromUrl(
 
 
 export async function uploadImage(blob: Blob): Promise<string> {
-  const r = await fetch(AI_WORKER_URL.replace(/\/$/, "") + "/upload", {
-    method: "POST",
-    headers: { "Content-Type": blob.type || "image/jpeg" },
-    body: blob,
-  });
-  const j: any = await r.json().catch(() => ({}));
-  if (!r.ok || !j.url) throw new Error(j.error || "upload failed");
-  return j.url as string;
+  const url = AI_WORKER_URL.replace(/\/$/, "") + "/upload";
+  const attempts = 3;
+  let lastErr: any = null;
+  for (let i = 0; i < attempts; i++) {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 45000) : null;
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": blob.type || "image/jpeg" },
+        body: blob,
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+      if (timer) clearTimeout(timer);
+      const j: any = await r.json().catch(() => ({}));
+      if (r.ok && j.url) return j.url as string;
+      lastErr = new Error(j.error || ("upload failed (" + r.status + ")"));
+      // Only transient server states are worth retrying; a 4xx will fail again.
+      if (r.status < 500 && r.status !== 429) throw lastErr;
+    } catch (e: any) {
+      if (timer) clearTimeout(timer);
+      lastErr = e;
+    }
+    if (i < attempts - 1) await new Promise((res) => setTimeout(res, 600 * (i + 1)));
+  }
+  const raw = String((lastErr && (lastErr.message || lastErr.name)) || "");
+  const msg = (lastErr && lastErr.name === "AbortError")
+    ? "Image upload timed out. Please check your connection and try again."
+    : /Failed to fetch|NetworkError|load failed|ERR_/i.test(raw)
+      ? "Image upload failed — a network issue or a browser/ad blocker stopped it. Check your connection (and disable any blocker for quizups.com), then try again."
+      : (raw || "upload failed");
+  throw new Error(msg);
 }
