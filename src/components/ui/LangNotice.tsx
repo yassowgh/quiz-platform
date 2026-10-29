@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useLang } from "@/contexts/LanguageContext";
+import { usePathname } from "next/navigation";
 import { reportExperience } from "@/components/ui/ErrorReporter";
 
 /**
@@ -10,9 +11,12 @@ import { reportExperience } from "@/components/ui/ErrorReporter";
  */
 const UNREVIEWED: Record<string, boolean> = { uk: true };
 const DISMISS_KEY = "quizups:langNoticeSeen";
+// Don't interrupt someone mid-task (taking an assignment, in a live game) with a translation notice.
+const HIDE_ON = ["/assignment", "/play", "/host/play", "/game"];
 
 export default function LangNotice() {
   const { lang, t } = useLang();
+  const pathname = usePathname();
   const [dismissed, setDismissed] = useState(true); // assume seen until we read storage
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -46,7 +50,8 @@ export default function LangNotice() {
     setTimeout(close, 2000);
   };
 
-  if (!UNREVIEWED[lang] || dismissed) return null;
+  const onTaskRoute = HIDE_ON.some((p) => (pathname || "").startsWith(p));
+  if (!UNREVIEWED[lang] || dismissed || onTaskRoute) return null;
 
   return (
     <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
