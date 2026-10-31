@@ -189,6 +189,8 @@ const BENIGN_REJECTIONS = [
   "client is offline",               // transient Firestore connectivity
   "enqueueAndForget",                // Firestore internal async-queue panic
   "disconnected from all chains",    // crypto wallet extension (EIP-1193)
+  "standardSelectors",               // Brave / ad-blocker cosmetic-filter engine (adblock-rust) injected into the page - not our code
+  "extendedSelectors",               // same ad-blocker cosmetic-filter engine
   "network-request-failed",          // Firebase Auth background token refresh (transient)
   "aborted",                         // fetch/XHR AbortError - user navigated away mid-request
   "The operation was aborted",       // Chrome AbortController
