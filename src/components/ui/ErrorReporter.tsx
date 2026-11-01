@@ -115,6 +115,19 @@ function isExtensionNoise(text: string): boolean {
   );
 }
 
+/**
+ * Safari attributes an error thrown inside an injected multi-line inline script
+ * to the document URL itself, e.g. "@https://quizups.com/:17:5890". Our own
+ * inline scripts are each a single line and all of our app code lives under
+ * /_next/, so a rejection pointing at the document root (/:line:col) with no
+ * /_next/ frame is injected third-party code - ad blockers like Brave's
+ * shields, tag managers. Not our bug, and the user can do nothing about it.
+ */
+function isInlineDocNoise(text: string): boolean {
+  const s = String(text || "");
+  return /\/:\d+:\d+/.test(s) && s.indexOf("/_next/") < 0;
+}
+
 function envelope(summary: string, detail?: string, note?: string, replyTo?: string): string {
   const email = (typeof window !== "undefined" && (window as any).__userEmail) || replyTo || "anonymous";
   return (
@@ -395,6 +408,7 @@ export function GlobalErrorListener() {
       if (isBenignRejection(r.message)) return;
       if (isMinifiedNoise(r.message)) return;
       if (isExtensionNoise(r.stack || "") || isExtensionNoise(r.message || "")) return;
+      if (isInlineDocNoise(r.stack || "")) return;
       if (recentlyNavigated()) return;
       const detail = describeReason(r) + "\npage=" + (typeof location !== "undefined" ? location.href : "");
       throttledReport("Unhandled promise rejection", detail);
