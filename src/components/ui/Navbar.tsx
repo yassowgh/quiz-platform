@@ -24,6 +24,7 @@ export default function Navbar() {
           <option value="uk">🌐 УКР</option>
           <option value="fr">🌐 FR</option>
           <option value="de">🌐 DE</option>
+          <option value="tr">🌐 TR</option>
         </select>
         {user ? (
           <>
