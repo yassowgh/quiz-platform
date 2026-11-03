@@ -28,11 +28,11 @@ export default function LocalizedLanding({ lang }: { lang: Lang }) {
 
       <section className="max-w-4xl mx-auto px-4 py-14 text-center">
         <img src="/logo-full.png" alt="QuizUps" className="h-16 sm:h-20 mx-auto mb-6 object-contain" />
-        <h1 className="text-3xl sm:text-5xl font-black mb-3">{t("Live multiplayer quizzes", lang)}</h1>
-        <p className="text-xl sm:text-2xl text-yellow-400 font-bold mb-8">{t("The free Kahoot alternative", lang)}</p>
+        <h1 className="text-3xl sm:text-5xl font-black mb-3">{t("tagline", lang)}</h1>
+        <p className="text-xl sm:text-2xl text-yellow-400 font-bold mb-8">{t("freeAlternative", lang)}</p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link href="/join" className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl px-6 py-3">{t("Join Game!", lang)}</Link>
-          <Link href="/signup" className="bg-white hover:bg-gray-100 text-gray-900 font-black rounded-2xl px-6 py-3">{t("Create a Quiz \u2192", lang)}</Link>
+          <Link href="/signup" className="bg-white hover:bg-gray-100 text-gray-900 font-black rounded-2xl px-6 py-3">{t("createQuiz", lang)}</Link>
         </div>
       </section>
 
@@ -63,7 +63,7 @@ export default function LocalizedLanding({ lang }: { lang: Lang }) {
         <p className="text-lg sm:text-2xl font-black max-w-3xl mx-auto mb-4">{t("features that cost money on Kahoot are free on QuizUps", lang)}</p>
         <Link href="/vs/kahoot" className="inline-block underline font-bold">{t("QuizUps vs Kahoot", lang)}</Link>
         <p className="mt-6 font-black text-lg">{t("\u2728 Totally free \u2014 start hosting in under a minute", lang)}</p>
-        <div className="mt-4"><Link href="/signup" className="inline-block bg-gray-900 text-white font-black rounded-2xl px-6 py-3">{t("Create a Quiz \u2192", lang)}</Link></div>
+        <div className="mt-4"><Link href="/signup" className="inline-block bg-gray-900 text-white font-black rounded-2xl px-6 py-3">{t("createQuiz", lang)}</Link></div>
       </section>
 
       <section className="max-w-4xl mx-auto px-4 py-12 text-center">
