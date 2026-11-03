@@ -291,7 +291,7 @@ export default function HomePage() {
         <div className="text-center mt-10 pb-8">
           <p className="text-kahoot-yellow font-bold text-2xl mb-4">{t("✨ Totally free — start hosting in under a minute")}</p>
           <a href="/signup">
-            <Button size="lg">Get started free →</Button>
+            <Button size="lg">{t("Get started free →")}</Button>
           </a>
         </div>
               <div className="text-center mt-8 pb-10 border-t border-white/10 pt-6">
