@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   keywords: ["free quiz platform", "Kahoot alternative", "Quizizz alternative", "live quiz", "poll maker", "survey tool", "trivia game", "ücretsiz test platformu", "Kahoot alternatifi", "Quizizz alternatifi", "canlı test", "anket", "yoklama", "bilgi yarışması", "online sınav", "eğitim oyunu"],
   authors: [{ name: "QuizUps" }],
   creator: "QuizUps",
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", languages: { en: "https://quizups.com/", ar: "https://quizups.com/ar", uk: "https://quizups.com/uk", fr: "https://quizups.com/fr", de: "https://quizups.com/de", tr: "https://quizups.com/tr", "x-default": "https://quizups.com/" } },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
   twitter: { card: "summary_large_image", title: "QuizUps — Free Kahoot & Quizizz Alternative", description: "Free forever live multiplayer quizzes — unlimited players, AI questions, video quizzes, exams and more.", images: ["/og-image.png"] },
   openGraph: {
