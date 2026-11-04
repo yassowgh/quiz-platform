@@ -1,6 +1,6 @@
 "use client";
 import { useLang } from "@/contexts/LanguageContext";
-import { rankPlayers } from "@/lib/scoring";
+import { rankPlayers, aggregateTeams } from "@/lib/scoring";
 import { ordinal } from "@/lib/utils";
 import type { GamePlayer } from "@/types";
 import { cn } from "@/lib/utils";
@@ -10,14 +10,16 @@ interface LeaderboardProps {
   currentPlayerId?: string;
   limit?: number;
   metric?: "score" | "gold";
+  teamMode?: boolean;
 }
 
-export default function Leaderboard({ players, currentPlayerId, limit = 10, metric = "score" }: LeaderboardProps) {
+export default function Leaderboard({ players, currentPlayerId, limit = 10, metric = "score", teamMode = false }: LeaderboardProps) {
   const { t } = useLang();
   const arr = Object.values(players || {});
-  const all: any[] = metric === "gold"
-    ? [...arr].sort((a: any, b: any) => (b.gold || 0) - (a.gold || 0) || a.joinedAt - b.joinedAt)
-    : rankPlayers(arr as any);
+  const base: any[] = teamMode ? (aggregateTeams(arr as any) as any[]) : arr;
+  const all: any[] = (metric === "gold" && !teamMode)
+    ? [...base].sort((a: any, b: any) => (b.gold || 0) - (a.gold || 0) || a.joinedAt - b.joinedAt)
+    : rankPlayers(base as any);
   all.sort((a: any, b: any) => (a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0));
   const val = (p: any) => (metric === "gold" ? (p.gold || 0) : p.score);
   const unit = metric === "gold" ? "🪙" : t("pts");
@@ -38,6 +40,7 @@ export default function Leaderboard({ players, currentPlayerId, limit = 10, metr
         >
           <span className="w-8 text-center text-xl">{medals[i] || ordinal(i + 1)}</span>
           <span className="flex-1" dir="auto">{(player as any).eliminated ? "💀 " : ""}{player.nickname}</span>
+          {teamMode && <span className="text-xs text-white/50 font-semibold">👥 {(player as any).members}</span>}
           <span className="tabular-nums">{val(player).toLocaleString()} {unit}</span>
         </div>
       ))}

@@ -463,7 +463,7 @@ export default function HostPlayPage() {
       {state.status === "leaderboard" && (
         <div className="max-w-xl mx-auto">
           <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
-          {false ? (
+          {state.teamMode ? (
             <div className="flex flex-col gap-2">
               {aggregateTeams(players as any).map((tm, i) => (
                 <div key={tm.id} className="flex items-center gap-3 bg-white/10 rounded-xl p-3">
@@ -494,7 +494,7 @@ export default function HostPlayPage() {
         <div className="max-w-xl mx-auto text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🏆 {t("finalResults")}</h2>
-          <Podium players={state.players || {}} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
+          <Podium players={state.players || {}} teamMode={!!state.teamMode} metric={(state as any).mode === "goldquest" ? "gold" : "score"} />
           {isFunRound && (
             <div className="mt-6 rounded-2xl bg-white/10 p-5 text-start">
               <p className="font-black mb-1">{t("Keep this round?")}</p>

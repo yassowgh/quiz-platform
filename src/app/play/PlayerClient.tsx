@@ -481,7 +481,7 @@ export default function PlayPage() {
         ) : (
         <div className="p-6">
           <h2 className="text-3xl font-black text-center mb-6">{t("leaderboard")}</h2>
-          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
+          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} teamMode={!!(state as any).teamMode} />
         </div>
         )
       )}
@@ -498,8 +498,8 @@ export default function PlayPage() {
         <div className="flex flex-col items-center justify-center flex-1 p-6 text-center">
           <Confetti />
           <h2 className="text-4xl font-black mb-8">🎉 {t("gameOver")}</h2>
-          <Podium players={state.players || {}} metric={isGold ? "gold" : "score"} />
-          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} />
+          <Podium players={state.players || {}} teamMode={!!(state as any).teamMode} metric={isGold ? "gold" : "score"} />
+          <Leaderboard players={state.players} currentPlayerId={playerId ?? undefined} limit={5} metric={isGold ? "gold" : "score"} teamMode={!!(state as any).teamMode} />
           <HostCta />
         </div>
         )

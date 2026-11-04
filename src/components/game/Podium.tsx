@@ -2,11 +2,13 @@
 import { useLang } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import type { GamePlayer } from "@/types";
+import { aggregateTeams } from "@/lib/scoring";
 import { playFanfare } from "@/lib/sfx";
 
-export default function Podium({ players, withSound = true, metric = "score" }: { players: Record<string, GamePlayer>; withSound?: boolean; metric?: "score" | "gold" }) {
+export default function Podium({ players, withSound = true, metric = "score", teamMode = false }: { players: Record<string, GamePlayer>; withSound?: boolean; metric?: "score" | "gold"; teamMode?: boolean }) {
   const { t } = useLang();
-  const ranked = Object.values(players || {}).sort((a: any, b: any) => ((a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0)) || (metric === "gold" ? (b.gold || 0) - (a.gold || 0) : b.score - a.score));
+  const _arr: any[] = teamMode ? (aggregateTeams(Object.values(players || {}) as any) as any[]) : Object.values(players || {});
+  const ranked = _arr.sort((a: any, b: any) => ((a.eliminated ? 1 : 0) - (b.eliminated ? 1 : 0)) || (metric === "gold" ? (b.gold || 0) - (a.gold || 0) : b.score - a.score));
   const [stage, setStage] = useState(0);
 
   // Reveal one by one: 3rd → 2nd → 1st (biggest fanfare last)
