@@ -86,9 +86,15 @@ export async function flushQueuedReports() {
  * which is how a broken answer submission stayed invisible for weeks.
  */
 export function logHandled(where: string, err?: any) {
+  const detail = describeReason(err);
   try { console.warn("[QuizUps] handled error in " + where, err); } catch (e) {}
-  breadcrumb("error:" + where, describeReason(err).split("\n")[0]);
-  throttledReport("Handled error - " + where, describeReason(err));
+  breadcrumb("error:" + where, detail.split("\n")[0]);
+  // Uploads blocked by the visitor's network, firewall or ad-blocker are
+  // environmental, already surfaced to the user with a clear message, and not
+  // fixable from here - do not flood the inbox with them.
+  if (/Image upload failed|Image upload timed out/.test(detail)) return;
+  if (isExtensionNoise(detail) || isInlineDocNoise(detail)) return;
+  throttledReport("Handled error - " + where, detail);
 }
 
 /**
