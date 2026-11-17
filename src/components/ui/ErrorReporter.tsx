@@ -93,6 +93,7 @@ export function logHandled(where: string, err?: any) {
   // environmental, already surfaced to the user with a clear message, and not
   // fixable from here - do not flood the inbox with them.
   if (/Image upload failed|Image upload timed out/.test(detail)) return;
+  if (/upload/i.test(where) && /Failed to fetch|NetworkError|Load failed/.test(detail)) return;
   if (isExtensionNoise(detail) || isInlineDocNoise(detail)) return;
   throttledReport("Handled error - " + where, detail);
 }

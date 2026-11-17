@@ -121,8 +121,14 @@ export default function PlayPage() {
   }, [state?.status, state?.currentQuestionIndex]);
 
   useEffect(() => {
-    const pid = sessionStorage.getItem("playerId");
-    const nick = sessionStorage.getItem("nickname");
+    let pid: string | null = null;
+    let nick: string | null = null;
+    // iOS Safari (private mode / blocked storage / some in-app webviews) throws on
+    // sessionStorage access; don't let that crash the whole game screen.
+    try {
+      pid = sessionStorage.getItem("playerId");
+      nick = sessionStorage.getItem("nickname");
+    } catch (e) {}
     if (!pid || !nick) { router.push("/"); return; }
     setPlayerId(pid);
     setNickname(nick);
